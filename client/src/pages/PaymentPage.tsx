@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { QRCode } from "@/components/QRCode";
 import { SuccessModal } from "@/components/SuccessModal";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 
 interface Equipment {
   id: string;
@@ -23,10 +23,10 @@ export default function PaymentPage() {
   const { equipmentId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const { data: equipment, isLoading } = useQuery({
+  const { data: equipment, isLoading } = useQuery<Equipment>({
     queryKey: ['/api/equipment/details', equipmentId],
     enabled: !!equipmentId,
   });
@@ -93,7 +93,7 @@ export default function PaymentPage() {
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
-            onClick={() => setLocation(-1)}
+            onClick={() => window.history.back()}
             className="text-white hover:bg-white/10 p-2"
           >
             <ArrowLeft className="h-5 w-5" />

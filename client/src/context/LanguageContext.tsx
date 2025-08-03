@@ -71,6 +71,13 @@ const translations = {
     chassis_no: 'Chassis No',
     status: 'Status',
     platform: 'Platform',
+    cancel: 'Cancel',
+    accept: 'Accept',
+    view_terms: 'View Terms & Conditions',
+    terms_and_conditions: 'Terms and Conditions',
+    otp_verification: 'OTP Verification',
+    otp_sent_to: 'OTP sent to your mobile number',
+    resend_otp: 'Resend OTP',
   },
   tamil: {
     company_name: 'ஹார்வ்டெக்',
@@ -132,6 +139,13 @@ const translations = {
     chassis_no: 'சேஸிஸ் எண்',
     status: 'நிலை',
     platform: 'தளம்',
+    cancel: 'ரத்து செய்',
+    accept: 'ஏற்க',
+    view_terms: 'விதிமுறைகள் மற்றும் நிபந்தனைகளைப் பார்க்கவும்',
+    terms_and_conditions: 'விதிமுறைகள் மற்றும் நிபந்தனைகள்',
+    otp_verification: 'OTP சரிபார்ப்பு',
+    otp_sent_to: 'உங்கள் மொபைல் எண்ணுக்கு OTP அனுப்பப்பட்டது',
+    resend_otp: 'OTP மீண்டும் அனுப்பவும்',
   },
 };
 

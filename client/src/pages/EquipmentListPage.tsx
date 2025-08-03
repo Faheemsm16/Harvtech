@@ -21,7 +21,7 @@ export default function EquipmentListPage() {
   const [, setLocation] = useLocation();
   const { type } = useParams();
 
-  const { data: equipment = [], isLoading } = useQuery({
+  const { data: equipment = [], isLoading } = useQuery<Equipment[]>({
     queryKey: ['/api/equipment', type],
     enabled: !!type,
   });

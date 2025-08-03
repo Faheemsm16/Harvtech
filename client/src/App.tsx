@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/context/LanguageContext";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useCustomAuth } from "@/context/AuthContext";
 import NotFound from "@/pages/not-found";
 import EntryPage from "@/pages/EntryPage";
 import LoginPage from "@/pages/LoginPage";
@@ -17,7 +17,7 @@ import EquipmentListPage from "@/pages/EquipmentListPage";
 import PaymentPage from "@/pages/PaymentPage";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useCustomAuth();
 
   return (
     <Switch>
@@ -48,12 +48,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LanguageProvider>
-          <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
-            <Toaster />
-            <Router />
-          </div>
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+              <Toaster />
+              <Router />
+            </div>
+          </LanguageProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

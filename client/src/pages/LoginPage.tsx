@@ -7,11 +7,13 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useCustomAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useCustomAuth();
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpSection, setShowOtpSection] = useState(false);
@@ -82,6 +84,9 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
+        // Login user with custom auth context
+        login(data.user);
+        
         // Redirect based on user role
         if (data.user.role === 'user') {
           setLocation('/user-dashboard');

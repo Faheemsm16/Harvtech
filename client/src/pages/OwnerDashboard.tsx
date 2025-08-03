@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Network, Bell, User, LogOut, Settings } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
 interface Equipment {
@@ -20,15 +21,17 @@ interface Equipment {
 
 export default function OwnerDashboard() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useCustomAuth();
+  const [, setLocation] = useLocation();
 
-  const { data: equipment = [], isLoading } = useQuery({
+  const { data: equipment = [], isLoading } = useQuery<Equipment[]>({
     queryKey: ['/api/owner/equipment'],
     enabled: !!user,
   });
 
   const handleLogout = () => {
-    window.location.href = '/api/logout';
+    logout();
+    setLocation('/');
   };
 
   const primaryEquipment = equipment[0] as Equipment | undefined;

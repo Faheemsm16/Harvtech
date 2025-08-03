@@ -3,15 +3,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tractor, Wrench, Settings, Network, Bell, User, LogOut } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 
 export default function UserDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useCustomAuth();
 
   const handleLogout = () => {
-    window.location.href = '/api/logout';
+    logout();
+    setLocation('/');
   };
 
   const navigateToEquipment = (type: string) => {

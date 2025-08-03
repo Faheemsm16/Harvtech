@@ -9,6 +9,8 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SuccessModal } from "@/components/SuccessModal";
+import { TermsAndConditions } from "@/components/TermsAndConditions";
+import { useCustomAuth } from "@/context/AuthContext";
 
 interface FormData {
   name: string;
@@ -23,9 +25,13 @@ export default function UserRegistrationPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useCustomAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [farmerId, setFarmerId] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState("");
   
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -71,11 +77,67 @@ export default function UserRegistrationPage() {
     return true;
   };
 
-  const handleSubmit = async () => {
+  const sendOTP = async () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
+      // Check if mobile number already exists
+      const checkResponse = await apiRequest('POST', '/api/check-mobile', {
+        mobileNumber: formData.mobileNumber
+      });
+      const checkData = await checkResponse.json();
+
+      if (checkData.isRegistered) {
+        toast({
+          title: "Already Registered",
+          description: "Mobile number already registered. Please login instead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Send OTP
+      await apiRequest('POST', '/api/send-otp', { mobileNumber: formData.mobileNumber });
+      setShowOtp(true);
+      toast({
+        title: "OTP Sent",
+        description: "Please check your mobile for the OTP",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOTPAndRegister = async () => {
+    if (!otp || otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Verify OTP (using mock verification with "123456")
+      if (otp !== "123456") {
+        toast({
+          title: "Invalid OTP",
+          description: "Please check your OTP and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Register user after OTP verification
       const registrationData = {
         name: formData.name,
         city: formData.city,
@@ -88,6 +150,9 @@ export default function UserRegistrationPage() {
       const response = await apiRequest('POST', '/api/register', registrationData);
       const data = await response.json();
 
+      // Auto-login the user after successful registration
+      login(data.user);
+      
       setFarmerId(data.farmerId);
       setShowSuccess(true);
     } catch (error: any) {
@@ -103,7 +168,7 @@ export default function UserRegistrationPage() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    setLocation('/login');
+    setLocation('/user-dashboard');
   };
 
   return (
@@ -196,19 +261,66 @@ export default function UserRegistrationPage() {
             onCheckedChange={(checked) => handleInputChange('acceptTerms', !!checked)}
             className="mt-1"
           />
-          <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
-            {t('terms_agreement')}
-          </Label>
+          <div className="flex-1">
+            <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
+              {t('terms_agreement')}
+            </Label>
+            <button
+              type="button"
+              onClick={() => setShowTerms(true)}
+              className="text-ag-green text-sm underline mt-1 block"
+            >
+              {t('view_terms')}
+            </button>
+          </div>
         </div>
         
-        {/* Register Button */}
-        <Button 
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"
-        >
-          {t('register')}
-        </Button>
+        {/* Register Button or OTP Section */}
+        {!showOtp ? (
+          <Button 
+            onClick={sendOTP}
+            disabled={isLoading}
+            className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"
+          >
+            {isLoading ? 'Sending...' : t('send_otp')}
+          </Button>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-ag-green/10 p-4 rounded-lg text-center">
+              <p className="text-sm text-ag-green font-medium">{t('otp_verification')}</p>
+              <p className="text-xs text-gray-600 mt-1">{t('otp_sent_to')} +91{formData.mobileNumber}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('enter_otp')}</Label>
+              <Input
+                type="text"
+                placeholder="Enter 6-digit OTP (use 123456 for demo)"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                maxLength={6}
+                className="w-full py-4 text-center text-xl tracking-widest focus:ring-2 focus:ring-ag-green"
+              />
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowOtp(false)}
+                className="flex-1"
+              >
+                Back
+              </Button>
+              <Button 
+                onClick={verifyOTPAndRegister}
+                disabled={isLoading}
+                className="flex-1 bg-ag-green hover:bg-ag-green/90 text-white"
+              >
+                {isLoading ? 'Verifying...' : t('verify_otp')}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <SuccessModal
@@ -216,6 +328,15 @@ export default function UserRegistrationPage() {
         onClose={handleSuccessClose}
         message="Registration completed successfully"
         farmerId={farmerId}
+      />
+      
+      <TermsAndConditions
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={() => {
+          setShowTerms(false);
+          handleInputChange('acceptTerms', true);
+        }}
       />
     </div>
   );
