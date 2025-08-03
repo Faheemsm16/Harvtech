@@ -1,0 +1,43 @@
+Build a mobile app (Android + iOS) focused on agriculture for Indian farmers. The app must support two user roles: Owner and User. It should be simple, bilingual (English + Tamil), and include OTP-based login/registration (it need not get too deep and actually use otp authentication now) and AI-powered Tamil translation.
+Key Functional Requirements:
+1. Entry Page
+•	Top-right: Language icon toggle (English | Tamil)
+•	Center: Company logo (I’ve uploaded) + name “HARVTECH” + tagline — “Empowering Farmers, Connecting Markets”
+•	Buttons: Login, Register, Help (opens email app with prefilled company email)
+2. Login Page
+•	Title: "Welcome Back!"
+•	Input: Country code +91 + Mobile Number 
+•	Check if the mobile number if registered, if not ask the user to get registered first or say number not registered.
+•	Button: Send OTP
+•	Input: OTP
+•	Button: Verify OTP
+•	After successful login, take the user to Home Page (owner/user dashboard depending on the registered number and role of the user)
+3. Registration Flow
+a. Role Selection Page:
+•	Ask: “Are you an Owner or a User?”
+•	Buttons: Owner, User
+b. User Registration
+•	Fields: Name, City, Country (India), Aadhaar No. (12 digits), Mobile No. (10 digits) (all the fields must be filled to proceed further)
+•	OTP Flow: Send OTP → Enter OTP → Verify
+•	Check if number is already registered and also add a terms and condition box to be ticked to proceed further
+•	On success: Display unique, constant Farmer ID
+•	Button: OK to proceed
+•	After successful registration, take the user to Home Page (user dashboard) 
+c. Owner Registration
+•	Step 1: Select Product (e.g., Tractor, Weeder, Tiller), enter Model No. + Chassis No. / VIN
+•	Step 2: Same registration as User
+•	On success: Display Farmer ID → OK to proceed
+•	After successful registration, take the user to Home Page (owner dashboard)
+4. Owner Dashboard
+•	Display: Vehicle image + details (give sample details on your own)
+•	Top: User profile icon with info
+•	Bottom: Two buttons — Platform, Services
+•	If multiple vehicles: show them as individual selectable buttons
+5. User Dashboard
+•	Top: Profile icon
+•	Welcome message: Welcome, <UserName>
+•	Buttons:
+o	Machine Lease → 3 choices: Tractor, Weeder, Tilter
+	For each: swipeable images, product info, price (you can give sample details on your own) , Select → Payment (use QR for payment confirmation)
+o	Platforms
+o	Services
