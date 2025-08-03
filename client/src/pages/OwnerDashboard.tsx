@@ -34,6 +34,19 @@ export default function OwnerDashboard() {
     setLocation('/');
   };
 
+  const getEquipmentImage = (type: string) => {
+    switch (type) {
+      case 'tractor':
+        return 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+      case 'weeder':
+        return 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+      case 'tiller':
+        return 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+      default:
+        return 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+    }
+  };
+
   const primaryEquipment = equipment[0] as Equipment | undefined;
 
   return (
@@ -64,45 +77,63 @@ export default function OwnerDashboard() {
       <div className="p-6">
         {isLoading ? (
           <div className="text-center py-8">Loading equipment...</div>
-        ) : primaryEquipment ? (
-          <Card className="bg-white border border-gray-200 overflow-hidden mb-6">
-            {/* Vehicle Image */}
-            <div className="h-48 bg-gray-100">
-              <img 
-                src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" 
-                alt="Agricultural Equipment" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Vehicle Details */}
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-3">{primaryEquipment.name}</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-gray-600">{t('model')}:</span>
-                  <p className="font-medium">{primaryEquipment.modelNumber}</p>
+        ) : equipment.length > 0 ? (
+          <div className="space-y-4 mb-6">
+            {equipment.map((item: Equipment) => (
+              <Card key={item.id} className="bg-white border border-gray-200 overflow-hidden">
+                {/* Vehicle Image */}
+                <div className="h-48 bg-gray-100">
+                  <img 
+                    src={item.imageUrl || getEquipmentImage(item.type)} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div>
-                  <span className="text-gray-600">{t('year')}:</span>
-                  <p className="font-medium">{primaryEquipment.year || '2022'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">{t('chassis_no')}:</span>
-                  <p className="font-medium font-mono text-xs">{primaryEquipment.chassisNumber}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">{t('status')}:</span>
-                  <p className="font-medium text-green-600 capitalize">{primaryEquipment.availability}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                
+                {/* Vehicle Details */}
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold text-lg">{item.name}</h3>
+                    <span className="text-xs bg-ag-green/10 text-ag-green px-2 py-1 rounded capitalize">
+                      {item.type}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">{t('model')}:</span>
+                      <p className="font-medium">{item.modelNumber}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">{t('year')}:</span>
+                      <p className="font-medium">{item.year || '2022'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">{t('chassis_no')}:</span>
+                      <p className="font-medium font-mono text-xs">{item.chassisNumber}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">{t('status')}:</span>
+                      <p className="font-medium text-green-600 capitalize">{item.availability}</p>
+                    </div>
+                  </div>
+                  {item.power && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">{t('power')}:</span>
+                        <span className="font-semibold text-ag-green">{item.power}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : (
           <Card className="bg-white border border-gray-200 p-6 mb-6">
             <div className="text-center text-gray-500">
               <Settings className="h-12 w-12 mx-auto mb-2 text-gray-400" />
               <p>No equipment registered yet</p>
+              <p className="text-sm mt-1">Register your equipment to start earning</p>
             </div>
           </Card>
         )}

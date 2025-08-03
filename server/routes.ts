@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertUserSchema, insertEquipmentSchema, insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
+import { seedDatabase } from "./seedData";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -175,6 +176,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Booking update error:", error);
       res.status(500).json({ message: "Failed to update booking" });
+    }
+  });
+
+  // Database seeding endpoint (for development)
+  app.post('/api/seed-database', async (req, res) => {
+    try {
+      await seedDatabase();
+      res.json({ success: true, message: "Database seeded successfully" });
+    } catch (error) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ message: "Failed to seed database" });
     }
   });
 

@@ -8,7 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { QRCode } from "@/components/QRCode";
-import { SuccessModal } from "@/components/SuccessModal";
+import { ReceiptModal } from "@/components/ReceiptModal";
 import { useCustomAuth } from "@/context/AuthContext";
 
 interface Equipment {
@@ -24,7 +24,10 @@ export default function PaymentPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useCustomAuth();
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+  
+  const ADVANCE_AMOUNT = 50; // Fixed advance amount
 
   const { data: equipment, isLoading } = useQuery<Equipment>({
     queryKey: ['/api/equipment/details', equipmentId],
@@ -36,9 +39,10 @@ export default function PaymentPage() {
       const response = await apiRequest('POST', '/api/bookings', bookingData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/bookings'] });
-      setShowSuccess(true);
+      setBookingData(data);
+      setShowReceipt(true);
     },
     onError: (error) => {
       toast({
@@ -52,19 +56,19 @@ export default function PaymentPage() {
   const confirmPayment = async () => {
     if (!equipment || !user) return;
 
-    const bookingData = {
+    const bookingDataPayload = {
       equipmentId: equipment.id,
       startDate: new Date(),
       endDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day later
-      totalCost: equipment.pricePerDay + 2000, // Including security deposit
-      securityDeposit: 2000,
+      totalCost: ADVANCE_AMOUNT, // Fixed advance amount
+      securityDeposit: 0, // No security deposit for advance
     };
 
-    createBookingMutation.mutate(bookingData);
+    createBookingMutation.mutate(bookingDataPayload);
   };
 
-  const handleSuccessClose = () => {
-    setShowSuccess(false);
+  const handleReceiptClose = () => {
+    setShowReceipt(false);
     setLocation('/user-dashboard');
   };
 
@@ -84,7 +88,7 @@ export default function PaymentPage() {
     );
   }
 
-  const totalCost = equipment.pricePerDay + 2000; // Including security deposit
+  const totalCost = ADVANCE_AMOUNT; // Fixed advance amount
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -114,16 +118,16 @@ export default function PaymentPage() {
                 <span>{equipment.name}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('duration')}:</span>
-                <span>1 Day</span>
+                <span>{t('booking_type')}:</span>
+                <span>Advance Booking</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('rental_cost')}:</span>
-                <span>₹{equipment.pricePerDay}</span>
+                <span>{t('advance_amount')}:</span>
+                <span className="text-ag-green font-semibold">₹{ADVANCE_AMOUNT}</span>
               </div>
-              <div className="flex justify-between">
-                <span>{t('security_deposit')}:</span>
-                <span>₹2000</span>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Full rental (₹{equipment.pricePerDay}/day):</span>
+                <span>Pay on pickup</span>
               </div>
               <hr className="my-2" />
               <div className="flex justify-between font-semibold">
@@ -141,7 +145,7 @@ export default function PaymentPage() {
             
             {/* QR Code */}
             <div className="flex justify-center mb-4">
-              <QRCode value={`upi://pay?pa=harvtech@paytm&pn=HARVTECH&mc=0000&tid=txn${Date.now()}&tr=booking${equipmentId}&tn=Equipment Rental Payment&am=${totalCost}&cu=INR`} size={200} />
+              <QRCode value={`upi://pay?pa=harvtech@paytm&pn=HARVTECH&mc=0000&tid=txn${Date.now()}&tr=booking${equipmentId}&tn=Equipment Advance Payment&am=${ADVANCE_AMOUNT}&cu=INR`} size={200} />
             </div>
             
             <p className="text-sm text-gray-600 mb-4">{t('payment_instruction')}</p>
@@ -158,11 +162,17 @@ export default function PaymentPage() {
         </Card>
       </div>
 
-      <SuccessModal
-        isOpen={showSuccess}
-        onClose={handleSuccessClose}
-        message="Payment successful! Equipment booking confirmed."
-      />
+      {bookingData && (
+        <ReceiptModal
+          isOpen={showReceipt}
+          onClose={handleReceiptClose}
+          equipmentName={equipment?.name || ''}
+          advanceAmount={ADVANCE_AMOUNT}
+          farmerId={user?.farmerId || ''}
+          bookingId={bookingData.id}
+          paymentDate={new Date()}
+        />
+      )}
     </div>
   );
 }

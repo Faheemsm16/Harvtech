@@ -1,14 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tractor, Wrench, Settings, Network, Bell, User, LogOut } from "lucide-react";
+import { Tractor, Wrench, Settings, Network, Bell, User, LogOut, Package } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+
+interface Booking {
+  id: string;
+  equipmentName: string;
+  startDate: string;
+  endDate: string;
+  totalCost: number;
+  status: string;
+  paymentStatus: string;
+  equipment: {
+    name: string;
+    type: string;
+    imageUrl?: string;
+  };
+}
 
 export default function UserDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { user, logout } = useCustomAuth();
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
+    queryKey: ['/api/user/bookings'],
+    enabled: !!user,
+  });
 
   const handleLogout = () => {
     logout();
@@ -87,6 +108,50 @@ export default function UserDashboard() {
               <span className="text-sm font-medium">{t('tiller')}</span>
             </Button>
           </div>
+        </div>
+        
+        {/* My Bookings Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">{t('my_bookings') || 'My Bookings'}</h3>
+          {bookingsLoading ? (
+            <div className="text-center py-4">Loading bookings...</div>
+          ) : bookings.length === 0 ? (
+            <Card className="bg-white border border-gray-200 p-6">
+              <div className="text-center text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                <p>No bookings yet</p>
+                <p className="text-sm">Book equipment to see your rentals here</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {bookings.slice(0, 2).map((booking: Booking) => (
+                <Card key={booking.id} className="bg-white border border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={booking.equipment?.imageUrl || `https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200`}
+                          alt={booking.equipment?.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{booking.equipment?.name}</h4>
+                        <p className="text-xs text-gray-600 capitalize">{booking.equipment?.type}</p>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs text-green-600 font-medium">
+                            {booking.paymentStatus === 'paid' ? 'Advance Paid' : 'Pending'}
+                          </span>
+                          <span className="text-xs font-bold text-ag-green">₹{booking.totalCost}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
         
         {/* Other Services */}

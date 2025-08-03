@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Globe, Tractor, HelpCircle } from "lucide-react";
+import { Globe, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
+import logoPath from "@assets/Logo_1754240298298.jpeg";
 
 export default function EntryPage() {
   const { currentLanguage, toggleLanguage, t } = useLanguage();
@@ -30,8 +31,12 @@ export default function EntryPage() {
       
       {/* Logo and Branding */}
       <div className="flex-1 flex flex-col justify-center items-center px-8">
-        <div className="w-24 h-24 bg-ag-green rounded-2xl flex items-center justify-center mb-6">
-          <Tractor className="h-12 w-12 text-white" />
+        <div className="w-24 h-24 bg-ag-green rounded-2xl flex items-center justify-center mb-6 overflow-hidden">
+          <img 
+            src={logoPath} 
+            alt="HARVTECH Logo" 
+            className="w-full h-full object-cover"
+          />
         </div>
         
         <h1 className="text-3xl font-bold text-ag-dark mb-2">
