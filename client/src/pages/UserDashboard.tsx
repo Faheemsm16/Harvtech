@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tractor, Wrench, Settings, Network, Bell, User, LogOut, Package } from "lucide-react";
@@ -5,6 +6,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { SchemesModal } from "@/components/SchemesModal";
+import { ServicesModal } from "@/components/ServicesModal";
 
 interface Booking {
   id: string;
@@ -25,6 +28,8 @@ export default function UserDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { user, logout } = useCustomAuth();
+  const [showSchemes, setShowSchemes] = useState(false);
+  const [showServices, setShowServices] = useState(false);
 
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/user/bookings'],
@@ -158,6 +163,7 @@ export default function UserDashboard() {
         <div className="space-y-3">
           <Button
             variant="outline"
+            onClick={() => setShowSchemes(true)}
             className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-ag-orange"
           >
             <Network className="h-5 w-5 text-ag-orange mr-3" />
@@ -167,6 +173,7 @@ export default function UserDashboard() {
           
           <Button
             variant="outline"
+            onClick={() => setShowServices(true)}
             className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-ag-orange"
           >
             <Bell className="h-5 w-5 text-ag-orange mr-3" />
@@ -175,6 +182,10 @@ export default function UserDashboard() {
           </Button>
         </div>
       </div>
+      
+      {/* Modals */}
+      <SchemesModal isOpen={showSchemes} onClose={() => setShowSchemes(false)} />
+      <ServicesModal isOpen={showServices} onClose={() => setShowServices(false)} />
     </div>
   );
 }

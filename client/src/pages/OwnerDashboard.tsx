@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Network, Bell, User, LogOut, Settings } from "lucide-react";
+import { Network, Bell, User, LogOut, Settings, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { SchemesModal } from "@/components/SchemesModal";
+import { ServicesModal } from "@/components/ServicesModal";
+import { OwnerEquipmentModal } from "@/components/OwnerEquipmentModal";
 
 interface Equipment {
   id: string;
@@ -23,6 +26,9 @@ export default function OwnerDashboard() {
   const { t } = useLanguage();
   const { user, logout } = useCustomAuth();
   const [, setLocation] = useLocation();
+  const [showSchemes, setShowSchemes] = useState(false);
+  const [showServices, setShowServices] = useState(false);
+  const [showOwnerEquipment, setShowOwnerEquipment] = useState(false);
 
   const { data: equipment = [], isLoading } = useQuery<Equipment[]>({
     queryKey: ['/api/owner/equipment'],
@@ -138,19 +144,46 @@ export default function OwnerDashboard() {
           </Card>
         )}
         
+        {/* Equipment Leasing Section */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">{t('equipment_leasing') || 'Equipment Leasing'}</h3>
+          <Button 
+            onClick={() => setShowOwnerEquipment(true)}
+            className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-4 font-semibold"
+          >
+            <TrendingUp className="h-5 w-5 mr-2" />
+            <span>{t('lease_my_equipment') || 'Lease My Equipment'}</span>
+          </Button>
+        </div>
+        
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Button className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold">
+          <Button 
+            onClick={() => setShowSchemes(true)}
+            className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"
+          >
             <Network className="h-5 w-5 mr-2" />
-            <span>{t('platform')}</span>
+            <span>{t('platforms') || 'Platforms'}</span>
           </Button>
           
-          <Button className="w-full bg-ag-orange hover:bg-ag-orange/90 text-white py-6 font-semibold">
+          <Button 
+            onClick={() => setShowServices(true)}
+            className="w-full bg-ag-orange hover:bg-ag-orange/90 text-white py-6 font-semibold"
+          >
             <Bell className="h-5 w-5 mr-2" />
-            <span>{t('services')}</span>
+            <span>{t('services') || 'Services'}</span>
           </Button>
         </div>
       </div>
+      
+      {/* Modals */}
+      <SchemesModal isOpen={showSchemes} onClose={() => setShowSchemes(false)} />
+      <ServicesModal isOpen={showServices} onClose={() => setShowServices(false)} />
+      <OwnerEquipmentModal 
+        isOpen={showOwnerEquipment} 
+        onClose={() => setShowOwnerEquipment(false)}
+        equipment={equipment}
+      />
     </div>
   );
 }

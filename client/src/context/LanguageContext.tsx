@@ -87,6 +87,10 @@ const translations = {
     pending_pickup: 'Pending Pickup',
     in_use: 'In Use',
     returned: 'Returned',
+    government_schemes: 'Government Schemes',
+    my_equipment: 'My Equipment',
+    equipment_leasing: 'Equipment Leasing',
+    lease_my_equipment: 'Lease My Equipment',
   },
   tamil: {
     company_name: 'ஹார்வ்டெக்',
@@ -164,6 +168,10 @@ const translations = {
     pending_pickup: 'எடுக்க காத்திருக்கிறது',
     in_use: 'பயன்பாட்டில்',
     returned: 'திரும்பியது',
+    government_schemes: 'அரசு திட்டங்கள்',
+    my_equipment: 'எனது கருவிகள்',
+    equipment_leasing: 'கருவி குத்தகை',
+    lease_my_equipment: 'எனது கருவியை குத்தகைக்கு கொடு',
   },
 };
 
