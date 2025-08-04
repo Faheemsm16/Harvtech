@@ -13,6 +13,7 @@ import UserRegistrationPage from "@/pages/UserRegistrationPage";
 import OwnerRegistrationPage from "@/pages/OwnerRegistrationPage";
 import UserDashboard from "@/pages/UserDashboard";
 import OwnerDashboard from "@/pages/OwnerDashboard";
+import PlatformsPage from "@/pages/PlatformsPage";
 import EquipmentListPage from "@/pages/EquipmentListPage";
 import PaymentPage from "@/pages/PaymentPage";
 
@@ -33,6 +34,7 @@ function Router() {
         <>
           <Route path="/user-dashboard" component={UserDashboard} />
           <Route path="/owner-dashboard" component={OwnerDashboard} />
+          <Route path="/platforms" component={PlatformsPage} />
           <Route path="/equipment/:type" component={EquipmentListPage} />
           <Route path="/payment/:equipmentId" component={PaymentPage} />
         </>

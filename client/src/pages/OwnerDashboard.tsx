@@ -159,7 +159,7 @@ export default function OwnerDashboard() {
         {/* Action Buttons */}
         <div className="space-y-3">
           <Button 
-            onClick={() => setShowSchemes(true)}
+            onClick={() => setLocation('/platforms')}
             className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"
           >
             <Network className="h-5 w-5 mr-2" />

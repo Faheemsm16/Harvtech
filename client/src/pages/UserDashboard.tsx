@@ -163,7 +163,7 @@ export default function UserDashboard() {
         <div className="space-y-3">
           <Button
             variant="outline"
-            onClick={() => setShowSchemes(true)}
+            onClick={() => setLocation('/platforms')}
             className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-ag-orange"
           >
             <Network className="h-5 w-5 text-ag-orange mr-3" />
