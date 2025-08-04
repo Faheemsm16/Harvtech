@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, MapPin, Navigation, Truck } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Truck, Search } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,127 +35,232 @@ export default function TransportBookingPage() {
   const [loadUnit, setLoadUnit] = useState("");
   const [isSettingPickup, setIsSettingPickup] = useState(true);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [autocompleteService, setAutocompleteService] = useState<any>(null);
+  const [placesService, setPlacesService] = useState<any>(null);
 
   // Initialize Google Maps
   useEffect(() => {
     if (!mapRef.current) return;
 
     const initMap = () => {
+      // Fallback to demo mode if Google Maps is not available
       if (!window.google) {
-        console.error('Google Maps not loaded');
+        console.log('Google Maps not available, using demo mode');
+        setIsMapLoaded(true);
+        // Auto-set current location in demo mode
+        getCurrentLocation();
         return;
       }
 
-      // Default to Bangalore, India
-      const defaultCenter = { lat: 12.9716, lng: 77.5946 };
-      
-      const mapInstance = new window.google.maps.Map(mapRef.current!, {
-        zoom: 13,
-        center: defaultCenter,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      });
+      try {
+        // Default to Bangalore, India
+        const defaultCenter = { lat: 12.9716, lng: 77.5946 };
+        
+        const mapInstance = new window.google.maps.Map(mapRef.current!, {
+          zoom: 13,
+          center: defaultCenter,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
 
-      setMap(mapInstance);
-      setIsMapLoaded(true);
+        setMap(mapInstance);
+        setIsMapLoaded(true);
 
-      // Add click listener to set markers
-      mapInstance.addListener("click", (event: any) => {
-        if (event.latLng) {
-          const lat = event.latLng.lat().toString();
-          const lng = event.latLng.lng().toString();
-          
-          // Get address from coordinates
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: event.latLng }, (results: any, status: any) => {
-            if (status === "OK" && results && results[0]) {
-              const address = results[0].formatted_address;
-              
-              if (isSettingPickup) {
-                // Set pickup location
-                if (pickupMarker) pickupMarker.setMap(null);
-                const marker = new window.google.maps.Marker({
-                  position: event.latLng!,
-                  map: mapInstance,
-                  title: "Pickup Location",
-                  icon: {
-                    url: "data:image/svg+xml," + encodeURIComponent(`
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#22c55e"/>
-                        <circle cx="12" cy="9" r="2.5" fill="white"/>
-                      </svg>
-                    `)
-                  }
-                });
-                setPickupMarker(marker);
-                setPickupLocation({ latitude: lat, longitude: lng, address });
-              } else {
-                // Set drop location
-                if (dropMarker) dropMarker.setMap(null);
-                const marker = new window.google.maps.Marker({
-                  position: event.latLng!,
-                  map: mapInstance,
-                  title: "Drop Location",
-                  icon: {
-                    url: "data:image/svg+xml," + encodeURIComponent(`
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#ef4444"/>
-                        <circle cx="12" cy="9" r="2.5" fill="white"/>
-                      </svg>
-                    `)
-                  }
-                });
-                setDropMarker(marker);
-                setDropLocation({ latitude: lat, longitude: lng, address });
+        // Initialize places services
+        const autoService = new window.google.maps.places.AutocompleteService();
+        const placesServiceInstance = new window.google.maps.places.PlacesService(mapInstance);
+        setAutocompleteService(autoService);
+        setPlacesService(placesServiceInstance);
+
+        // Add click listener to set markers
+        mapInstance.addListener("click", (event: any) => {
+          if (event.latLng) {
+            const lat = event.latLng.lat().toString();
+            const lng = event.latLng.lng().toString();
+            
+            // Get address from coordinates
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location: event.latLng }, (results: any, status: any) => {
+              if (status === "OK" && results && results[0]) {
+                const address = results[0].formatted_address;
+                
+                if (isSettingPickup) {
+                  // Set pickup location
+                  if (pickupMarker) pickupMarker.setMap(null);
+                  const marker = new window.google.maps.Marker({
+                    position: event.latLng!,
+                    map: mapInstance,
+                    title: "Pickup Location",
+                    icon: {
+                      url: "data:image/svg+xml," + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#22c55e"/>
+                          <circle cx="12" cy="9" r="2.5" fill="white"/>
+                        </svg>
+                      `)
+                    }
+                  });
+                  setPickupMarker(marker);
+                  setPickupLocation({ latitude: lat, longitude: lng, address });
+                  
+                  toast({
+                    title: "Pickup Location Set",
+                    description: address,
+                  });
+                } else {
+                  // Set drop location
+                  if (dropMarker) dropMarker.setMap(null);
+                  const marker = new window.google.maps.Marker({
+                    position: event.latLng!,
+                    map: mapInstance,
+                    title: "Drop Location",
+                    icon: {
+                      url: "data:image/svg+xml," + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#ef4444"/>
+                          <circle cx="12" cy="9" r="2.5" fill="white"/>
+                        </svg>
+                      `)
+                    }
+                  });
+                  setDropMarker(marker);
+                  setDropLocation({ latitude: lat, longitude: lng, address });
+                  
+                  toast({
+                    title: "Drop Location Set",
+                    description: address,
+                  });
+                }
               }
-            }
-          });
-        }
-      });
+            });
+          }
+        });
+
+        // Auto-get current location when map loads
+        getCurrentLocation();
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        setIsMapLoaded(true);
+        getCurrentLocation();
+      }
     };
 
     // Load Google Maps script if not already loaded
     if (typeof window.google === "undefined") {
       const script = document.createElement("script");
-      // Note: Replace with actual Google Maps API key
+      // Note: Using demo mode since API key is not available
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDummy_Key_Replace_With_Real_Key&libraries=places`;
       script.async = true;
       script.onload = initMap;
+      script.onerror = () => {
+        console.log('Google Maps failed to load, using demo mode');
+        setIsMapLoaded(true);
+        getCurrentLocation();
+      };
       document.head.appendChild(script);
     } else {
       initMap();
     }
-  }, [isSettingPickup]);
+  }, []);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          const latLng = new window.google.maps.LatLng(latitude, longitude);
           
-          if (map) {
+          if (map && window.google) {
+            const latLng = new window.google.maps.LatLng(latitude, longitude);
             map.setCenter(latLng);
             map.setZoom(15);
             
-            // Simulate a click at current location
-            window.google.maps.event.trigger(map, 'click', { latLng });
+            // Automatically set as pickup location if not set
+            if (!pickupLocation.address) {
+              const geocoder = new window.google.maps.Geocoder();
+              geocoder.geocode({ location: latLng }, (results: any, status: any) => {
+                if (status === "OK" && results && results[0]) {
+                  const address = results[0].formatted_address;
+                  
+                  if (pickupMarker) pickupMarker.setMap(null);
+                  const marker = new window.google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    title: "Current Location (Pickup)",
+                    icon: {
+                      url: "data:image/svg+xml," + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#22c55e"/>
+                          <circle cx="12" cy="9" r="2.5" fill="white"/>
+                        </svg>
+                      `)
+                    }
+                  });
+                  setPickupMarker(marker);
+                  setPickupLocation({ 
+                    latitude: latitude.toString(), 
+                    longitude: longitude.toString(), 
+                    address 
+                  });
+                  
+                  toast({
+                    title: "Current Location Detected",
+                    description: "Set as pickup location: " + address,
+                  });
+                }
+              });
+            }
+          } else {
+            // Demo mode - set mock current location
+            const mockAddress = "Current Location, Bangalore, Karnataka, India";
+            setPickupLocation({
+              latitude: latitude.toString(),
+              longitude: longitude.toString(),
+              address: mockAddress
+            });
+            
+            toast({
+              title: "Location Detected",
+              description: "Current location set as pickup: " + mockAddress,
+            });
           }
         },
         (error) => {
+          // Fallback to demo location
+          const demoLocation = {
+            latitude: "12.9716",
+            longitude: "77.5946",
+            address: "Demo Location, Bangalore, Karnataka, India"
+          };
+          
+          setPickupLocation(demoLocation);
+          
+          if (map && window.google) {
+            const latLng = new window.google.maps.LatLng(12.9716, 77.5946);
+            map.setCenter(latLng);
+            map.setZoom(13);
+          }
+          
           toast({
-            title: "Location Error",
-            description: "Unable to get your current location. Please set manually.",
-            variant: "destructive",
+            title: "Demo Location Set",
+            description: "Demo location set as pickup. Tap on map to change.",
           });
         }
       );
     } else {
+      // Fallback for browsers without geolocation
+      const demoLocation = {
+        latitude: "12.9716",
+        longitude: "77.5946",
+        address: "Demo Location, Bangalore, Karnataka, India"
+      };
+      
+      setPickupLocation(demoLocation);
+      
       toast({
-        title: "Location Not Supported",
-        description: "Geolocation is not supported by this browser.",
-        variant: "destructive",
+        title: "Demo Location Set",
+        description: "Demo location set as pickup. Tap on map to change.",
       });
     }
   };
@@ -184,6 +289,86 @@ export default function TransportBookingPage() {
 
   const handleBack = () => {
     setLocation('/marketplace');
+  };
+
+  const handleLocationSearch = () => {
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Enter Location",
+        description: "Please enter a location to search.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (window.google && autocompleteService && placesService) {
+      // Use Google Places API for search
+      const request = {
+        input: searchQuery,
+        componentRestrictions: { country: 'in' }, // Restrict to India
+      };
+
+      autocompleteService.getPlacePredictions(request, (predictions: any, status: any) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions && predictions[0]) {
+          const placeId = predictions[0].place_id;
+          
+          placesService.getDetails({ placeId }, (place: any, status: any) => {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+              const lat = place.geometry.location.lat();
+              const lng = place.geometry.location.lng();
+              const address = place.formatted_address;
+              
+              // Center map on searched location
+              const latLng = new window.google.maps.LatLng(lat, lng);
+              map.setCenter(latLng);
+              map.setZoom(15);
+              
+              toast({
+                title: "Location Found",
+                description: `Showing: ${address}`,
+              });
+            }
+          });
+        } else {
+          toast({
+            title: "Location Not Found",
+            description: "Could not find the specified location. Please try a different search.",
+            variant: "destructive",
+          });
+        }
+      });
+    } else {
+      // Demo mode search - simulate search results
+      const demoLocations = [
+        { query: "chennai", lat: 13.0827, lng: 80.2707, address: "Chennai, Tamil Nadu, India" },
+        { query: "coimbatore", lat: 11.0168, lng: 76.9558, address: "Coimbatore, Tamil Nadu, India" },
+        { query: "madurai", lat: 9.9252, lng: 78.1198, address: "Madurai, Tamil Nadu, India" },
+        { query: "salem", lat: 11.6643, lng: 78.1460, address: "Salem, Tamil Nadu, India" },
+        { query: "trichy", lat: 10.7905, lng: 78.7047, address: "Tiruchirappalli, Tamil Nadu, India" },
+        { query: "vellore", lat: 12.9165, lng: 79.1325, address: "Vellore, Tamil Nadu, India" },
+        { query: "bangalore", lat: 12.9716, lng: 77.5946, address: "Bangalore, Karnataka, India" },
+      ];
+      
+      const foundLocation = demoLocations.find(loc => 
+        loc.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        searchQuery.toLowerCase().includes(loc.query)
+      );
+      
+      if (foundLocation) {
+        toast({
+          title: "Location Found",
+          description: `Showing: ${foundLocation.address}`,
+        });
+      } else {
+        toast({
+          title: "Location Not Found",
+          description: "Try searching for cities like Chennai, Coimbatore, Madurai, etc.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    setSearchQuery("");
   };
 
   const handleManualLocationSet = (isPickup: boolean) => {
@@ -228,6 +413,26 @@ export default function TransportBookingPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
+        {/* Search Bar */}
+        <div className="p-4 bg-white border-b">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Search for a location (e.g., Chennai, Coimbatore)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch()}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleLocationSearch}
+              className="bg-ag-green hover:bg-ag-green/90 text-white"
+              size="sm"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         {/* Map Container */}
         <div className="relative h-64 bg-gray-200">
           <div ref={mapRef} className="w-full h-full" />
@@ -238,7 +443,22 @@ export default function TransportBookingPage() {
                 <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-600">Loading Map...</p>
                 <p className="text-xs text-gray-500 mt-2">
-                  Demo mode: Use buttons below to set locations
+                  Search locations above or tap on map to set pickup/drop points
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {isMapLoaded && !window.google && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="text-center p-4">
+                <MapPin className="h-12 w-12 text-ag-green mx-auto mb-2" />
+                <p className="text-gray-700 font-medium">Demo Mode Active</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Use the search bar above or demo buttons below
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Current location automatically detected as pickup
                 </p>
               </div>
             </div>
@@ -259,7 +479,7 @@ export default function TransportBookingPage() {
             <Button
               variant={isSettingPickup ? "default" : "outline"}
               onClick={() => setIsSettingPickup(true)}
-              className="bg-white text-gray-700 hover:bg-gray-50 shadow-lg"
+              className={`shadow-lg ${isSettingPickup ? 'bg-ag-green text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
               size="sm"
             >
               Set Pickup
@@ -267,11 +487,18 @@ export default function TransportBookingPage() {
             <Button
               variant={!isSettingPickup ? "default" : "outline"}
               onClick={() => setIsSettingPickup(false)}
-              className="bg-white text-gray-700 hover:bg-gray-50 shadow-lg"
+              className={`shadow-lg ${!isSettingPickup ? 'bg-red-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
               size="sm"
             >
               Set Drop
             </Button>
+          </div>
+          
+          {/* Instructions */}
+          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
+            <p className="text-xs text-gray-700">
+              {isSettingPickup ? "🟢 Tap map to set pickup location" : "🔴 Tap map to set drop location"}
+            </p>
           </div>
         </div>
 
@@ -287,21 +514,31 @@ export default function TransportBookingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600 mb-2">
-                {pickupLocation.address || "Tap on map to set pickup location"}
+                {pickupLocation.address || "Search above or tap on map to set pickup location"}
               </div>
               {pickupLocation.address && (
                 <div className="text-xs text-gray-500 mt-1">
                   {pickupLocation.latitude}, {pickupLocation.longitude}
                 </div>
               )}
-              <Button
-                onClick={() => handleManualLocationSet(true)}
-                variant="outline"
-                size="sm"
-                className="mt-2"
-              >
-                Set Demo Pickup Location
-              </Button>
+              <div className="flex space-x-2 mt-2">
+                <Button
+                  onClick={() => handleManualLocationSet(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Demo: Bangalore
+                </Button>
+                <Button
+                  onClick={getCurrentLocation}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center"
+                >
+                  <Navigation className="h-3 w-3 mr-1" />
+                  Use Current
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -315,7 +552,7 @@ export default function TransportBookingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600 mb-2">
-                {dropLocation.address || "Tap on map to set drop location"}
+                {dropLocation.address || "Search above or tap on map to set drop location"}
               </div>
               {dropLocation.address && (
                 <div className="text-xs text-gray-500 mt-1">
@@ -328,7 +565,7 @@ export default function TransportBookingPage() {
                 size="sm"
                 className="mt-2"
               >
-                Set Demo Drop Location
+                Demo: Chennai
               </Button>
             </CardContent>
           </Card>
