@@ -3,6 +3,8 @@ import {
   equipment,
   bookings,
   insuranceApplications,
+  transportVehicles,
+  transportBookings,
   type User,
   type UpsertUser,
   type Equipment,
@@ -11,6 +13,10 @@ import {
   type InsertBooking,
   type InsuranceApplication,
   type InsertInsuranceApplication,
+  type TransportVehicle,
+  type InsertTransportVehicle,
+  type TransportBooking,
+  type InsertTransportBooking,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -39,6 +45,16 @@ export interface IStorage {
   createInsuranceApplication(application: InsertInsuranceApplication): Promise<InsuranceApplication>;
   getInsuranceApplicationsByUser(userId: string): Promise<InsuranceApplication[]>;
   updateInsuranceApplicationStatus(id: string, status: string): Promise<void>;
+  
+  // Transport Vehicle operations
+  getAvailableTransportVehicles(): Promise<TransportVehicle[]>;
+  getTransportVehicleById(id: string): Promise<TransportVehicle | undefined>;
+  createTransportVehicle(vehicle: InsertTransportVehicle): Promise<TransportVehicle>;
+  
+  // Transport Booking operations
+  createTransportBooking(booking: InsertTransportBooking): Promise<TransportBooking>;
+  getTransportBookingsByUser(userId: string): Promise<TransportBooking[]>;
+  updateTransportBookingStatus(id: string, bookingStatus: string, paymentStatus?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -153,6 +169,48 @@ export class DatabaseStorage implements IStorage {
       .update(insuranceApplications)
       .set({ status, updatedAt: new Date() })
       .where(eq(insuranceApplications.id, id));
+  }
+
+  // Transport Vehicle operations
+  async getAvailableTransportVehicles(): Promise<TransportVehicle[]> {
+    return await db.select().from(transportVehicles).where(eq(transportVehicles.isAvailable, true));
+  }
+
+  async getTransportVehicleById(id: string): Promise<TransportVehicle | undefined> {
+    const [vehicle] = await db.select().from(transportVehicles).where(eq(transportVehicles.id, id));
+    return vehicle;
+  }
+
+  async createTransportVehicle(vehicleData: InsertTransportVehicle): Promise<TransportVehicle> {
+    const [vehicle] = await db
+      .insert(transportVehicles)
+      .values(vehicleData)
+      .returning();
+    return vehicle;
+  }
+
+  // Transport Booking operations
+  async createTransportBooking(bookingData: InsertTransportBooking): Promise<TransportBooking> {
+    const [booking] = await db
+      .insert(transportBookings)
+      .values(bookingData)
+      .returning();
+    return booking;
+  }
+
+  async getTransportBookingsByUser(userId: string): Promise<TransportBooking[]> {
+    return await db.select().from(transportBookings).where(eq(transportBookings.userId, userId));
+  }
+
+  async updateTransportBookingStatus(id: string, bookingStatus: string, paymentStatus?: string): Promise<void> {
+    const updateData: any = { bookingStatus, updatedAt: new Date() };
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    await db
+      .update(transportBookings)
+      .set(updateData)
+      .where(eq(transportBookings.id, id));
   }
 }
 

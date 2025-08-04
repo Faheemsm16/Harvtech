@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema } from "@shared/schema";
+import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
@@ -215,6 +215,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Insurance application update error:", error);
       res.status(500).json({ message: "Failed to update insurance application" });
+    }
+  });
+
+  // Transport Vehicle routes
+  app.get('/api/transport/vehicles', async (req, res) => {
+    try {
+      const vehicles = await storage.getAvailableTransportVehicles();
+      res.json(vehicles);
+    } catch (error) {
+      console.error("Transport vehicles fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch transport vehicles" });
+    }
+  });
+
+  app.get('/api/transport/vehicles/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const vehicle = await storage.getTransportVehicleById(id);
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+      res.json(vehicle);
+    } catch (error) {
+      console.error("Transport vehicle fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch transport vehicle" });
+    }
+  });
+
+  app.post('/api/transport/vehicles', async (req, res) => {
+    try {
+      const vehicleData = req.body;
+      const validatedData = insertTransportVehicleSchema.parse(vehicleData);
+      const vehicle = await storage.createTransportVehicle(validatedData);
+      res.json(vehicle);
+    } catch (error) {
+      console.error("Transport vehicle creation error:", error);
+      res.status(400).json({ message: "Failed to create transport vehicle" });
+    }
+  });
+
+  // Transport Booking routes
+  app.post('/api/transport/bookings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const bookingData = { ...req.body, userId };
+      
+      const validatedData = insertTransportBookingSchema.parse(bookingData);
+      const booking = await storage.createTransportBooking(validatedData);
+      
+      res.json(booking);
+    } catch (error) {
+      console.error("Transport booking creation error:", error);
+      res.status(400).json({ message: "Failed to create transport booking" });
+    }
+  });
+
+  app.get('/api/transport/bookings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const bookings = await storage.getTransportBookingsByUser(userId);
+      res.json(bookings);
+    } catch (error) {
+      console.error("Transport bookings fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch transport bookings" });
+    }
+  });
+
+  app.patch('/api/transport/bookings/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { bookingStatus, paymentStatus } = req.body;
+      
+      await storage.updateTransportBookingStatus(id, bookingStatus, paymentStatus);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Transport booking update error:", error);
+      res.status(500).json({ message: "Failed to update transport booking" });
     }
   });
 

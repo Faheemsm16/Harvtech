@@ -1,22 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Shield, Building, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Truck, Warehouse, ShoppingBag, Package } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
-import { useCustomAuth } from "@/context/AuthContext";
 
-export default function PlatformsPage() {
+export default function GovernmentSchemesPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useCustomAuth();
 
   const handleBack = () => {
-    // Navigate back to appropriate dashboard based on user role
-    if (user?.role === 'owner') {
-      setLocation('/owner-dashboard');
-    } else {
-      setLocation('/user-dashboard');
-    }
+    setLocation('/platforms');
   };
 
   return (
@@ -32,71 +25,74 @@ export default function PlatformsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-lg font-semibold">{t('platforms') || 'Platforms'}</h2>
-            <p className="text-sm opacity-90">Choose a platform to explore</p>
+            <h2 className="text-lg font-semibold">Government Schemes</h2>
+            <p className="text-sm opacity-90">Choose a service to explore</p>
           </div>
         </div>
       </div>
       
       {/* Main Content */}
       <div className="flex-1 p-6 space-y-4">
-        {/* Insurance & Finance */}
+        {/* Transport */}
         <Card className="bg-white border border-gray-200 overflow-hidden">
           <CardContent className="p-0">
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => setLocation('/insurance-finance')}
+              onClick={() => setLocation('/transport-booking')}
             >
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Shield className="h-6 w-6 text-blue-600" />
+                <Truck className="h-6 w-6 text-blue-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Insurance & Finance</h3>
-                <p className="text-sm text-gray-600">Access insurance and financial services</p>
+                <h3 className="font-semibold text-lg text-gray-900">Transport</h3>
+                <p className="text-sm text-gray-600">Book vehicles for transporting goods</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>
           </CardContent>
         </Card>
 
-        {/* Government Schemes */}
-        <Card className="bg-white border border-gray-200 overflow-hidden">
-          <CardContent className="p-0">
-            <Button
-              variant="ghost"
-              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => setLocation('/government-schemes')}
-            >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Building className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Government Schemes</h3>
-                <p className="text-sm text-gray-600">Explore government schemes and benefits</p>
-              </div>
-              <div className="ml-auto text-gray-400">→</div>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Marketplace */}
+        {/* Warehouse */}
         <Card className="bg-white border border-gray-200 overflow-hidden">
           <CardContent className="p-0">
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
               onClick={() => {
-                // TODO: Navigate to Marketplace page when implemented
-                console.log('Navigate to Marketplace');
+                // TODO: Navigate to Warehouse page when implemented
+                console.log('Navigate to Warehouse');
               }}
             >
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <ShoppingCart className="h-6 w-6 text-orange-600" />
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <Warehouse className="h-6 w-6 text-purple-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Market Place</h3>
-                <p className="text-sm text-gray-600">Browse and shop agricultural products</p>
+                <h3 className="font-semibold text-lg text-gray-900">Warehouse</h3>
+                <p className="text-sm text-gray-600">Find storage solutions for your crops</p>
+              </div>
+              <div className="ml-auto text-gray-400">→</div>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Buy and Sell */}
+        <Card className="bg-white border border-gray-200 overflow-hidden">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
+              onClick={() => {
+                // TODO: Navigate to Buy and Sell page when implemented
+                console.log('Navigate to Buy and Sell');
+              }}
+            >
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-gray-900">Buy and Sell</h3>
+                <p className="text-sm text-gray-600">Trade agricultural products and equipment</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>

@@ -14,7 +14,11 @@ import OwnerRegistrationPage from "@/pages/OwnerRegistrationPage";
 import UserDashboard from "@/pages/UserDashboard";
 import OwnerDashboard from "@/pages/OwnerDashboard";
 import PlatformsPage from "@/pages/PlatformsPage";
+import GovernmentSchemesPage from "@/pages/GovernmentSchemesPage";
 import InsuranceFinanceForm from "@/pages/InsuranceFinanceForm";
+import TransportBookingPage from "@/pages/TransportBookingPage";
+import TransportVehicleSelectionPage from "@/pages/TransportVehicleSelectionPage";
+import TransportPaymentPage from "@/pages/TransportPaymentPage";
 import EquipmentListPage from "@/pages/EquipmentListPage";
 import PaymentPage from "@/pages/PaymentPage";
 
@@ -36,7 +40,11 @@ function Router() {
           <Route path="/user-dashboard" component={UserDashboard} />
           <Route path="/owner-dashboard" component={OwnerDashboard} />
           <Route path="/platforms" component={PlatformsPage} />
+          <Route path="/government-schemes" component={GovernmentSchemesPage} />
           <Route path="/insurance-finance" component={InsuranceFinanceForm} />
+          <Route path="/transport-booking" component={TransportBookingPage} />
+          <Route path="/transport-vehicle-selection" component={TransportVehicleSelectionPage} />
+          <Route path="/transport-payment" component={TransportPaymentPage} />
           <Route path="/equipment/:type" component={EquipmentListPage} />
           <Route path="/payment/:equipmentId" component={PaymentPage} />
         </>

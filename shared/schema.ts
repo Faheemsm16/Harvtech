@@ -125,6 +125,52 @@ export const insuranceApplications = pgTable("insurance_applications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Transport Vehicles table
+export const transportVehicles = pgTable("transport_vehicles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vehicleType: varchar("vehicle_type").notNull(), // 'Mini Truck', 'Tractor Trolley', 'Lorry'
+  vehicleName: varchar("vehicle_name").notNull(),
+  imageUrl: varchar("image_url"),
+  pricePerKm: integer("price_per_km").notNull(), // in rupees
+  capacity: varchar("capacity").notNull(), // e.g., "5 Ton", "2 Quintal"
+  estimatedTime: varchar("estimated_time"), // e.g., "2-3 hours"
+  isAvailable: boolean("is_available").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Transport Bookings table
+export const transportBookings = pgTable("transport_bookings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  vehicleId: varchar("vehicle_id").references(() => transportVehicles.id).notNull(),
+  
+  // Location details
+  pickupLatitude: varchar("pickup_latitude").notNull(),
+  pickupLongitude: varchar("pickup_longitude").notNull(),
+  pickupAddress: text("pickup_address").notNull(),
+  dropLatitude: varchar("drop_latitude").notNull(),
+  dropLongitude: varchar("drop_longitude").notNull(),
+  dropAddress: text("drop_address").notNull(),
+  
+  // Load details
+  loadQuantity: varchar("load_quantity").notNull(),
+  loadUnit: varchar("load_unit").notNull(), // 'KG', 'Quintal', 'Ton'
+  
+  // Booking details
+  totalDistance: varchar("total_distance"), // in km
+  totalCost: integer("total_cost").notNull(), // in rupees
+  estimatedTime: varchar("estimated_time"),
+  
+  // Payment and status
+  paymentMethod: varchar("payment_method"), // 'UPI', 'Card', 'Wallet'
+  paymentStatus: varchar("payment_status").default("pending"), // 'pending', 'paid', 'failed'
+  bookingStatus: varchar("booking_status").default("pending"), // 'pending', 'confirmed', 'in_progress', 'completed', 'cancelled'
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -167,6 +213,18 @@ export const insertInsuranceApplicationSchema = createInsertSchema(insuranceAppl
   updatedAt: true,
 });
 
+export const insertTransportVehicleSchema = createInsertSchema(transportVehicles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTransportBookingSchema = createInsertSchema(transportBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Equipment = typeof equipment.$inferSelect;
@@ -175,3 +233,7 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsuranceApplication = typeof insuranceApplications.$inferSelect;
 export type InsertInsuranceApplication = z.infer<typeof insertInsuranceApplicationSchema>;
+export type TransportVehicle = typeof transportVehicles.$inferSelect;
+export type InsertTransportVehicle = z.infer<typeof insertTransportVehicleSchema>;
+export type TransportBooking = typeof transportBookings.$inferSelect;
+export type InsertTransportBooking = z.infer<typeof insertTransportBookingSchema>;
