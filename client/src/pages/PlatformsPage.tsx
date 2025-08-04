@@ -86,10 +86,7 @@ export default function PlatformsPage() {
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => {
-                // TODO: Navigate to Marketplace page when implemented
-                console.log('Navigate to Marketplace');
-              }}
+              onClick={() => setLocation('/marketplace')}
             >
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                 <ShoppingCart className="h-6 w-6 text-orange-600" />

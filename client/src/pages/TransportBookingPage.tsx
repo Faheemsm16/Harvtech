@@ -183,7 +183,7 @@ export default function TransportBookingPage() {
   };
 
   const handleBack = () => {
-    setLocation('/government-schemes');
+    setLocation('/marketplace');
   };
 
   const handleManualLocationSet = (isPickup: boolean) => {
