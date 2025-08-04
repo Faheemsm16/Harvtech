@@ -20,6 +20,7 @@ import InsuranceFinanceForm from "@/pages/InsuranceFinanceForm";
 import TransportBookingPage from "@/pages/TransportBookingPage";
 import TransportVehicleSelectionPage from "@/pages/TransportVehicleSelectionPage";
 import TransportPaymentPage from "@/pages/TransportPaymentPage";
+import WarehousePage from "@/pages/WarehousePage";
 import EquipmentListPage from "@/pages/EquipmentListPage";
 import PaymentPage from "@/pages/PaymentPage";
 
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/transport-booking" component={TransportBookingPage} />
           <Route path="/transport-vehicle-selection" component={TransportVehicleSelectionPage} />
           <Route path="/transport-payment" component={TransportPaymentPage} />
+          <Route path="/warehouse" component={WarehousePage} />
           <Route path="/equipment/:type" component={EquipmentListPage} />
           <Route path="/payment/:equipmentId" component={PaymentPage} />
         </>

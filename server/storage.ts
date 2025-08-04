@@ -5,6 +5,7 @@ import {
   insuranceApplications,
   transportVehicles,
   transportBookings,
+  warehouses,
   type User,
   type UpsertUser,
   type Equipment,
@@ -17,6 +18,8 @@ import {
   type InsertTransportVehicle,
   type TransportBooking,
   type InsertTransportBooking,
+  type Warehouse,
+  type InsertWarehouse,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -55,6 +58,11 @@ export interface IStorage {
   createTransportBooking(booking: InsertTransportBooking): Promise<TransportBooking>;
   getTransportBookingsByUser(userId: string): Promise<TransportBooking[]>;
   updateTransportBookingStatus(id: string, bookingStatus: string, paymentStatus?: string): Promise<void>;
+  
+  // Warehouse operations
+  getAvailableWarehouses(): Promise<Warehouse[]>;
+  getWarehouseById(id: string): Promise<Warehouse | undefined>;
+  createWarehouse(warehouse: InsertWarehouse): Promise<Warehouse>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -211,6 +219,24 @@ export class DatabaseStorage implements IStorage {
       .update(transportBookings)
       .set(updateData)
       .where(eq(transportBookings.id, id));
+  }
+
+  // Warehouse operations
+  async getAvailableWarehouses(): Promise<Warehouse[]> {
+    return await db.select().from(warehouses).where(eq(warehouses.isActive, true));
+  }
+
+  async getWarehouseById(id: string): Promise<Warehouse | undefined> {
+    const [warehouse] = await db.select().from(warehouses).where(eq(warehouses.id, id));
+    return warehouse;
+  }
+
+  async createWarehouse(warehouseData: InsertWarehouse): Promise<Warehouse> {
+    const [warehouse] = await db
+      .insert(warehouses)
+      .values(warehouseData)
+      .returning();
+    return warehouse;
   }
 }
 

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema } from "@shared/schema";
+import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema, insertWarehouseSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
@@ -292,6 +292,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Transport booking update error:", error);
       res.status(500).json({ message: "Failed to update transport booking" });
+    }
+  });
+
+  // Warehouse routes
+  app.get('/api/warehouses', async (req, res) => {
+    try {
+      const warehouses = await storage.getAvailableWarehouses();
+      res.json(warehouses);
+    } catch (error) {
+      console.error("Warehouses fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch warehouses" });
+    }
+  });
+
+  app.get('/api/warehouses/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const warehouse = await storage.getWarehouseById(id);
+      if (!warehouse) {
+        return res.status(404).json({ message: "Warehouse not found" });
+      }
+      res.json(warehouse);
+    } catch (error) {
+      console.error("Warehouse fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch warehouse" });
+    }
+  });
+
+  app.post('/api/warehouses', async (req, res) => {
+    try {
+      const warehouseData = req.body;
+      const validatedData = insertWarehouseSchema.parse(warehouseData);
+      const warehouse = await storage.createWarehouse(validatedData);
+      res.json(warehouse);
+    } catch (error) {
+      console.error("Warehouse creation error:", error);
+      res.status(400).json({ message: "Failed to create warehouse" });
     }
   });
 

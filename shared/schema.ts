@@ -171,6 +171,27 @@ export const transportBookings = pgTable("transport_bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Warehouses table
+export const warehouses = pgTable("warehouses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  address: text("address").notNull(),
+  latitude: varchar("latitude").notNull(),
+  longitude: varchar("longitude").notNull(),
+  capacity: varchar("capacity").notNull(), // e.g., "500 Quintal", "200 Ton"
+  availableSpace: varchar("available_space").notNull(),
+  pricePerUnit: integer("price_per_unit").notNull(), // in rupees per quintal/ton per month
+  priceUnit: varchar("price_unit").notNull(), // 'Quintal', 'Ton'
+  contactNumber: varchar("contact_number"),
+  ownerName: varchar("owner_name"),
+  facilities: text("facilities"), // JSON string of facilities like "Climate Controlled", "Security", etc.
+  warehouseType: varchar("warehouse_type").notNull(), // 'Government', 'Private', 'Cooperative'
+  isActive: boolean("is_active").default(true),
+  imageUrl: varchar("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -225,6 +246,12 @@ export const insertTransportBookingSchema = createInsertSchema(transportBookings
   updatedAt: true,
 });
 
+export const insertWarehouseSchema = createInsertSchema(warehouses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Equipment = typeof equipment.$inferSelect;
@@ -237,3 +264,5 @@ export type TransportVehicle = typeof transportVehicles.$inferSelect;
 export type InsertTransportVehicle = z.infer<typeof insertTransportVehicleSchema>;
 export type TransportBooking = typeof transportBookings.$inferSelect;
 export type InsertTransportBooking = z.infer<typeof insertTransportBookingSchema>;
+export type Warehouse = typeof warehouses.$inferSelect;
+export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;

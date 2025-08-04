@@ -59,10 +59,7 @@ export default function MarketPlacePage() {
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => {
-                // TODO: Navigate to Warehouse page when implemented
-                console.log('Navigate to Warehouse');
-              }}
+              onClick={() => setLocation('/warehouse')}
             >
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                 <Warehouse className="h-6 w-6 text-purple-600" />
@@ -76,23 +73,46 @@ export default function MarketPlacePage() {
           </CardContent>
         </Card>
 
-        {/* Buy and Sell */}
+        {/* Buy */}
         <Card className="bg-white border border-gray-200 overflow-hidden">
           <CardContent className="p-0">
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
               onClick={() => {
-                // TODO: Navigate to Buy and Sell page when implemented
-                console.log('Navigate to Buy and Sell');
+                // TODO: Navigate to Buy page when implemented
+                console.log('Navigate to Buy');
               }}
             >
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <ShoppingBag className="h-6 w-6 text-green-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Buy and Sell</h3>
-                <p className="text-sm text-gray-600">Trade agricultural products and equipment</p>
+                <h3 className="font-semibold text-lg text-gray-900">Buy</h3>
+                <p className="text-sm text-gray-600">Purchase agricultural products and equipment</p>
+              </div>
+              <div className="ml-auto text-gray-400">→</div>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Sell */}
+        <Card className="bg-white border border-gray-200 overflow-hidden">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
+              onClick={() => {
+                // TODO: Navigate to Sell page when implemented
+                console.log('Navigate to Sell');
+              }}
+            >
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-orange-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-gray-900">Sell</h3>
+                <p className="text-sm text-gray-600">Sell your agricultural products and equipment</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>
