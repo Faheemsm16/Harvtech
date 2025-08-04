@@ -1,13 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1"
+    />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f766e" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <script
+      type="text/javascript"
+      src="https://replit.com/public/js/replit-dev-banner.js"
+    ></script>
+    <button id="installBtn" hidden>Install App</button>
+
+    <script>
+      let deferredPrompt;
+
+      // Listen for install prompt eligibility
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault(); // Stop Chrome from auto-showing the banner
+        deferredPrompt = e;
+        const installBtn = document.getElementById("installBtn");
+        installBtn.hidden = false;
+
+        installBtn.addEventListener("click", async () => {
+          installBtn.hidden = true;
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          console.log(`User choice: ${choice.outcome}`);
+          deferredPrompt = null;
+        });
+      });
+
+      // Optionally handle app installed event
+      window.addEventListener("appinstalled", () => {
+        console.log("PWA was installed");
+      });
+    </script>
   </body>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then(() => console.log("Service Worker Registered"));
+    }
+  </script>
 </html>
