@@ -1,0 +1,56 @@
+When Insurance & Finance is clicked:
+Show a multi-step form with the following sections, each with page indicators (e.g., Page 1/5, Page 2/5, etc.). All fields should have proper validation, dropdowns, and calendar pickers where needed.
+
+Page 1: Farmer Details
+•	Full Name
+•	Father’s / Husband’s Name
+•	Date of Birth (with calendar date picker)
+•	Gender: Dropdown with options Male, Female
+•	Aadhaar Number (12-digit numeric validation)
+•	Mobile Number (+91 prefilled, followed by 10-digit input)
+•	Address (Multiline)
+•	State (Dropdown)
+•	District (Dropdown dependent on state)
+•	Village Panchayat
+•	Pincode (6-digit validation)
+
+Page 2: Land / Crop Details
+•	Survey / Khasra Number
+•	Total Land Holding (in acres/hectares)
+•	Land Ownership: Dropdown (Owned, Leased, Tenant)
+•	Crop Season: Dropdown (Kharif, Rabi, Zaid)
+o	Crop Type:
+	If Kharif, show:
+Paddy (Rice), Maize (Makka), Millets (Jowar, Bajra, Ragi), Tur (Arhar), Cotton, Soybean, Groundnut, Moong, Urad
+	If Rabi, show:
+Wheat, Barley, Mustard, Chana, Masoor, Peas, Linseed, Oats
+	If Zaid, show:
+Watermelon, Muskmelon, Cucumber, Pumpkin, Bitter gourd, Summer Moong, Fodder crops, Sunflower (early)
+•	Sowing Date: Calendar picker
+•	Expected Harvest Date: Calendar picker
+•	Irrigation Type: Dropdown (Irrigated, Rainfed)
+
+Page 3: Bank Details
+•	Bank Name
+•	Branch Name
+•	Account Number
+•	IFSC Code
+
+Page 4: Document Upload
+Use native image/file picker. Fields:
+•	Aadhaar Card (PDF or Image)
+•	Bank Passbook (PDF or Image)
+•	Land Record / Patta (PDF or Image)
+•	Crop Photo (Image)
+
+ Page 5: Declaration / Consent
+•	Include a checkbox:
+☐ I confirm that the information provided above is true to the best of my knowledge.
+•	Button: Submit Application
+
+Additional Logic:
+•	Use form validation on all steps before allowing “Next”.
+•	Show progress (e.g., Step 2/5) visually.
+•	After submission: show confirmation message and summary.
+•	Store data in backend DB (preferably indexed by Farmer ID).
+•	Allow users to revisit and edit saved applications.

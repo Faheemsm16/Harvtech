@@ -46,10 +46,7 @@ export default function PlatformsPage() {
             <Button
               variant="ghost"
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => {
-                // TODO: Navigate to Insurance & Finance page when implemented
-                console.log('Navigate to Insurance & Finance');
-              }}
+              onClick={() => setLocation('/insurance-finance')}
             >
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <Shield className="h-6 w-6 text-blue-600" />

@@ -2,12 +2,15 @@ import {
   users,
   equipment,
   bookings,
+  insuranceApplications,
   type User,
   type UpsertUser,
   type Equipment,
   type InsertEquipment,
   type Booking,
   type InsertBooking,
+  type InsuranceApplication,
+  type InsertInsuranceApplication,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -31,6 +34,11 @@ export interface IStorage {
   getBookingsByUser(userId: string): Promise<Booking[]>;
   getBookingsByEquipment(equipmentId: string): Promise<Booking[]>;
   updateBookingStatus(id: string, status: string, paymentStatus?: string): Promise<void>;
+  
+  // Insurance Application operations
+  createInsuranceApplication(application: InsertInsuranceApplication): Promise<InsuranceApplication>;
+  getInsuranceApplicationsByUser(userId: string): Promise<InsuranceApplication[]>;
+  updateInsuranceApplicationStatus(id: string, status: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -125,6 +133,26 @@ export class DatabaseStorage implements IStorage {
       .update(bookings)
       .set(updateData)
       .where(eq(bookings.id, id));
+  }
+
+  // Insurance Application operations
+  async createInsuranceApplication(applicationData: InsertInsuranceApplication): Promise<InsuranceApplication> {
+    const [application] = await db
+      .insert(insuranceApplications)
+      .values(applicationData)
+      .returning();
+    return application;
+  }
+
+  async getInsuranceApplicationsByUser(userId: string): Promise<InsuranceApplication[]> {
+    return await db.select().from(insuranceApplications).where(eq(insuranceApplications.userId, userId));
+  }
+
+  async updateInsuranceApplicationStatus(id: string, status: string): Promise<void> {
+    await db
+      .update(insuranceApplications)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(insuranceApplications.id, id));
   }
 }
 

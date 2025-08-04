@@ -75,6 +75,56 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Insurance Applications table
+export const insuranceApplications = pgTable("insurance_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Farmer Details (Page 1)
+  fullName: varchar("full_name").notNull(),
+  fatherHusbandName: varchar("father_husband_name").notNull(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
+  gender: varchar("gender").notNull(), // 'Male', 'Female'
+  aadhaarNumber: varchar("aadhaar_number", { length: 12 }).notNull(),
+  mobileNumber: varchar("mobile_number", { length: 10 }).notNull(),
+  address: text("address").notNull(),
+  state: varchar("state").notNull(),
+  district: varchar("district").notNull(),
+  villagePanchayat: varchar("village_panchayat").notNull(),
+  pincode: varchar("pincode", { length: 6 }).notNull(),
+  
+  // Land/Crop Details (Page 2)
+  surveyKhasraNumber: varchar("survey_khasra_number").notNull(),
+  totalLandHolding: varchar("total_land_holding").notNull(),
+  landOwnership: varchar("land_ownership").notNull(), // 'Owned', 'Leased', 'Tenant'
+  cropSeason: varchar("crop_season").notNull(), // 'Kharif', 'Rabi', 'Zaid'
+  cropType: varchar("crop_type").notNull(),
+  sowingDate: timestamp("sowing_date").notNull(),
+  expectedHarvestDate: timestamp("expected_harvest_date").notNull(),
+  irrigationType: varchar("irrigation_type").notNull(), // 'Irrigated', 'Rainfed'
+  
+  // Bank Details (Page 3)
+  bankName: varchar("bank_name").notNull(),
+  branchName: varchar("branch_name").notNull(),
+  accountNumber: varchar("account_number").notNull(),
+  ifscCode: varchar("ifsc_code").notNull(),
+  
+  // Document URLs (Page 4)
+  aadhaarDocumentUrl: varchar("aadhaar_document_url"),
+  bankPassbookUrl: varchar("bank_passbook_url"),
+  landRecordUrl: varchar("land_record_url"),
+  cropPhotoUrl: varchar("crop_photo_url"),
+  
+  // Declaration (Page 5)
+  declarationAccepted: boolean("declaration_accepted").default(false),
+  
+  // Application Status
+  status: varchar("status").default("draft"), // 'draft', 'submitted', 'under_review', 'approved', 'rejected'
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -111,9 +161,17 @@ export const insertBookingSchema = createInsertSchema(bookings).pick({
   securityDeposit: true,
 });
 
+export const insertInsuranceApplicationSchema = createInsertSchema(insuranceApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Equipment = typeof equipment.$inferSelect;
 export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type InsuranceApplication = typeof insuranceApplications.$inferSelect;
+export type InsertInsuranceApplication = z.infer<typeof insertInsuranceApplicationSchema>;

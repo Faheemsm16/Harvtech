@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema } from "@shared/schema";
+import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
@@ -176,6 +176,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Booking update error:", error);
       res.status(500).json({ message: "Failed to update booking" });
+    }
+  });
+
+  // Insurance Application routes
+  app.post('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+    try {
+      const applicationData = req.body;
+      
+      const validatedData = insertInsuranceApplicationSchema.parse(applicationData);
+      const application = await storage.createInsuranceApplication(validatedData);
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Insurance application creation error:", error);
+      res.status(400).json({ message: "Failed to create insurance application" });
+    }
+  });
+
+  app.get('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const applications = await storage.getInsuranceApplicationsByUser(userId);
+      res.json(applications);
+    } catch (error) {
+      console.error("Insurance applications fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch insurance applications" });
+    }
+  });
+
+  app.patch('/api/insurance-applications/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updateInsuranceApplicationStatus(id, status);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Insurance application update error:", error);
+      res.status(500).json({ message: "Failed to update insurance application" });
     }
   });
 
