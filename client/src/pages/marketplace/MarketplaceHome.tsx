@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 // TODO: Add language context back when available
 // import { useLanguage } from "@/contexts/LanguageContext";
@@ -46,7 +46,7 @@ export default function MarketplaceHome() {
       pricePerUnit: 0,
       quantity: 1,
       quantityUnit: "piece",
-      imageUrls: "",
+      imageUrls: "[]",
     },
   });
 
@@ -91,6 +91,17 @@ export default function MarketplaceHome() {
     createProductMutation.mutate(data);
   };
 
+  // Check if we're in sell mode from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const isSellMode = urlParams.get('mode') === 'sell';
+
+  // Auto-open add product dialog in sell mode
+  useEffect(() => {
+    if (isSellMode && user && !showAddProduct) {
+      setShowAddProduct(true);
+    }
+  }, [isSellMode, user, showAddProduct]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
@@ -98,10 +109,10 @@ export default function MarketplaceHome() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-green-800 dark:text-green-400 mb-2">
-              Marketplace
+              {isSellMode ? "Sell Your Products" : "Marketplace"}
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Buy and sell agricultural products
+              {isSellMode ? "List your agricultural products for sale" : "Buy and sell agricultural products"}
             </p>
           </div>
           
@@ -232,7 +243,7 @@ export default function MarketplaceHome() {
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea {...field} placeholder="Product description" rows={3} />
+                            <Textarea {...field} value={field.value || ""} placeholder="Product description" rows={3} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -246,7 +257,7 @@ export default function MarketplaceHome() {
                         <FormItem>
                           <FormLabel>Image URL (Optional)</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="https://example.com/image.jpg" />
+                            <Input {...field} value={field.value || ""} placeholder="https://example.com/image.jpg" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -328,7 +339,9 @@ export default function MarketplaceHome() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product: MarketplaceProduct) => (
+            {products.filter((product: MarketplaceProduct) => 
+              !isSellMode || product.sellerId === user?.id
+            ).map((product: MarketplaceProduct) => (
               <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-200">
                 <div className="relative overflow-hidden rounded-t-lg">
                   <img
