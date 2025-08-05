@@ -336,7 +336,7 @@ export default function OwnerDashboard() {
             } transition-all duration-300 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Power className="h-5 w-5 mr-2" />
-            {engineRunning ? 'Stop Engine' : 'Start Engine'}
+            {engineRunning ? t('stop_engine') : t('start_engine')}
           </Button>
         </Card>
 
@@ -361,12 +361,12 @@ export default function OwnerDashboard() {
               <Scan className="h-5 w-5 mr-2" />
             )}
             {isScanning 
-              ? 'Scanning...' 
+              ? t('scanning') 
               : soilScanActive && showSoilResults
-              ? 'Scan Complete'
+              ? t('scan_complete')
               : (!engineRunning || isLocked)
-              ? 'Engine Required'
-              : 'Soil Scan'
+              ? t('engine_required')
+              : t('soil_scan')
             }
           </Button>
         </Card>
@@ -375,12 +375,12 @@ export default function OwnerDashboard() {
         <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-cyan-400/30 text-white p-4">
           <div className="flex items-center space-x-2 mb-2">
             <MapPin className="h-5 w-5 text-cyan-400 animate-bounce" />
-            <span className="text-sm font-medium">GPS Location</span>
+            <span className="text-sm font-medium">{t('gps_location')}</span>
           </div>
           <div className="text-xs text-cyan-300">
-            <div>Lat: 11.0168° N</div>
-            <div>Lng: 76.9558° E</div>
-            <div className="mt-1 text-green-300">Status: Active</div>
+            <div>{t('latitude')}: 11.0168° N</div>
+            <div>{t('longitude')}: 76.9558° E</div>
+            <div className="mt-1 text-green-300">{t('status_active')}</div>
           </div>
         </Card>
 
@@ -390,7 +390,7 @@ export default function OwnerDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Scan className="h-5 w-5 text-purple-400 animate-pulse" />
-                <span className="font-semibold">Soil Analysis Results</span>
+                <span className="font-semibold">{t('soil_analysis_results')}</span>
               </div>
               <Button
                 variant="ghost"
@@ -404,49 +404,49 @@ export default function OwnerDashboard() {
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-green-500/20 p-2 rounded border border-green-400/30">
-                  <div className="text-green-300 text-xs">pH Level</div>
+                  <div className="text-green-300 text-xs">{t('ph_level')}</div>
                   <div className="font-bold text-green-400">6.8</div>
-                  <div className="text-xs text-green-200">Optimal</div>
+                  <div className="text-xs text-green-200">{t('optimal')}</div>
                 </div>
                 <div className="bg-blue-500/20 p-2 rounded border border-blue-400/30">
-                  <div className="text-blue-300 text-xs">Moisture</div>
+                  <div className="text-blue-300 text-xs">{t('moisture_content')}</div>
                   <div className="font-bold text-blue-400">42%</div>
-                  <div className="text-xs text-blue-200">Good</div>
+                  <div className="text-xs text-blue-200">{t('good')}</div>
                 </div>
               </div>
               
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-yellow-500/20 p-2 rounded border border-yellow-400/30">
-                  <div className="text-yellow-300 text-xs">Nitrogen</div>
+                  <div className="text-yellow-300 text-xs">{t('nitrogen')}</div>
                   <div className="font-bold text-yellow-400">85mg/kg</div>
                 </div>
                 <div className="bg-orange-500/20 p-2 rounded border border-orange-400/30">
-                  <div className="text-orange-300 text-xs">Phosphorus</div>
+                  <div className="text-orange-300 text-xs">{t('phosphorus')}</div>
                   <div className="font-bold text-orange-400">32mg/kg</div>
                 </div>
                 <div className="bg-pink-500/20 p-2 rounded border border-pink-400/30">
-                  <div className="text-pink-300 text-xs">Potassium</div>
+                  <div className="text-pink-300 text-xs">{t('potassium')}</div>
                   <div className="font-bold text-pink-400">156mg/kg</div>
                 </div>
               </div>
               
               <div className="bg-cyan-500/20 p-2 rounded border border-cyan-400/30">
-                <div className="text-cyan-300 text-xs">Organic Matter</div>
+                <div className="text-cyan-300 text-xs">{t('organic_matter')}</div>
                 <div className="font-bold text-cyan-400">3.2%</div>
-                <div className="text-xs text-cyan-200">Excellent for crop growth</div>
+                <div className="text-xs text-cyan-200">{t('excellent_for_crop_growth')}</div>
               </div>
               
               <div className="bg-purple-500/20 p-2 rounded border border-purple-400/30">
-                <div className="text-purple-300 text-xs mb-1">Recommendation</div>
+                <div className="text-purple-300 text-xs mb-1">{t('recommendations')}</div>
                 <div className="text-xs text-purple-200">
-                  Soil conditions are optimal for rice cultivation. 
-                  Consider light fertilization in 2-3 weeks.
+                  {t('soil_conditions_optimal')} 
+                  {t('consider_fertilization')}
                 </div>
               </div>
             </div>
             
             <div className="mt-4 text-xs text-gray-400 text-center">
-              Scan completed at {new Date().toLocaleTimeString()}
+              {t('scan_completed_at')} {new Date().toLocaleTimeString()}
             </div>
           </Card>
         )}
@@ -460,7 +460,7 @@ export default function OwnerDashboard() {
             className="bg-blue-600/80 hover:bg-blue-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Add Map
+            {t('add_map')}
           </Button>
           
           <Button 
@@ -468,7 +468,7 @@ export default function OwnerDashboard() {
             className="bg-green-600/80 hover:bg-green-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
           >
             <FolderOpen className="h-5 w-5 mr-2" />
-            Saved Maps
+            {t('saved_maps')}
           </Button>
         </div>
       </div>

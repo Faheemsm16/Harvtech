@@ -25,13 +25,7 @@ const quantityUnits = [
   { value: 'Ton', label: 'Ton' },
 ];
 
-const categoryNames: Record<string, string> = {
-  seeds: 'Seeds',
-  fertilizers: 'Fertilizers',
-  pesticides: 'Pesticides',
-  equipments: 'Equipments',
-  others: 'Others'
-};
+// Remove hardcoded category names as we'll use translation
 
 export default function ProductUploadPage() {
   const { t } = useLanguage();
@@ -72,13 +66,13 @@ export default function ProductUploadPage() {
       setIsSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['/api/marketplace/products'] });
       toast({
-        title: "Success!",
-        description: "Product added successfully to Marketplace!",
+        title: t('success'),
+        description: t('product_added_successfully'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('error'),
         description: error.message || "Failed to upload product",
         variant: "destructive",
       });
@@ -96,7 +90,7 @@ export default function ProductUploadPage() {
   const onSubmit = (data: InsertMarketplaceProduct) => {
     if (!user?.id) {
       toast({
-        title: "Error",
+        title: t('error'),
         description: "Please log in to upload products",
         variant: "destructive",
       });
@@ -123,7 +117,7 @@ export default function ProductUploadPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h2 className="text-lg font-semibold">Product Uploaded</h2>
+              <h2 className="text-lg font-semibold">{t('product_uploaded')}</h2>
               <p className="text-sm opacity-90">Your product is now available</p>
             </div>
           </div>
@@ -134,15 +128,15 @@ export default function ProductUploadPage() {
           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
             <CheckCircle className="h-12 w-12 text-green-600" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Success!</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('success')}</h3>
           <p className="text-gray-600 text-center mb-8">
-            Product added successfully to Marketplace!
+            {t('product_added_successfully')}
           </p>
           <Button 
             onClick={handleBack}
             className="bg-ag-green hover:bg-ag-green/90 text-white px-8 py-3"
           >
-            Back to Marketplace
+            {t('back_to_marketplace')}
           </Button>
         </div>
       </div>
@@ -162,8 +156,8 @@ export default function ProductUploadPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-lg font-semibold">Upload Product</h2>
-            <p className="text-sm opacity-90">Category: {categoryNames[category]}</p>
+            <h2 className="text-lg font-semibold">{t('upload_product')}</h2>
+            <p className="text-sm opacity-90">{t('category')}: {t(category as keyof typeof t)}</p>
           </div>
         </div>
       </div>

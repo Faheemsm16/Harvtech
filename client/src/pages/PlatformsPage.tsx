@@ -33,7 +33,7 @@ export default function PlatformsPage() {
           </Button>
           <div>
             <h2 className="text-lg font-semibold">{t('platforms') || 'Platforms'}</h2>
-            <p className="text-sm opacity-90">Choose a platform to explore</p>
+            <p className="text-sm opacity-90">{t('choose_platform')}</p>
           </div>
         </div>
       </div>
@@ -52,8 +52,8 @@ export default function PlatformsPage() {
                 <Shield className="h-6 w-6 text-blue-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Insurance & Finance</h3>
-                <p className="text-sm text-gray-600">Access insurance and financial services</p>
+                <h3 className="font-semibold text-lg text-gray-900">{t('insurance_finance')}</h3>
+                <p className="text-sm text-gray-600">{t('access_insurance_finance')}</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>
@@ -72,8 +72,8 @@ export default function PlatformsPage() {
                 <Building className="h-6 w-6 text-green-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Government Schemes</h3>
-                <p className="text-sm text-gray-600">Explore government schemes and benefits</p>
+                <h3 className="font-semibold text-lg text-gray-900">{t('government_schemes')}</h3>
+                <p className="text-sm text-gray-600">{t('access_government_schemes')}</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>
