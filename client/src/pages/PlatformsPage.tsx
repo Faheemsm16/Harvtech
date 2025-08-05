@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Shield, Building, ShoppingCart, Truck } from "lucide-react";
+import { ArrowLeft, Shield, Building, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -92,28 +92,8 @@ export default function PlatformsPage() {
                 <ShoppingCart className="h-6 w-6 text-orange-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Marketplace</h3>
-                <p className="text-sm text-gray-600">Buy and sell agricultural products</p>
-              </div>
-              <div className="ml-auto text-gray-400">→</div>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Transport & Logistics */}
-        <Card className="bg-white border border-gray-200 overflow-hidden">
-          <CardContent className="p-0">
-            <Button
-              variant="ghost"
-              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => setLocation('/transport-booking')}
-            >
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <Truck className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Transport & Logistics</h3>
-                <p className="text-sm text-gray-600">Book transportation for your goods</p>
+                <h3 className="font-semibold text-lg text-gray-900">Market Place</h3>
+                <p className="text-sm text-gray-600">Browse and shop agricultural products</p>
               </div>
               <div className="ml-auto text-gray-400">→</div>
             </Button>
