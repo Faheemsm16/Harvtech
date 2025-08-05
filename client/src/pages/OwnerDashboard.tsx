@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Network, Bell, User, LogOut, Settings, TrendingUp } from "lucide-react";
+import { Network, Bell, User, LogOut, Settings, TrendingUp, Package } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
@@ -158,6 +158,14 @@ export default function OwnerDashboard() {
         
         {/* Action Buttons */}
         <div className="space-y-3">
+          <Button 
+            onClick={() => setLocation('/marketplace')}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-6 font-semibold"
+          >
+            <Package className="h-5 w-5 mr-2" />
+            <span>Marketplace</span>
+          </Button>
+          
           <Button 
             onClick={() => setLocation('/platforms')}
             className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"

@@ -163,6 +163,16 @@ export default function UserDashboard() {
         <div className="space-y-3">
           <Button
             variant="outline"
+            onClick={() => setLocation('/marketplace')}
+            className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-green-500"
+          >
+            <Package className="h-5 w-5 text-green-600 mr-3" />
+            <span className="font-medium">Marketplace</span>
+            <span className="ml-auto text-gray-400">→</span>
+          </Button>
+          
+          <Button
+            variant="outline"
             onClick={() => setLocation('/platforms')}
             className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-ag-orange"
           >
