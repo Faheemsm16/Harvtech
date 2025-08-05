@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import logoPath from "@assets/Logo_1754240298298.jpeg";
 
 export default function EntryPage() {
-  const { currentLanguage, toggleLanguage, t } = useLanguage();
+  const { currentLanguage, setLanguage, t, getLanguageOptions } = useLanguage();
   const [, setLocation] = useLocation();
 
   const openHelp = () => {
@@ -14,19 +15,24 @@ export default function EntryPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header with Language Toggle */}
+      {/* Header with Language Selector */}
       <div className="flex justify-between items-center p-4">
         <div></div>
-        <Button
-          variant="ghost"
-          onClick={toggleLanguage}
-          className="flex items-center space-x-2 bg-ag-green/10 text-ag-green hover:bg-ag-green/20"
-        >
-          <Globe className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {currentLanguage === 'english' ? 'English' : 'தமிழ்'}
-          </span>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Globe className="h-4 w-4 text-ag-green" />
+          <Select value={currentLanguage} onValueChange={setLanguage}>
+            <SelectTrigger className="w-32 bg-ag-green/10 text-ag-green hover:bg-ag-green/20 border-ag-green/30">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {getLanguageOptions().map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.nativeLabel}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       {/* Logo and Branding */}
