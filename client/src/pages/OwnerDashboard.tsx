@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Network, Bell, User, LogOut, Settings, TrendingUp } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Network, Bell, User, LogOut, Settings, TrendingUp, MoreVertical } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
@@ -60,7 +66,31 @@ export default function OwnerDashboard() {
       {/* Header */}
       <div className="bg-ag-brown text-white p-6">
         <div className="flex items-center justify-between">
+          {/* Left side with hamburger menu and user info */}
           <div className="flex items-center space-x-3">
+            {/* Three dots menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-white/10 p-2"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onClick={() => setLocation('/platforms')}>
+                  <Network className="h-4 w-4 mr-2" />
+                  {t('platforms') || 'Platforms'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowServices(true)}>
+                  <Bell className="h-4 w-4 mr-2" />
+                  {t('services') || 'Services'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* User avatar and info */}
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
               <User className="h-6 w-6 text-white" />
             </div>
@@ -69,6 +99,8 @@ export default function OwnerDashboard() {
               <h2 className="font-semibold">{user?.name || 'Owner'}</h2>
             </div>
           </div>
+          
+          {/* Logout button */}
           <Button
             variant="ghost"
             onClick={handleLogout}
@@ -156,24 +188,7 @@ export default function OwnerDashboard() {
           </Button>
         </div>
         
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button 
-            onClick={() => setLocation('/platforms')}
-            className="w-full bg-ag-green hover:bg-ag-green/90 text-white py-6 font-semibold"
-          >
-            <Network className="h-5 w-5 mr-2" />
-            <span>{t('platforms') || 'Platforms'}</span>
-          </Button>
-          
-          <Button 
-            onClick={() => setShowServices(true)}
-            className="w-full bg-ag-orange hover:bg-ag-orange/90 text-white py-6 font-semibold"
-          >
-            <Bell className="h-5 w-5 mr-2" />
-            <span>{t('services') || 'Services'}</span>
-          </Button>
-        </div>
+
       </div>
       
       {/* Modals */}
