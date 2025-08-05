@@ -6,6 +6,10 @@ import {
   transportVehicles,
   transportBookings,
   warehouses,
+  marketplaceCategories,
+  marketplaceProducts,
+  cartItems,
+  marketplaceOrders,
   type User,
   type UpsertUser,
   type Equipment,
@@ -20,9 +24,17 @@ import {
   type InsertTransportBooking,
   type Warehouse,
   type InsertWarehouse,
+  type MarketplaceCategory,
+  type InsertMarketplaceCategory,
+  type MarketplaceProduct,
+  type InsertMarketplaceProduct,
+  type CartItem,
+  type InsertCartItem,
+  type MarketplaceOrder,
+  type InsertMarketplaceOrder,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ilike, or, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -63,6 +75,32 @@ export interface IStorage {
   getAvailableWarehouses(): Promise<Warehouse[]>;
   getWarehouseById(id: string): Promise<Warehouse | undefined>;
   createWarehouse(warehouse: InsertWarehouse): Promise<Warehouse>;
+  
+  // Marketplace Category operations
+  getMarketplaceCategories(): Promise<MarketplaceCategory[]>;
+  getMarketplaceCategoryById(id: string): Promise<MarketplaceCategory | undefined>;
+  createMarketplaceCategory(category: InsertMarketplaceCategory): Promise<MarketplaceCategory>;
+  
+  // Marketplace Product operations
+  getMarketplaceProducts(categoryId?: string, searchTerm?: string): Promise<MarketplaceProduct[]>;
+  getMarketplaceProductById(id: string): Promise<MarketplaceProduct | undefined>;
+  getMarketplaceProductsBySeller(sellerId: string): Promise<MarketplaceProduct[]>;
+  createMarketplaceProduct(product: InsertMarketplaceProduct): Promise<MarketplaceProduct>;
+  updateMarketplaceProduct(id: string, updates: Partial<InsertMarketplaceProduct>): Promise<void>;
+  updateMarketplaceProductStatus(id: string, status: string): Promise<void>;
+  
+  // Cart operations
+  getCartItems(userId: string): Promise<(CartItem & { product: MarketplaceProduct })[]>;
+  addToCart(cartItem: InsertCartItem): Promise<CartItem>;
+  updateCartItemQuantity(id: string, quantity: number): Promise<void>;
+  removeFromCart(id: string): Promise<void>;
+  clearCart(userId: string): Promise<void>;
+  
+  // Marketplace Order operations
+  createMarketplaceOrder(order: InsertMarketplaceOrder): Promise<MarketplaceOrder>;
+  getMarketplaceOrdersByBuyer(buyerId: string): Promise<MarketplaceOrder[]>;
+  getMarketplaceOrdersBySeller(sellerId: string): Promise<MarketplaceOrder[]>;
+  updateMarketplaceOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -237,6 +275,173 @@ export class DatabaseStorage implements IStorage {
       .values(warehouseData)
       .returning();
     return warehouse;
+  }
+
+  // Marketplace Category operations
+  async getMarketplaceCategories(): Promise<MarketplaceCategory[]> {
+    return await db.select().from(marketplaceCategories).where(eq(marketplaceCategories.isActive, true));
+  }
+
+  async getMarketplaceCategoryById(id: string): Promise<MarketplaceCategory | undefined> {
+    const [category] = await db.select().from(marketplaceCategories).where(eq(marketplaceCategories.id, id));
+    return category;
+  }
+
+  async createMarketplaceCategory(categoryData: InsertMarketplaceCategory): Promise<MarketplaceCategory> {
+    const [category] = await db
+      .insert(marketplaceCategories)
+      .values(categoryData)
+      .returning();
+    return category;
+  }
+
+  // Marketplace Product operations
+  async getMarketplaceProducts(categoryId?: string, searchTerm?: string): Promise<MarketplaceProduct[]> {
+    let query = db.select().from(marketplaceProducts).where(eq(marketplaceProducts.isActive, true));
+
+    const conditions = [eq(marketplaceProducts.isActive, true)];
+    
+    if (categoryId) {
+      conditions.push(eq(marketplaceProducts.categoryId, categoryId));
+    }
+    
+    if (searchTerm) {
+      conditions.push(
+        or(
+          ilike(marketplaceProducts.name, `%${searchTerm}%`),
+          ilike(marketplaceProducts.description, `%${searchTerm}%`)
+        )!
+      );
+    }
+
+    return await db.select().from(marketplaceProducts).where(and(...conditions));
+  }
+
+  async getMarketplaceProductById(id: string): Promise<MarketplaceProduct | undefined> {
+    const [product] = await db.select().from(marketplaceProducts).where(eq(marketplaceProducts.id, id));
+    return product;
+  }
+
+  async getMarketplaceProductsBySeller(sellerId: string): Promise<MarketplaceProduct[]> {
+    return await db.select().from(marketplaceProducts).where(eq(marketplaceProducts.sellerId, sellerId));
+  }
+
+  async createMarketplaceProduct(productData: InsertMarketplaceProduct): Promise<MarketplaceProduct> {
+    const [product] = await db
+      .insert(marketplaceProducts)
+      .values(productData)
+      .returning();
+    return product;
+  }
+
+  async updateMarketplaceProduct(id: string, updates: Partial<InsertMarketplaceProduct>): Promise<void> {
+    await db
+      .update(marketplaceProducts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(marketplaceProducts.id, id));
+  }
+
+  async updateMarketplaceProductStatus(id: string, status: string): Promise<void> {
+    await db
+      .update(marketplaceProducts)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(marketplaceProducts.id, id));
+  }
+
+  // Cart operations
+  async getCartItems(userId: string): Promise<(CartItem & { product: MarketplaceProduct })[]> {
+    return await db
+      .select({
+        id: cartItems.id,
+        userId: cartItems.userId,
+        productId: cartItems.productId,
+        quantity: cartItems.quantity,
+        createdAt: cartItems.createdAt,
+        updatedAt: cartItems.updatedAt,
+        product: marketplaceProducts,
+      })
+      .from(cartItems)
+      .innerJoin(marketplaceProducts, eq(cartItems.productId, marketplaceProducts.id))
+      .where(eq(cartItems.userId, userId));
+  }
+
+  async addToCart(cartItemData: InsertCartItem): Promise<CartItem> {
+    // Check if item already exists in cart
+    const [existingItem] = await db
+      .select()
+      .from(cartItems)
+      .where(
+        and(
+          eq(cartItems.userId, cartItemData.userId),
+          eq(cartItems.productId, cartItemData.productId)
+        )
+      );
+
+    if (existingItem) {
+      // Update quantity if item exists
+      const newQuantity = existingItem.quantity + cartItemData.quantity;
+      await db
+        .update(cartItems)
+        .set({ quantity: newQuantity, updatedAt: new Date() })
+        .where(eq(cartItems.id, existingItem.id));
+      
+      const [updatedItem] = await db.select().from(cartItems).where(eq(cartItems.id, existingItem.id));
+      return updatedItem;
+    } else {
+      // Create new cart item
+      const [cartItem] = await db
+        .insert(cartItems)
+        .values(cartItemData)
+        .returning();
+      return cartItem;
+    }
+  }
+
+  async updateCartItemQuantity(id: string, quantity: number): Promise<void> {
+    if (quantity <= 0) {
+      await this.removeFromCart(id);
+    } else {
+      await db
+        .update(cartItems)
+        .set({ quantity, updatedAt: new Date() })
+        .where(eq(cartItems.id, id));
+    }
+  }
+
+  async removeFromCart(id: string): Promise<void> {
+    await db.delete(cartItems).where(eq(cartItems.id, id));
+  }
+
+  async clearCart(userId: string): Promise<void> {
+    await db.delete(cartItems).where(eq(cartItems.userId, userId));
+  }
+
+  // Marketplace Order operations
+  async createMarketplaceOrder(orderData: InsertMarketplaceOrder): Promise<MarketplaceOrder> {
+    const [order] = await db
+      .insert(marketplaceOrders)
+      .values(orderData)
+      .returning();
+    return order;
+  }
+
+  async getMarketplaceOrdersByBuyer(buyerId: string): Promise<MarketplaceOrder[]> {
+    return await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.buyerId, buyerId));
+  }
+
+  async getMarketplaceOrdersBySeller(sellerId: string): Promise<MarketplaceOrder[]> {
+    return await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.sellerId, sellerId));
+  }
+
+  async updateMarketplaceOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void> {
+    const updateData: any = { orderStatus, updatedAt: new Date() };
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    await db
+      .update(marketplaceOrders)
+      .set(updateData)
+      .where(eq(marketplaceOrders.id, id));
   }
 }
 

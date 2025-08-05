@@ -2,9 +2,25 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema, insertWarehouseSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertEquipmentSchema, 
+  insertBookingSchema, 
+  insertInsuranceApplicationSchema, 
+  insertTransportVehicleSchema, 
+  insertTransportBookingSchema, 
+  insertWarehouseSchema,
+  insertMarketplaceCategorySchema,
+  insertMarketplaceProductSchema,
+  insertCartItemSchema,
+  insertMarketplaceOrderSchema
+} from "@shared/schema";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
+import {
+  ObjectStorageService,
+  ObjectNotFoundError,
+} from "./objectStorage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -329,6 +345,259 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Warehouse creation error:", error);
       res.status(400).json({ message: "Failed to create warehouse" });
+    }
+  });
+
+  // Object storage routes for product images
+  app.get('/api/objects/upload', isAuthenticated, async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Upload URL generation error:", error);
+      res.status(500).json({ message: "Failed to generate upload URL" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(
+        req.path,
+      );
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error downloading object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Marketplace Category routes
+  app.get('/api/marketplace/categories', async (req, res) => {
+    try {
+      const categories = await storage.getMarketplaceCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Categories fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post('/api/marketplace/categories', isAuthenticated, async (req, res) => {
+    try {
+      const categoryData = req.body;
+      const validatedData = insertMarketplaceCategorySchema.parse(categoryData);
+      const category = await storage.createMarketplaceCategory(validatedData);
+      res.json(category);
+    } catch (error) {
+      console.error("Category creation error:", error);
+      res.status(400).json({ message: "Failed to create category" });
+    }
+  });
+
+  // Marketplace Product routes
+  app.get('/api/marketplace/products', async (req, res) => {
+    try {
+      const { categoryId, search } = req.query;
+      const products = await storage.getMarketplaceProducts(
+        categoryId as string, 
+        search as string
+      );
+      res.json(products);
+    } catch (error) {
+      console.error("Products fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get('/api/marketplace/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.getMarketplaceProductById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      console.error("Product fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.get('/api/marketplace/products/seller/:sellerId', isAuthenticated, async (req, res) => {
+    try {
+      const { sellerId } = req.params;
+      const products = await storage.getMarketplaceProductsBySeller(sellerId);
+      res.json(products);
+    } catch (error) {
+      console.error("Seller products fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch seller products" });
+    }
+  });
+
+  app.post('/api/marketplace/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const productData = { ...req.body, sellerId: userId };
+      
+      // Handle image URL if provided
+      if (productData.imageUrl) {
+        const objectStorageService = new ObjectStorageService();
+        const normalizedPath = await objectStorageService.trySetObjectEntityAclPolicy(
+          productData.imageUrl,
+          {
+            owner: userId,
+            visibility: "public",
+          }
+        );
+        productData.imageUrl = normalizedPath;
+      }
+      
+      const validatedData = insertMarketplaceProductSchema.parse(productData);
+      const product = await storage.createMarketplaceProduct(validatedData);
+      res.json(product);
+    } catch (error) {
+      console.error("Product creation error:", error);
+      res.status(400).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.patch('/api/marketplace/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const updates = req.body;
+      
+      // Verify ownership
+      const existingProduct = await storage.getMarketplaceProductById(id);
+      if (!existingProduct || existingProduct.sellerId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to update this product" });
+      }
+      
+      await storage.updateMarketplaceProduct(id, updates);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Product update error:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  // Cart routes
+  app.get('/api/marketplace/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const cartItems = await storage.getCartItems(userId);
+      res.json(cartItems);
+    } catch (error) {
+      console.error("Cart fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch cart items" });
+    }
+  });
+
+  app.post('/api/marketplace/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const cartItemData = { ...req.body, userId };
+      
+      const validatedData = insertCartItemSchema.parse(cartItemData);
+      const cartItem = await storage.addToCart(validatedData);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      res.status(400).json({ message: "Failed to add item to cart" });
+    }
+  });
+
+  app.patch('/api/marketplace/cart/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { quantity } = req.body;
+      
+      await storage.updateCartItemQuantity(id, quantity);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart update error:", error);
+      res.status(500).json({ message: "Failed to update cart item" });
+    }
+  });
+
+  app.delete('/api/marketplace/cart/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.removeFromCart(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart item removal error:", error);
+      res.status(500).json({ message: "Failed to remove cart item" });
+    }
+  });
+
+  app.delete('/api/marketplace/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.clearCart(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart clear error:", error);
+      res.status(500).json({ message: "Failed to clear cart" });
+    }
+  });
+
+  // Order routes
+  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const orderData = { ...req.body, buyerId: userId };
+      
+      const validatedData = insertMarketplaceOrderSchema.parse(orderData);
+      const order = await storage.createMarketplaceOrder(validatedData);
+      
+      // Clear cart after successful order
+      await storage.clearCart(userId);
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(400).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.get('/api/marketplace/orders/buyer', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const orders = await storage.getMarketplaceOrdersByBuyer(userId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Buyer orders fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch buyer orders" });
+    }
+  });
+
+  app.get('/api/marketplace/orders/seller', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const orders = await storage.getMarketplaceOrdersBySeller(userId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Seller orders fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch seller orders" });
+    }
+  });
+
+  app.patch('/api/marketplace/orders/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { orderStatus, paymentStatus } = req.body;
+      
+      await storage.updateMarketplaceOrderStatus(id, orderStatus, paymentStatus);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Order status update error:", error);
+      res.status(500).json({ message: "Failed to update order status" });
     }
   });
 
