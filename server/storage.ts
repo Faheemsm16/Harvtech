@@ -30,8 +30,8 @@ import {
   type InsertCartItem,
   type MarketplaceOrder,
   type InsertMarketplaceOrder,
-  type OrderItem,
-  type InsertOrderItem,
+  type MarketplaceOrderItem,
+  type InsertMarketplaceOrderItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -395,7 +395,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order operations
-  async createOrder(orderData: InsertMarketplaceOrder, orderItemsData: InsertOrderItem[]): Promise<MarketplaceOrder> {
+  async createOrder(orderData: InsertMarketplaceOrder, orderItemsData: InsertMarketplaceOrderItem[]): Promise<MarketplaceOrder> {
     // Create order and order items in a transaction
     const [order] = await db
       .insert(marketplaceOrders)
@@ -421,6 +421,53 @@ export class DatabaseStorage implements IStorage {
   async getOrderById(id: string): Promise<MarketplaceOrder | undefined> {
     const [order] = await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.id, id));
     return order;
+  }
+
+  async getOrdersWithItems(buyerId: string): Promise<any[]> {
+    const ordersData = await db
+      .select({
+        id: marketplaceOrders.id,
+        orderNumber: marketplaceOrders.orderNumber,
+        totalAmount: marketplaceOrders.totalAmount,
+        deliveryFee: marketplaceOrders.deliveryFee,
+        status: marketplaceOrders.status,
+        paymentMethod: marketplaceOrders.paymentMethod,
+        paymentStatus: marketplaceOrders.paymentStatus,
+        deliveryName: marketplaceOrders.deliveryName,
+        deliveryMobile: marketplaceOrders.deliveryMobile,
+        deliveryAddress: marketplaceOrders.deliveryAddress,
+        deliveryCity: marketplaceOrders.deliveryCity,
+        deliveryState: marketplaceOrders.deliveryState,
+        deliveryPincode: marketplaceOrders.deliveryPincode,
+        createdAt: marketplaceOrders.createdAt,
+      })
+      .from(marketplaceOrders)
+      .where(eq(marketplaceOrders.buyerId, buyerId))
+      .orderBy(marketplaceOrders.createdAt);
+
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(
+      ordersData.map(async (order) => {
+        const items = await db
+          .select({
+            id: orderItems.id,
+            productName: orderItems.productName,
+            productPrice: orderItems.productPrice,
+            quantity: orderItems.quantity,
+            sellerName: orderItems.sellerName,
+            category: orderItems.category,
+          })
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+
+        return {
+          ...order,
+          items,
+        };
+      })
+    );
+
+    return ordersWithItems;
   }
 
   async updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void> {

@@ -23,7 +23,10 @@ import {
   Map,
   FolderOpen,
   Plus,
-  Loader2
+  Loader2,
+  Menu,
+  Package2,
+  X
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -53,6 +56,7 @@ export default function OwnerDashboard() {
   const [showSchemes, setShowSchemes] = useState(false);
   const [showServices, setShowServices] = useState(false);
   const [showOwnerEquipment, setShowOwnerEquipment] = useState(false);
+  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   
   // Tractor control states
   const [batteryLevel, setBatteryLevel] = useState(87);
@@ -186,6 +190,13 @@ export default function OwnerDashboard() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48 bg-slate-800/95 border-slate-600 text-white">
+                <DropdownMenuItem 
+                  onClick={() => setLocation('/my-orders')}
+                  className="hover:bg-slate-700/50 focus:bg-slate-700/50"
+                >
+                  <Package2 className="h-4 w-4 mr-2" />
+                  My Orders
+                </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setLocation('/platforms')}
                   className="hover:bg-slate-700/50 focus:bg-slate-700/50"

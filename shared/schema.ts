@@ -75,6 +75,32 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Orders table for marketplace purchases
+export const orders = pgTable("orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  orderNumber: varchar("order_number").notNull().unique(),
+  totalAmount: integer("total_amount").notNull(), // in paise
+  deliveryFee: integer("delivery_fee").default(5000), // in paise (₹50)
+  status: varchar("status").default("pending"), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
+  paymentMethod: varchar("payment_method").notNull(), // 'upi', 'cod', 'card'
+  paymentStatus: varchar("payment_status").default("pending"), // 'pending', 'paid', 'failed'
+  
+  // Delivery address
+  deliveryName: varchar("delivery_name").notNull(),
+  deliveryMobile: varchar("delivery_mobile").notNull(),
+  deliveryAddress: text("delivery_address").notNull(),
+  deliveryCity: varchar("delivery_city").notNull(),
+  deliveryState: varchar("delivery_state").notNull(),
+  deliveryPincode: varchar("delivery_pincode").notNull(),
+  deliveryLandmark: varchar("delivery_landmark"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+
 // Insurance Applications table
 export const insuranceApplications = pgTable("insurance_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -280,6 +306,29 @@ export const insertBookingSchema = createInsertSchema(bookings).pick({
   securityDeposit: true,
 });
 
+export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Equipment = typeof equipment.$inferSelect;
+export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
+export type Booking = typeof bookings.$inferSelect;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+
 export const insertInsuranceApplicationSchema = createInsertSchema(insuranceApplications).omit({
   id: true,
   createdAt: true,
@@ -321,17 +370,12 @@ export const insertMarketplaceOrderSchema = createInsertSchema(marketplaceOrders
   updatedAt: true,
 });
 
-export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+export const insertMarketplaceOrderItemSchema = createInsertSchema(orderItems).omit({
   id: true,
   createdAt: true,
 });
 
 export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
-export type Equipment = typeof equipment.$inferSelect;
-export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
-export type Booking = typeof bookings.$inferSelect;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsuranceApplication = typeof insuranceApplications.$inferSelect;
 export type InsertInsuranceApplication = z.infer<typeof insertInsuranceApplicationSchema>;
 export type TransportVehicle = typeof transportVehicles.$inferSelect;
@@ -346,5 +390,5 @@ export type CartItem = typeof cartItems.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type MarketplaceOrder = typeof marketplaceOrders.$inferSelect;
 export type InsertMarketplaceOrder = z.infer<typeof insertMarketplaceOrderSchema>;
-export type OrderItem = typeof orderItems.$inferSelect;
-export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type MarketplaceOrderItem = typeof orderItems.$inferSelect;
+export type InsertMarketplaceOrderItem = z.infer<typeof insertMarketplaceOrderItemSchema>;

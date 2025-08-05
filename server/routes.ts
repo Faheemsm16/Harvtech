@@ -607,6 +607,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // My Orders endpoint with detailed information
+  app.get('/api/my-orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const buyerId = req.user.claims.sub;
+      const orders = await storage.getOrdersWithItems(buyerId);
+      res.json(orders);
+    } catch (error) {
+      console.error("My orders fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
   app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
     try {
       const orderData = req.body;

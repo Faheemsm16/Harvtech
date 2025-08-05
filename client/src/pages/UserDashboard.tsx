@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tractor, Wrench, Settings, Network, Bell, User, LogOut, Package } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tractor, Wrench, Settings, Network, Bell, User, LogOut, Package, Menu, Package2, MoreVertical } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -51,6 +57,41 @@ export default function UserDashboard() {
       <div className="bg-ag-green text-white p-6 pb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
+            {/* Hamburger menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-white/10 p-2 rounded-full"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-white border-gray-200">
+                <DropdownMenuItem 
+                  onClick={() => setLocation('/my-orders')}
+                  className="hover:bg-gray-100 focus:bg-gray-100"
+                >
+                  <Package2 className="h-4 w-4 mr-2" />
+                  My Orders
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowSchemes(true)}
+                  className="hover:bg-gray-100 focus:bg-gray-100"
+                >
+                  <Network className="h-4 w-4 mr-2" />
+                  {t('schemes') || 'Schemes'}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowServices(true)}
+                  className="hover:bg-gray-100 focus:bg-gray-100"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  {t('services') || 'Services'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
               <User className="h-6 w-6 text-white" />
             </div>
