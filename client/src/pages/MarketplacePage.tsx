@@ -13,7 +13,7 @@ import { ShoppingCart, Search, Plus, Package, Store, Truck, Upload } from "lucid
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLanguage } from "@/context/LanguageContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectUploader } from "@/components/ObjectUploader";
@@ -191,7 +191,7 @@ const translations = {
 
 export default function MarketplacePage() {
   const { currentLanguage } = useLanguage();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const t = translations[currentLanguage];
@@ -216,19 +216,21 @@ export default function MarketplacePage() {
   });
 
   // Fetch categories
-  const { data: categories = [] } = useQuery<MarketplaceCategory[]>({
-    queryKey: ['/api/marketplace/categories']
+  const { data: categories = [], error: categoriesError } = useQuery<MarketplaceCategory[]>({
+    queryKey: ['/api/marketplace/categories'],
+    retry: 2
   });
 
   // Fetch products
-  const { data: products = [], isLoading: productsLoading } = useQuery<MarketplaceProduct[]>({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<MarketplaceProduct[]>({
     queryKey: ['/api/marketplace/products', selectedCategory, searchTerm],
     queryFn: () => apiRequest('GET', '/api/marketplace/products', {
       params: {
         ...(selectedCategory && { categoryId: selectedCategory }),
         ...(searchTerm && { search: searchTerm })
       }
-    }).then(res => res.json())
+    }).then(res => res.json()),
+    retry: 2
   });
 
   // Fetch cart items
@@ -328,6 +330,23 @@ export default function MarketplacePage() {
     (sum, item) => sum + (item.product.price * item.quantity), 
     0
   );
+
+  // Show errors if any
+  if (categoriesError || productsError) {
+    return (
+      <div className="min-h-screen bg-green-50 dark:bg-green-950/20 flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Marketplace</h2>
+          <p className="text-gray-600 mb-4">
+            {categoriesError?.message || productsError?.message || "Something went wrong"}
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Reload Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-green-50 dark:bg-green-950/20">
