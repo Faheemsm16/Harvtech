@@ -30,6 +30,7 @@ export interface IStorage {
   getUserByMobile(mobileNumber: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(userData: Omit<UpsertUser, 'id'>): Promise<User>;
+  updateUserProfile(id: string, profileData: { email?: string; firstName?: string; lastName?: string; profileImageUrl?: string }): Promise<void>;
   
   // Equipment operations
   getEquipmentByOwner(ownerId: string): Promise<Equipment[]>;
@@ -98,6 +99,16 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .returning();
     return user;
+  }
+
+  async updateUserProfile(id: string, profileData: { email?: string; firstName?: string; lastName?: string; profileImageUrl?: string }): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        ...profileData,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id));
   }
 
   // Equipment operations

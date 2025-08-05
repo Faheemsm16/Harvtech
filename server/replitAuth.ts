@@ -23,7 +23,8 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  // Set session to expire in 1 year (effectively permanent until logout)
+  const sessionTtl = 365 * 24 * 60 * 60 * 1000; // 1 year
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -36,6 +37,7 @@ export function getSession() {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset session expiry on each request
     cookie: {
       httpOnly: true,
       secure: true,
@@ -54,16 +56,20 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(
+async function updateAuthenticatedUser(
   claims: any,
 ) {
-  await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+  // Only update profile information for existing users
+  // Don't create new users via OIDC - they must register through the app first
+  const existingUser = await storage.getUser(claims["sub"]);
+  if (existingUser) {
+    await storage.updateUserProfile(claims["sub"], {
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+    });
+  }
 }
 
 export async function setupAuth(app: Express) {
@@ -80,7 +86,7 @@ export async function setupAuth(app: Express) {
   ) => {
     const user = {};
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    await updateAuthenticatedUser(tokens.claims());
     verified(null, user);
   };
 
