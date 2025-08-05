@@ -22,6 +22,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed database route (for development)
+  app.post('/api/seed-database', async (req, res) => {
+    try {
+      await seedDatabase();
+      res.json({ message: "Database seeded successfully" });
+    } catch (error) {
+      console.error("Error seeding database:", error);
+      res.status(500).json({ message: "Failed to seed database" });
+    }
+  });
+
+  // Seed only marketplace products (for development)
+  app.post('/api/seed-products', async (req, res) => {
+    try {
+      const sampleMarketplaceProducts = [
+        // Seeds
+        {
+          sellerId: "sample-owner-1",
+          category: "seeds",
+          productName: "Basmati Rice Seeds",
+          productDescription: "Premium quality Basmati rice seeds with high yield potential. Suitable for kharif season.",
+          quantity: 100,
+          quantityUnit: "KG",
+          pricePerUnit: 150,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        {
+          sellerId: "sample-owner-2",
+          category: "seeds",
+          productName: "Tomato Hybrid Seeds",
+          productDescription: "Disease resistant tomato seeds with excellent yield. Perfect for greenhouse cultivation.",
+          quantity: 50,
+          quantityUnit: "Packet",
+          pricePerUnit: 250,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1592841200221-a6898f307baa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        {
+          sellerId: "sample-owner-3",
+          category: "seeds",
+          productName: "Corn Seeds (Sweet Corn)",
+          productDescription: "High quality sweet corn seeds with 85% germination rate. Suitable for all seasons.",
+          quantity: 75,
+          quantityUnit: "KG",
+          pricePerUnit: 180,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1551754655-cd27e38d2076?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        // Fertilizers
+        {
+          sellerId: "sample-owner-2",
+          category: "fertilizers",
+          productName: "NPK 19:19:19",
+          productDescription: "Balanced NPK fertilizer suitable for all crops. Water soluble and fast acting.",
+          quantity: 25,
+          quantityUnit: "KG",
+          pricePerUnit: 85,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        {
+          sellerId: "sample-owner-5",
+          category: "fertilizers",
+          productName: "Organic Compost",
+          productDescription: "100% organic compost made from farm waste. Rich in nutrients and beneficial microorganisms.",
+          quantity: 100,
+          quantityUnit: "KG",
+          pricePerUnit: 35,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        // Pesticides
+        {
+          sellerId: "sample-owner-3",
+          category: "pesticides",
+          productName: "Neem Oil Pesticide",
+          productDescription: "100% organic neem oil for pest control. Safe for beneficial insects and environment.",
+          quantity: 20,
+          quantityUnit: "Liter",
+          pricePerUnit: 450,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        // Equipment
+        {
+          sellerId: "sample-owner-1",
+          category: "equipments",
+          productName: "Manual Seed Drill",
+          productDescription: "Manual seed drill for small farm operations. Ensures proper seed spacing and depth.",
+          quantity: 5,
+          quantityUnit: "Piece",
+          pricePerUnit: 2500,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        // Others
+        {
+          sellerId: "sample-owner-6",
+          category: "others",
+          productName: "Plastic Mulch Film",
+          productDescription: "Black plastic mulch film for weed control and moisture retention. 25 micron thickness.",
+          quantity: 100,
+          quantityUnit: "Meter",
+          pricePerUnit: 12,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        }
+      ];
+
+      for (const product of sampleMarketplaceProducts) {
+        try {
+          await storage.createProduct(product);
+          console.log(`Created marketplace product: ${product.productName}`);
+        } catch (error) {
+          console.log(`Product already exists or error: ${product.productName}`);
+        }
+      }
+      
+      res.json({ message: "Sample products added successfully" });
+    } catch (error) {
+      console.error("Error seeding products:", error);
+      res.status(500).json({ message: "Failed to seed products" });
+    }
+  });
+
   // User registration (mock OTP system)
   app.post('/api/register', async (req, res) => {
     try {
