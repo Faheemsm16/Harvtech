@@ -46,7 +46,7 @@ export const users = pgTable("users", {
 export const equipment = pgTable("equipment", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   ownerId: varchar("owner_id").references(() => users.id).notNull(),
-  type: varchar("type").notNull(), // 'tractor', 'weeder', 'tiller'
+  type: varchar("type").notNull(), // 'tractor', 'weeder'
   name: varchar("name").notNull(),
   modelNumber: varchar("model_number").notNull(),
   chassisNumber: varchar("chassis_number").notNull(),

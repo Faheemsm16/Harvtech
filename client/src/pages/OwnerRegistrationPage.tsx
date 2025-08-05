@@ -210,7 +210,6 @@ export default function OwnerRegistrationPage() {
     switch (type) {
       case 'tractor': return <Tractor className="h-5 w-5" />;
       case 'weeder': return <Wrench className="h-5 w-5" />;
-      case 'tiller': return <Settings className="h-5 w-5" />;
       default: return null;
     }
   };
@@ -266,14 +265,6 @@ export default function OwnerRegistrationPage() {
                 <Label htmlFor="weeder" className="flex items-center space-x-3 cursor-pointer flex-1">
                   <Wrench className="h-5 w-5 text-ag-green" />
                   <span className="font-medium">{t('weeder')}</span>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-3 p-4 border border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50">
-                <RadioGroupItem value="tiller" id="tiller" />
-                <Label htmlFor="tiller" className="flex items-center space-x-3 cursor-pointer flex-1">
-                  <Settings className="h-5 w-5 text-ag-green" />
-                  <span className="font-medium">{t('tiller')}</span>
                 </Label>
               </div>
             </RadioGroup>

@@ -81,47 +81,6 @@ const sampleEquipment = [
     availability: "available",
     imageUrl: "https://images.unsplash.com/photo-1592982736275-b8ac5b387e37?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
     ownerId: "sample-owner-6"
-  },
-  
-  // Tillers
-  {
-    type: "tiller",
-    name: "Kubota Power Tiller",
-    modelNumber: "KPT-150",
-    chassisNumber: "KUBPT150001",
-    power: "15 HP",
-    year: 2023,
-    pricePerDay: 800,
-    location: "Vellore",
-    availability: "available",
-    imageUrl: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
-    ownerId: "sample-owner-7"
-  },
-  {
-    type: "tiller",
-    name: "Captain Power Tiller",
-    modelNumber: "CPT-120",
-    chassisNumber: "CAPPT120001",
-    power: "12 HP",
-    year: 2022,
-    pricePerDay: 650,
-    location: "Dindigul",
-    availability: "available",
-    imageUrl: "https://images.unsplash.com/photo-1589995651834-92ce5ef1711a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
-    ownerId: "sample-owner-8"
-  },
-  {
-    type: "tiller",
-    name: "Kamco Power Tiller",
-    modelNumber: "KAMPT-180",
-    chassisNumber: "KAMPT180001",
-    power: "18 HP",
-    year: 2023,
-    pricePerDay: 900,
-    location: "Erode",
-    availability: "available",
-    imageUrl: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
-    ownerId: "sample-owner-9"
   }
 ];
 
@@ -208,48 +167,6 @@ const sampleUsers = [
     city: "Thanjavur",
     country: "India",
     aadhaarNumber: "123456789017",
-    isVerified: true
-  },
-  {
-    id: "sample-owner-7",
-    email: "owner7@harvtech.com",
-    firstName: "Ganesh",
-    lastName: "K",
-    mobileNumber: "9876543216",
-    role: "owner",
-    farmerId: "FRM-123462",
-    name: "Ganesh K",
-    city: "Vellore",
-    country: "India",
-    aadhaarNumber: "123456789018",
-    isVerified: true
-  },
-  {
-    id: "sample-owner-8",
-    email: "owner8@harvtech.com",
-    firstName: "Ramesh",
-    lastName: "P",
-    mobileNumber: "9876543217",
-    role: "owner",
-    farmerId: "FRM-123463",
-    name: "Ramesh P",
-    city: "Dindigul",
-    country: "India",
-    aadhaarNumber: "123456789019",
-    isVerified: true
-  },
-  {
-    id: "sample-owner-9",
-    email: "owner9@harvtech.com",
-    firstName: "Suresh",
-    lastName: "V",
-    mobileNumber: "9876543218",
-    role: "owner",
-    farmerId: "FRM-123464",
-    name: "Suresh V",
-    city: "Erode",
-    country: "India",
-    aadhaarNumber: "123456789020",
     isVerified: true
   }
 ];

@@ -103,15 +103,7 @@ export default function UserDashboard() {
               <span className="text-sm font-medium">{t('weeder')}</span>
             </Button>
             
-            {/* Tiller */}
-            <Button
-              variant="outline"
-              onClick={() => navigateToEquipment('tiller')}
-              className="h-auto p-4 flex flex-col items-center space-y-2 bg-white border border-gray-200 hover:border-ag-green"
-            >
-              <Settings className="h-8 w-8 text-ag-green" />
-              <span className="text-sm font-medium">{t('tiller')}</span>
-            </Button>
+
           </div>
         </div>
         
