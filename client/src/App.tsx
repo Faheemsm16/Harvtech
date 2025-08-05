@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider, useCustomAuth } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
 import NotFound from "@/pages/not-found";
 import EntryPage from "@/pages/EntryPage";
 import LoginPage from "@/pages/LoginPage";
@@ -27,7 +28,9 @@ import SellCategoryPage from "@/pages/marketplace/SellCategoryPage";
 import ProductUploadPage from "@/pages/marketplace/ProductUploadPage";
 import BuyCategoryPage from "@/pages/marketplace/BuyCategoryPage";
 import ProductBrowsePage from "@/pages/marketplace/ProductBrowsePage";
-import CartPage from "@/pages/marketplace/CartPage";
+import SimpleCartPage from "@/pages/marketplace/SimpleCartPage";
+import CheckoutPage from "@/pages/marketplace/CheckoutPage";
+import OrderSuccessPage from "@/pages/marketplace/OrderSuccessPage";
 import MarketplacePaymentPage from "@/pages/marketplace/PaymentPage";
 
 function Router() {
@@ -61,7 +64,9 @@ function Router() {
           <Route path="/marketplace/sell/upload" component={ProductUploadPage} />
           <Route path="/marketplace/buy" component={BuyCategoryPage} />
           <Route path="/marketplace/buy/browse" component={ProductBrowsePage} />
-          <Route path="/marketplace/cart" component={CartPage} />
+          <Route path="/marketplace/cart" component={SimpleCartPage} />
+          <Route path="/marketplace/checkout" component={CheckoutPage} />
+          <Route path="/marketplace/order-success" component={OrderSuccessPage} />
           <Route path="/marketplace/payment" component={MarketplacePaymentPage} />
         </>
       )}
@@ -78,10 +83,12 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <LanguageProvider>
-            <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
-              <Toaster />
-              <Router />
-            </div>
+            <CartProvider>
+              <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+                <Toaster />
+                <Router />
+              </div>
+            </CartProvider>
           </LanguageProvider>
         </AuthProvider>
       </TooltipProvider>
