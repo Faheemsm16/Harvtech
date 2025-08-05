@@ -58,6 +58,7 @@ export default function OwnerDashboard() {
   const [engineRunning, setEngineRunning] = useState(false);
   const [soilScanActive, setSoilScanActive] = useState(false);
   const [tractorRotation, setTractorRotation] = useState({ x: 0, y: 0 });
+  const [showSoilResults, setShowSoilResults] = useState(false);
   
   // 3D model interaction
   const tractorRef = useRef<HTMLDivElement>(null);
@@ -131,7 +132,16 @@ export default function OwnerDashboard() {
       setEngineRunning(!engineRunning);
     }
   };
-  const toggleSoilScan = () => setSoilScanActive(!soilScanActive);
+  const toggleSoilScan = () => {
+    setSoilScanActive(!soilScanActive);
+    if (!soilScanActive) {
+      setShowSoilResults(true);
+      // Auto-hide results after 10 seconds
+      setTimeout(() => setShowSoilResults(false), 10000);
+    } else {
+      setShowSoilResults(false);
+    }
+  };
 
   // Battery indicator with estimated time
   const getBatteryTime = () => {
@@ -219,31 +229,33 @@ export default function OwnerDashboard() {
               transform: `perspective(1000px) rotateX(${tractorRotation.x}deg) rotateY(${tractorRotation.y}deg)`
             }}
           >
-            {/* Main tractor body with gradient and shadows for 3D effect */}
-            <div className="relative w-80 h-48 transform-gpu">
-              {/* Tractor body */}
-              <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-green-500 to-green-600 rounded-3xl shadow-2xl border border-green-300/50">
-                {/* Cabin */}
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-24 h-20 bg-gradient-to-br from-blue-300 to-blue-500 rounded-2xl shadow-lg border border-blue-200/50"></div>
-                
-                {/* Front lights */}
-                <div className="absolute top-8 left-2 w-4 h-4 bg-yellow-300 rounded-full shadow-lg animate-pulse"></div>
-                <div className="absolute top-8 right-2 w-4 h-4 bg-yellow-300 rounded-full shadow-lg animate-pulse"></div>
-                
-                {/* Wheels */}
-                <div className="absolute -bottom-4 left-4 w-16 h-16 bg-gradient-to-br from-gray-800 to-black rounded-full border-4 border-gray-600 shadow-xl">
-                  <div className="absolute inset-2 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-4 right-4 w-16 h-16 bg-gradient-to-br from-gray-800 to-black rounded-full border-4 border-gray-600 shadow-xl">
-                  <div className="absolute inset-2 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full"></div>
-                </div>
-                
-                {/* Equipment attachment */}
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-gradient-to-r from-amber-600 to-amber-700 rounded-lg shadow-lg"></div>
-              </div>
+            {/* Realistic 3D Tractor Image */}
+            <div className="relative w-96 h-64 transform-gpu">
+              <img 
+                src="https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                alt="Autonomous Tractor"
+                className="w-full h-full object-contain drop-shadow-2xl filter brightness-110 contrast-110"
+                style={{
+                  filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5)) brightness(1.1) contrast(1.1)',
+                  transform: 'rotateY(15deg) rotateX(-5deg)'
+                }}
+              />
+              
+              {/* Glowing effect overlay when engine is running */}
+              {engineRunning && (
+                <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-xl animate-pulse"></div>
+              )}
+              
+              {/* Status indicators on tractor */}
+              {!isLocked && (
+                <div className="absolute top-4 left-4 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+              )}
+              {soilScanActive && (
+                <div className="absolute bottom-4 right-4 w-4 h-4 bg-purple-400 rounded-full animate-ping shadow-lg"></div>
+              )}
               
               {/* Hover instruction */}
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-white/60 text-xs text-center">
+              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-white/60 text-xs text-center">
                 Drag to rotate • Touch & swipe on mobile
               </div>
             </div>
@@ -319,6 +331,73 @@ export default function OwnerDashboard() {
             <div className="mt-1 text-green-300">Status: Active</div>
           </div>
         </Card>
+
+        {/* Soil Scan Results Modal */}
+        {showSoilResults && (
+          <Card className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-md border-purple-400/50 text-white p-6 max-w-sm w-full mx-6 z-50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Scan className="h-5 w-5 text-purple-400 animate-pulse" />
+                <span className="font-semibold">Soil Analysis Results</span>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => setShowSoilResults(false)}
+                className="text-white hover:bg-white/10 p-1 h-6 w-6"
+              >
+                ×
+              </Button>
+            </div>
+            
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-green-500/20 p-2 rounded border border-green-400/30">
+                  <div className="text-green-300 text-xs">pH Level</div>
+                  <div className="font-bold text-green-400">6.8</div>
+                  <div className="text-xs text-green-200">Optimal</div>
+                </div>
+                <div className="bg-blue-500/20 p-2 rounded border border-blue-400/30">
+                  <div className="text-blue-300 text-xs">Moisture</div>
+                  <div className="font-bold text-blue-400">42%</div>
+                  <div className="text-xs text-blue-200">Good</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-yellow-500/20 p-2 rounded border border-yellow-400/30">
+                  <div className="text-yellow-300 text-xs">Nitrogen</div>
+                  <div className="font-bold text-yellow-400">85mg/kg</div>
+                </div>
+                <div className="bg-orange-500/20 p-2 rounded border border-orange-400/30">
+                  <div className="text-orange-300 text-xs">Phosphorus</div>
+                  <div className="font-bold text-orange-400">32mg/kg</div>
+                </div>
+                <div className="bg-pink-500/20 p-2 rounded border border-pink-400/30">
+                  <div className="text-pink-300 text-xs">Potassium</div>
+                  <div className="font-bold text-pink-400">156mg/kg</div>
+                </div>
+              </div>
+              
+              <div className="bg-cyan-500/20 p-2 rounded border border-cyan-400/30">
+                <div className="text-cyan-300 text-xs">Organic Matter</div>
+                <div className="font-bold text-cyan-400">3.2%</div>
+                <div className="text-xs text-cyan-200">Excellent for crop growth</div>
+              </div>
+              
+              <div className="bg-purple-500/20 p-2 rounded border border-purple-400/30">
+                <div className="text-purple-300 text-xs mb-1">Recommendation</div>
+                <div className="text-xs text-purple-200">
+                  Soil conditions are optimal for rice cultivation. 
+                  Consider light fertilization in 2-3 weeks.
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 text-xs text-gray-400 text-center">
+              Scan completed at {new Date().toLocaleTimeString()}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Bottom Navigation - Map Controls */}
