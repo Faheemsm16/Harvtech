@@ -192,6 +192,58 @@ export const warehouses = pgTable("warehouses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Marketplace Products table
+export const marketplaceProducts = pgTable("marketplace_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sellerId: varchar("seller_id").references(() => users.id).notNull(),
+  category: varchar("category").notNull(), // 'Seeds', 'Fertilizers', 'Pesticides', 'Equipments', 'Others'
+  productName: varchar("product_name").notNull(),
+  productDescription: text("product_description"),
+  quantity: integer("quantity").notNull(),
+  quantityUnit: varchar("quantity_unit").notNull(), // 'KG', 'Quintal', 'Packet', 'Piece'
+  pricePerUnit: integer("price_per_unit").notNull(), // in rupees
+  imageUrls: text("image_urls"), // JSON array of image URLs
+  isAvailable: boolean("is_available").default(true),
+  totalSold: integer("total_sold").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Cart Items table
+export const cartItems = pgTable("cart_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
+  productId: varchar("product_id").references(() => marketplaceProducts.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Marketplace Orders table
+export const marketplaceOrders = pgTable("marketplace_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
+  totalAmount: integer("total_amount").notNull(), // in rupees
+  orderStatus: varchar("order_status").default("pending"), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
+  paymentMethod: varchar("payment_method").notNull(), // 'UPI', 'Debit Card', 'Wallet', 'COD'
+  paymentStatus: varchar("payment_status").default("pending"), // 'pending', 'paid', 'failed'
+  shippingAddress: text("shipping_address"),
+  estimatedDelivery: varchar("estimated_delivery"), // e.g., "3-5 days"
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Order Items table (join table for orders and products)
+export const orderItems = pgTable("order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").references(() => marketplaceOrders.id).notNull(),
+  productId: varchar("product_id").references(() => marketplaceProducts.id).notNull(),
+  sellerId: varchar("seller_id").references(() => users.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  pricePerUnit: integer("price_per_unit").notNull(),
+  subtotal: integer("subtotal").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -252,6 +304,28 @@ export const insertWarehouseSchema = createInsertSchema(warehouses).omit({
   updatedAt: true,
 });
 
+export const insertMarketplaceProductSchema = createInsertSchema(marketplaceProducts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCartItemSchema = createInsertSchema(cartItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMarketplaceOrderSchema = createInsertSchema(marketplaceOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Equipment = typeof equipment.$inferSelect;
@@ -266,3 +340,11 @@ export type TransportBooking = typeof transportBookings.$inferSelect;
 export type InsertTransportBooking = z.infer<typeof insertTransportBookingSchema>;
 export type Warehouse = typeof warehouses.$inferSelect;
 export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
+export type MarketplaceProduct = typeof marketplaceProducts.$inferSelect;
+export type InsertMarketplaceProduct = z.infer<typeof insertMarketplaceProductSchema>;
+export type CartItem = typeof cartItems.$inferSelect;
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+export type MarketplaceOrder = typeof marketplaceOrders.$inferSelect;
+export type InsertMarketplaceOrder = z.infer<typeof insertMarketplaceOrderSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;

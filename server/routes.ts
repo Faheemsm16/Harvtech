@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema, insertWarehouseSchema } from "@shared/schema";
+import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema, insertWarehouseSchema, insertMarketplaceProductSchema, insertCartItemSchema, insertMarketplaceOrderSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
@@ -329,6 +329,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Warehouse creation error:", error);
       res.status(400).json({ message: "Failed to create warehouse" });
+    }
+  });
+
+  // Marketplace Product routes
+  app.get('/api/marketplace/products', async (req, res) => {
+    try {
+      const { category, seller, search } = req.query;
+      let products;
+      
+      if (search) {
+        products = await storage.searchProducts(search as string, category as string);
+      } else if (category) {
+        products = await storage.getProductsByCategory(category as string);
+      } else if (seller) {
+        products = await storage.getProductsBySeller(seller as string);
+      } else {
+        products = await storage.searchProducts(''); // Get all products
+      }
+      
+      res.json(products);
+    } catch (error) {
+      console.error("Products fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get('/api/marketplace/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.getProductById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      console.error("Product fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.post('/api/marketplace/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const productData = req.body;
+      const sellerId = req.user.claims.sub;
+      
+      const validatedData = insertMarketplaceProductSchema.parse({
+        ...productData,
+        sellerId
+      });
+      
+      const product = await storage.createProduct(validatedData);
+      res.json(product);
+    } catch (error) {
+      console.error("Product creation error:", error);
+      res.status(400).json({ message: "Failed to create product" });
+    }
+  });
+
+  // Cart routes
+  app.get('/api/marketplace/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const buyerId = req.user.claims.sub;
+      const cartItems = await storage.getCartByUser(buyerId);
+      res.json(cartItems);
+    } catch (error) {
+      console.error("Cart fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch cart" });
+    }
+  });
+
+  app.post('/api/marketplace/cart', isAuthenticated, async (req: any, res) => {
+    try {
+      const cartData = req.body;
+      const buyerId = req.user.claims.sub;
+      
+      const validatedData = insertCartItemSchema.parse({
+        ...cartData,
+        buyerId
+      });
+      
+      const cartItem = await storage.addToCart(validatedData);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      res.status(400).json({ message: "Failed to add to cart" });
+    }
+  });
+
+  app.put('/api/marketplace/cart/:productId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const { quantity } = req.body;
+      const buyerId = req.user.claims.sub;
+      
+      await storage.updateCartQuantity(buyerId, productId, quantity);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart update error:", error);
+      res.status(400).json({ message: "Failed to update cart" });
+    }
+  });
+
+  app.delete('/api/marketplace/cart/:productId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const buyerId = req.user.claims.sub;
+      
+      await storage.removeFromCart(buyerId, productId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart remove error:", error);
+      res.status(400).json({ message: "Failed to remove from cart" });
+    }
+  });
+
+  // Order routes
+  app.get('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const buyerId = req.user.claims.sub;
+      const orders = await storage.getOrdersByUser(buyerId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Orders fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const orderData = req.body;
+      const buyerId = req.user.claims.sub;
+      
+      const validatedOrderData = insertMarketplaceOrderSchema.parse({
+        ...orderData,
+        buyerId
+      });
+      
+      // Extract order items from request
+      const orderItems = orderData.items || [];
+      
+      const order = await storage.createOrder(validatedOrderData, orderItems);
+      
+      // Clear cart after successful order
+      await storage.clearCart(buyerId);
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(400).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.get('/api/marketplace/orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.getOrderById(id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Order fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
     }
   });
 

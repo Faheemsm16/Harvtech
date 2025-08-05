@@ -6,6 +6,10 @@ import {
   transportVehicles,
   transportBookings,
   warehouses,
+  marketplaceProducts,
+  cartItems,
+  marketplaceOrders,
+  orderItems,
   type User,
   type UpsertUser,
   type Equipment,
@@ -20,6 +24,14 @@ import {
   type InsertTransportBooking,
   type Warehouse,
   type InsertWarehouse,
+  type MarketplaceProduct,
+  type InsertMarketplaceProduct,
+  type CartItem,
+  type InsertCartItem,
+  type MarketplaceOrder,
+  type InsertMarketplaceOrder,
+  type OrderItem,
+  type InsertOrderItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -64,6 +76,27 @@ export interface IStorage {
   getAvailableWarehouses(): Promise<Warehouse[]>;
   getWarehouseById(id: string): Promise<Warehouse | undefined>;
   createWarehouse(warehouse: InsertWarehouse): Promise<Warehouse>;
+
+  // Marketplace Product operations
+  getProductsByCategory(category: string): Promise<MarketplaceProduct[]>;
+  getProductById(id: string): Promise<MarketplaceProduct | undefined>;
+  getProductsBySeller(sellerId: string): Promise<MarketplaceProduct[]>;
+  createProduct(product: InsertMarketplaceProduct): Promise<MarketplaceProduct>;
+  updateProductQuantity(id: string, quantity: number): Promise<void>;
+  searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]>;
+
+  // Cart operations
+  getCartByUser(buyerId: string): Promise<CartItem[]>;
+  addToCart(cartItem: InsertCartItem): Promise<CartItem>;
+  updateCartQuantity(buyerId: string, productId: string, quantity: number): Promise<void>;
+  removeFromCart(buyerId: string, productId: string): Promise<void>;
+  clearCart(buyerId: string): Promise<void>;
+
+  // Order operations
+  createOrder(order: InsertMarketplaceOrder, orderItems: InsertOrderItem[]): Promise<MarketplaceOrder>;
+  getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]>;
+  getOrderById(id: string): Promise<MarketplaceOrder | undefined>;
+  updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -248,6 +281,123 @@ export class DatabaseStorage implements IStorage {
       .values(warehouseData)
       .returning();
     return warehouse;
+  }
+
+  // Marketplace Product operations
+  async getProductsByCategory(category: string): Promise<MarketplaceProduct[]> {
+    return await db.select().from(marketplaceProducts).where(eq(marketplaceProducts.category, category));
+  }
+
+  async getProductById(id: string): Promise<MarketplaceProduct | undefined> {
+    const [product] = await db.select().from(marketplaceProducts).where(eq(marketplaceProducts.id, id));
+    return product;
+  }
+
+  async getProductsBySeller(sellerId: string): Promise<MarketplaceProduct[]> {
+    return await db.select().from(marketplaceProducts).where(eq(marketplaceProducts.sellerId, sellerId));
+  }
+
+  async createProduct(productData: InsertMarketplaceProduct): Promise<MarketplaceProduct> {
+    const [product] = await db
+      .insert(marketplaceProducts)
+      .values(productData)
+      .returning();
+    return product;
+  }
+
+  async updateProductQuantity(id: string, quantity: number): Promise<void> {
+    await db
+      .update(marketplaceProducts)
+      .set({ quantity, updatedAt: new Date() })
+      .where(eq(marketplaceProducts.id, id));
+  }
+
+  async searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]> {
+    const conditions = [];
+    if (category) {
+      conditions.push(eq(marketplaceProducts.category, category));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(marketplaceProducts).where(and(...conditions));
+    }
+    return await db.select().from(marketplaceProducts);
+  }
+
+  // Cart operations
+  async getCartByUser(buyerId: string): Promise<CartItem[]> {
+    return await db.select().from(cartItems).where(eq(cartItems.buyerId, buyerId));
+  }
+
+  async addToCart(cartItemData: InsertCartItem): Promise<CartItem> {
+    const [cartItem] = await db
+      .insert(cartItems)
+      .values(cartItemData)
+      .returning();
+    return cartItem;
+  }
+
+  async updateCartQuantity(buyerId: string, productId: string, quantity: number): Promise<void> {
+    await db
+      .update(cartItems)
+      .set({ quantity })
+      .where(and(
+        eq(cartItems.buyerId, buyerId),
+        eq(cartItems.productId, productId)
+      ));
+  }
+
+  async removeFromCart(buyerId: string, productId: string): Promise<void> {
+    await db
+      .delete(cartItems)
+      .where(and(
+        eq(cartItems.buyerId, buyerId),
+        eq(cartItems.productId, productId)
+      ));
+  }
+
+  async clearCart(buyerId: string): Promise<void> {
+    await db.delete(cartItems).where(eq(cartItems.buyerId, buyerId));
+  }
+
+  // Order operations
+  async createOrder(orderData: InsertMarketplaceOrder, orderItemsData: InsertOrderItem[]): Promise<MarketplaceOrder> {
+    // Create order and order items in a transaction
+    const [order] = await db
+      .insert(marketplaceOrders)
+      .values(orderData)
+      .returning();
+
+    if (orderItemsData.length > 0) {
+      const itemsWithOrderId = orderItemsData.map(item => ({
+        ...item,
+        orderId: order.id
+      }));
+      
+      await db.insert(orderItems).values(itemsWithOrderId);
+    }
+
+    return order;
+  }
+
+  async getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]> {
+    return await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.buyerId, buyerId));
+  }
+
+  async getOrderById(id: string): Promise<MarketplaceOrder | undefined> {
+    const [order] = await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.id, id));
+    return order;
+  }
+
+  async updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void> {
+    const updateData: any = { orderStatus, updatedAt: new Date() };
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    await db
+      .update(marketplaceOrders)
+      .set(updateData)
+      .where(eq(marketplaceOrders.id, id));
   }
 }
 
