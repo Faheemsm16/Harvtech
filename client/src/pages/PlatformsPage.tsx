@@ -60,6 +60,26 @@ export default function PlatformsPage() {
           </CardContent>
         </Card>
 
+        {/* Marketplace */}
+        <Card className="bg-white border border-gray-200 overflow-hidden">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
+              onClick={() => setLocation('/marketplace')}
+            >
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <ShoppingCart className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-gray-900">Marketplace</h3>
+                <p className="text-sm text-gray-600">Buy and sell agricultural products</p>
+              </div>
+              <div className="ml-auto text-gray-400">→</div>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Government Schemes */}
         <Card className="bg-white border border-gray-200 overflow-hidden">
           <CardContent className="p-0">
@@ -68,8 +88,8 @@ export default function PlatformsPage() {
               className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
               onClick={() => setLocation('/government-schemes')}
             >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Building className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Building className="h-6 w-6 text-blue-600" />
               </div>
               <div className="text-left">
                 <h3 className="font-semibold text-lg text-gray-900">Government Schemes</h3>
