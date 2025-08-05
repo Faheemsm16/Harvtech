@@ -246,6 +246,10 @@ const translations = {
     find_storage_solutions: 'Find storage solutions for your crops',
     purchase_agricultural_products: 'Purchase agricultural products',
     sell_agricultural_products: 'Sell your agricultural products',
+    // Marketplace UI
+    view_all: 'View All',
+    add_to_cart: 'Add',
+    by_seller: 'by',
   },
   tamil: {
     company_name: 'ஹார்வ்டெக்',
@@ -481,6 +485,10 @@ const translations = {
     find_storage_solutions: 'உங்கள் பயிர்களுக்கு சேமிப்பு தீர்வுகளைக் கண்டறியவும்',
     purchase_agricultural_products: 'விவசாய தயாரிப்புகளை வாங்கவும்',
     sell_agricultural_products: 'உங்கள் விவசாய தயாரிப்புகளை விற்கவும்',
+    // Marketplace UI
+    view_all: 'அனைத்தையும் பார்க்கவும்',
+    add_to_cart: 'சேர்க்கவும்',
+    by_seller: 'மூலம்',
   },
   hindi: {
     company_name: 'हार्वटेक',
@@ -674,20 +682,7 @@ const translations = {
     error: 'त्रुटि',
     please_enter_name: 'कृपया अपना पूरा नाम दर्ज करें',
     please_enter_city: 'कृपया अपना शहर दर्ज करें',
-    full_name: 'पूरा नाम',
-    city: 'शहर',
-    mobile_number: 'मोबाइल नंबर',
-    aadhaar_number: 'आधार नंबर',
-    accept_terms: 'नियम और शर्तें स्वीकार करें',
-    send_otp: 'OTP भेजें',
-    verify_otp: 'OTP सत्यापित करें',
-    register: 'पंजीकरण करें',
-    continue: 'जारी रखें',
     back_to_marketplace: 'बाज़ार में वापस जाएं',
-    // Equipment Labels
-    equipment_type: 'उपकरण प्रकार',
-    model_number: 'मॉडल नंबर',
-    chassis_number: 'चेसिस नंबर/VIN',
     // Marketplace
     seeds: 'बीज',
     crops: 'फसलें',
@@ -697,7 +692,6 @@ const translations = {
     sell: 'बेचें',
     cart: 'कार्ट',
     checkout: 'चेकआउट',
-    total: 'कुल',
     // Success Messages
     product_added_successfully: 'उत्पाद सफलतापूर्वक बाज़ार में जोड़ा गया!',
     registration_successful: 'पंजीकरण सफल!',
@@ -708,6 +702,10 @@ const translations = {
     find_storage_solutions: 'अपनी फसलों के लिए भंडारण समाधान खोजें',
     purchase_agricultural_products: 'कृषि उत्पाद खरीदें',
     sell_agricultural_products: 'अपने कृषि उत्पाद बेचें',
+    // Marketplace UI
+    view_all: 'सभी देखें',
+    add_to_cart: 'जोड़ें',
+    by_seller: 'द्वारा',
   },
   telugu: {
     company_name: 'హార్వ్‌టెక్',
@@ -848,6 +846,10 @@ const translations = {
     find_storage_solutions: 'మీ పంటలకు నిల్వ పరిష్కారాలను కనుగొనండి',
     purchase_agricultural_products: 'వ్యవసాయ ఉత్పత్తులను కొనుగోలు చేయండి',
     sell_agricultural_products: 'మీ వ్యవసాయ ఉత్పత్తులను అమ్మండి',
+    // Marketplace UI
+    view_all: 'అన్నీ చూడండి',
+    add_to_cart: 'జోడించు',
+    by_seller: 'ద్వారా',
   },
   kannada: {
     company_name: 'ಹಾರ್ವ್‌ಟೆಕ್',
@@ -988,6 +990,10 @@ const translations = {
     find_storage_solutions: 'ನಿಮ್ಮ ಬೆಳೆಗಳಿಗೆ ಸಂಗ್ರಹಣೆ ಪರಿಹಾರಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ',
     purchase_agricultural_products: 'ಕೃಷಿ ಉತ್ಪಾದನೆಗಳನ್ನು ಖರೀದಿಸಿ',
     sell_agricultural_products: 'ನಿಮ್ಮ ಕೃಷಿ ಉತ್ಪಾದನೆಗಳನ್ನು ಮಾರಾಟ ಮಾಡಿ',
+    // Marketplace UI
+    view_all: 'ಎಲ್ಲವನ್ನೂ ನೋಡಿ',
+    add_to_cart: 'ಸೇರಿಸಿ',
+    by_seller: 'ಮೂಲಕ',
   },
 };
 
