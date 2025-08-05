@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Package, Sprout, Bug, Wrench, Plus } from "lucide-react";
+import { ArrowLeft, Package, Sprout, Wheat, Milk } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 
@@ -13,32 +13,25 @@ const categories = [
     color: 'green'
   },
   {
+    id: 'crops',
+    name: 'Crops',
+    description: 'Harvested crops and grains',
+    icon: Wheat,
+    color: 'yellow'
+  },
+  {
     id: 'fertilizers',
-    name: 'Fertilizers',
-    description: 'Organic and chemical fertilizers',
+    name: 'Fertilizers/Manure',
+    description: 'Organic and chemical fertilizers, manure',
     icon: Package,
     color: 'blue'
   },
   {
-    id: 'pesticides',
-    name: 'Pesticides',
-    description: 'Plant protection chemicals',
-    icon: Bug,
-    color: 'red'
-  },
-  {
-    id: 'equipments',
-    name: 'Equipments',
-    description: 'Agricultural tools and machinery',
-    icon: Wrench,
+    id: 'dairy',
+    name: 'Dairy Products',
+    description: 'Milk, cheese, and dairy products',
+    icon: Milk,
     color: 'purple'
-  },
-  {
-    id: 'others',
-    name: 'Others',
-    description: 'Other agricultural products',
-    icon: Plus,
-    color: 'gray'
   }
 ];
 
@@ -67,7 +60,7 @@ export default function SellCategoryPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-lg font-semibold">Sell Products</h2>
+            <h2 className="text-lg font-semibold">{t('sell')} {t('marketplace')}</h2>
             <p className="text-sm opacity-90">Select a category for your product</p>
           </div>
         </div>
@@ -89,7 +82,7 @@ export default function SellCategoryPage() {
                     <IconComponent className={`h-6 w-6 text-${category.color}-600`} />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-lg text-gray-900">{category.name}</h3>
+                    <h3 className="font-semibold text-lg text-gray-900">{t(category.id as keyof typeof t)}</h3>
                     <p className="text-sm text-gray-600">{category.description}</p>
                   </div>
                   <div className="ml-auto text-gray-400">→</div>

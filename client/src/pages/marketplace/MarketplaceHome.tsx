@@ -27,7 +27,7 @@ const productFormSchema = insertMarketplaceProductSchema.extend({
 
 type ProductFormData = z.infer<typeof productFormSchema>;
 
-const categories = ["Seeds", "Fertilizers", "Pesticides", "Equipment", "Others"];
+const categories = ["Seeds", "Crops", "Fertilizers/Manure", "Dairy Products"];
 
 export default function MarketplaceHome() {
   // const { t } = useLanguage(); // TODO: Add language context back

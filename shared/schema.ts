@@ -196,7 +196,7 @@ export const warehouses = pgTable("warehouses", {
 export const marketplaceProducts = pgTable("marketplace_products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sellerId: varchar("seller_id").references(() => users.id).notNull(),
-  category: varchar("category").notNull(), // 'Seeds', 'Fertilizers', 'Pesticides', 'Equipments', 'Others'
+  category: varchar("category").notNull(), // 'seeds', 'crops', 'fertilizers', 'dairy'
   productName: varchar("product_name").notNull(),
   productDescription: text("product_description"),
   quantity: integer("quantity").notNull(),
