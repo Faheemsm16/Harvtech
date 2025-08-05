@@ -21,8 +21,14 @@ import { insertMarketplaceProductSchema, insertCartItemSchema } from "@shared/sc
 import type { MarketplaceProduct, MarketplaceCategory, CartItem } from "@shared/schema";
 import { z } from "zod";
 
-const productFormSchema = insertMarketplaceProductSchema.omit({ sellerId: true }).extend({
-  imageUrl: z.string().optional()
+const productFormSchema = insertMarketplaceProductSchema.omit({ 
+  id: true,
+  sellerId: true, 
+  createdAt: true, 
+  updatedAt: true, 
+  isActive: true 
+}).extend({
+  imageUrls: z.array(z.string()).optional()
 });
 type ProductFormData = z.infer<typeof productFormSchema>;
 
@@ -210,7 +216,7 @@ export default function MarketplacePage() {
       categoryId: "",
       quantity: 1,
       unit: "kg",
-      imageUrl: "",
+      imageUrls: [],
       status: "active"
     }
   });
@@ -503,7 +509,7 @@ export default function MarketplacePage() {
                             <FormItem>
                               <FormLabel>{t.description}</FormLabel>
                               <FormControl>
-                                <Textarea {...field} />
+                                <Textarea {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -683,10 +689,10 @@ export default function MarketplacePage() {
                   <Card key={item.id}>
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-4">
-                        {item.product.imageUrl && (
+                        {item.product.imageUrls && item.product.imageUrls.length > 0 && (
                           <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded">
                             <img
-                              src={item.product.imageUrl}
+                              src={item.product.imageUrls[0]}
                               alt={item.product.name}
                               className="w-full h-full object-cover rounded"
                             />
