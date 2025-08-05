@@ -22,7 +22,8 @@ import {
   MapPin,
   Map,
   FolderOpen,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -59,6 +60,7 @@ export default function OwnerDashboard() {
   const [soilScanActive, setSoilScanActive] = useState(false);
   const [tractorRotation, setTractorRotation] = useState({ x: 0, y: 0 });
   const [showSoilResults, setShowSoilResults] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   
   // 3D model interaction
   const tractorRef = useRef<HTMLDivElement>(null);
@@ -133,13 +135,27 @@ export default function OwnerDashboard() {
     }
   };
   const toggleSoilScan = () => {
-    setSoilScanActive(!soilScanActive);
-    if (!soilScanActive) {
-      setShowSoilResults(true);
-      // Auto-hide results after 10 seconds
-      setTimeout(() => setShowSoilResults(false), 10000);
-    } else {
-      setShowSoilResults(false);
+    // Only allow soil scan if tractor is unlocked and engine is running
+    if (!engineRunning || isLocked) {
+      return;
+    }
+
+    if (!soilScanActive && !isScanning) {
+      // Start scanning process
+      setSoilScanActive(true);
+      setIsScanning(true);
+      
+      // Show scanning for 5 seconds
+      setTimeout(() => {
+        setIsScanning(false);
+        setShowSoilResults(true);
+        
+        // Auto-hide results after 10 seconds and reset scan state
+        setTimeout(() => {
+          setShowSoilResults(false);
+          setSoilScanActive(false);
+        }, 10000);
+      }, 5000);
     }
   };
 
@@ -232,7 +248,7 @@ export default function OwnerDashboard() {
             {/* Realistic 3D Tractor Image */}
             <div className="relative w-96 h-64 transform-gpu">
               <img 
-                src="https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=900&h=600"
                 alt="Autonomous Tractor"
                 className="w-full h-full object-contain drop-shadow-2xl filter brightness-110 contrast-110"
                 style={{
@@ -250,8 +266,26 @@ export default function OwnerDashboard() {
               {!isLocked && (
                 <div className="absolute top-4 left-4 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
               )}
-              {soilScanActive && (
+              {(soilScanActive || isScanning) && (
                 <div className="absolute bottom-4 right-4 w-4 h-4 bg-purple-400 rounded-full animate-ping shadow-lg"></div>
+              )}
+              
+              {/* Scanning animation overlay */}
+              {isScanning && (
+                <div className="absolute inset-0 bg-purple-500/10 rounded-xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/30 to-transparent animate-pulse"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <div className="bg-black/70 backdrop-blur-sm rounded-lg p-4 border border-purple-400/30">
+                      <Loader2 className="h-8 w-8 text-purple-400 animate-spin mx-auto mb-2" />
+                      <div className="text-purple-300 text-sm font-semibold">
+                        Analyzing Soil...
+                      </div>
+                      <div className="text-purple-200 text-xs mt-1">
+                        Please wait
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
               
               {/* Hover instruction */}
@@ -309,13 +343,30 @@ export default function OwnerDashboard() {
         <Card className="absolute bottom-24 right-6 bg-black/40 backdrop-blur-md border-purple-400/30 text-white p-4">
           <Button
             onClick={toggleSoilScan}
-            className={`w-full ${soilScanActive 
-              ? 'bg-purple-500/80 hover:bg-purple-500 text-white animate-pulse' 
-              : 'bg-slate-600/80 hover:bg-slate-500 text-white'
-            } transition-all duration-300`}
+            disabled={!engineRunning || isLocked || isScanning}
+            className={`w-full transition-all duration-300 ${
+              isScanning 
+                ? 'bg-yellow-500/80 text-white animate-pulse' 
+                : soilScanActive && showSoilResults
+                ? 'bg-green-500/80 hover:bg-green-500 text-white'
+                : (!engineRunning || isLocked)
+                ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                : 'bg-purple-600/80 hover:bg-purple-500 text-white'
+            }`}
           >
-            <Scan className="h-5 w-5 mr-2" />
-            {soilScanActive ? 'Scanning...' : 'Soil Scan'}
+{isScanning ? (
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            ) : (
+              <Scan className="h-5 w-5 mr-2" />
+            )}
+            {isScanning 
+              ? 'Scanning...' 
+              : soilScanActive && showSoilResults
+              ? 'Scan Complete'
+              : (!engineRunning || isLocked)
+              ? 'Engine Required'
+              : 'Soil Scan'
+            }
           </Button>
         </Card>
 
