@@ -32,6 +32,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SchemesModal } from "@/components/SchemesModal";
 import { ServicesModal } from "@/components/ServicesModal";
 import { OwnerEquipmentModal } from "@/components/OwnerEquipmentModal";
+import tractorImagePath from "@assets/file_00000000383c622f988bed4aa323e086_1754395000391.png";
 
 interface Equipment {
   id: string;
@@ -245,11 +246,11 @@ export default function OwnerDashboard() {
               transform: `perspective(1000px) rotateX(${tractorRotation.x}deg) rotateY(${tractorRotation.y}deg)`
             }}
           >
-            {/* Realistic 3D Tractor Image */}
+            {/* HARVTECH 3D Tractor Image */}
             <div className="relative w-96 h-64 transform-gpu">
               <img 
-                src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=900&h=600"
-                alt="Autonomous Tractor"
+                src={tractorImagePath}
+                alt="HARVTECH Autonomous Tractor"
                 className="w-full h-full object-contain drop-shadow-2xl filter brightness-110 contrast-110"
                 style={{
                   filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5)) brightness(1.1) contrast(1.1)',
