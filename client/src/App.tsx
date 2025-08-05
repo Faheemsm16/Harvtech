@@ -23,6 +23,12 @@ import TransportPaymentPage from "@/pages/TransportPaymentPage";
 import WarehousePage from "@/pages/WarehousePage";
 import EquipmentListPage from "@/pages/EquipmentListPage";
 import PaymentPage from "@/pages/PaymentPage";
+import SellCategoryPage from "@/pages/marketplace/SellCategoryPage";
+import ProductUploadPage from "@/pages/marketplace/ProductUploadPage";
+import BuyCategoryPage from "@/pages/marketplace/BuyCategoryPage";
+import ProductBrowsePage from "@/pages/marketplace/ProductBrowsePage";
+import CartPage from "@/pages/marketplace/CartPage";
+import MarketplacePaymentPage from "@/pages/marketplace/PaymentPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useCustomAuth();
@@ -51,6 +57,12 @@ function Router() {
           <Route path="/warehouse" component={WarehousePage} />
           <Route path="/equipment/:type" component={EquipmentListPage} />
           <Route path="/payment/:equipmentId" component={PaymentPage} />
+          <Route path="/marketplace/sell" component={SellCategoryPage} />
+          <Route path="/marketplace/sell/upload" component={ProductUploadPage} />
+          <Route path="/marketplace/buy" component={BuyCategoryPage} />
+          <Route path="/marketplace/buy/browse" component={ProductBrowsePage} />
+          <Route path="/marketplace/cart" component={CartPage} />
+          <Route path="/marketplace/payment" component={MarketplacePaymentPage} />
         </>
       )}
       

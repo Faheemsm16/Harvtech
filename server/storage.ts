@@ -86,9 +86,10 @@ export interface IStorage {
   searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]>;
 
   // Cart operations
-  getCartByUser(buyerId: string): Promise<CartItem[]>;
+  getCartByUser(buyerId: string): Promise<any[]>; // Returns cart items with product details
   addToCart(cartItem: InsertCartItem): Promise<CartItem>;
-  updateCartQuantity(buyerId: string, productId: string, quantity: number): Promise<void>;
+  updateCartItemQuantity(itemId: string, quantity: number): Promise<void>;
+  removeCartItem(itemId: string): Promise<void>;
   removeFromCart(buyerId: string, productId: string): Promise<void>;
   clearCart(buyerId: string): Promise<void>;
 
@@ -325,8 +326,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Cart operations
-  async getCartByUser(buyerId: string): Promise<CartItem[]> {
-    return await db.select().from(cartItems).where(eq(cartItems.buyerId, buyerId));
+  async getCartByUser(buyerId: string): Promise<any[]> {
+    const result = await db
+      .select({
+        id: cartItems.id,
+        quantity: cartItems.quantity,
+        buyerId: cartItems.buyerId,
+        productId: cartItems.productId,
+        product: {
+          id: marketplaceProducts.id,
+          name: marketplaceProducts.name,
+          description: marketplaceProducts.description,
+          price: marketplaceProducts.price,
+          category: marketplaceProducts.category,
+          imageUrls: marketplaceProducts.imageUrls,
+          sellerId: marketplaceProducts.sellerId,
+          quantity: marketplaceProducts.quantity,
+          unit: marketplaceProducts.unit
+        }
+      })
+      .from(cartItems)
+      .leftJoin(marketplaceProducts, eq(cartItems.productId, marketplaceProducts.id))
+      .where(eq(cartItems.buyerId, buyerId));
+    
+    return result;
   }
 
   async addToCart(cartItemData: InsertCartItem): Promise<CartItem> {
@@ -337,6 +360,13 @@ export class DatabaseStorage implements IStorage {
     return cartItem;
   }
 
+  async updateCartItemQuantity(itemId: string, quantity: number): Promise<void> {
+    await db
+      .update(cartItems)
+      .set({ quantity })
+      .where(eq(cartItems.id, itemId));
+  }
+
   async updateCartQuantity(buyerId: string, productId: string, quantity: number): Promise<void> {
     await db
       .update(cartItems)
@@ -345,6 +375,10 @@ export class DatabaseStorage implements IStorage {
         eq(cartItems.buyerId, buyerId),
         eq(cartItems.productId, productId)
       ));
+  }
+
+  async removeCartItem(itemId: string): Promise<void> {
+    await db.delete(cartItems).where(eq(cartItems.id, itemId));
   }
 
   async removeFromCart(buyerId: string, productId: string): Promise<void> {

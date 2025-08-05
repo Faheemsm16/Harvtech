@@ -431,6 +431,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/marketplace/cart/items/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { itemId } = req.params;
+      const { quantity } = req.body;
+      
+      await storage.updateCartItemQuantity(itemId, quantity);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart item update error:", error);
+      res.status(400).json({ message: "Failed to update cart item" });
+    }
+  });
+
+  app.delete('/api/marketplace/cart/items/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { itemId } = req.params;
+      
+      await storage.removeCartItem(itemId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Cart item remove error:", error);
+      res.status(400).json({ message: "Failed to remove cart item" });
+    }
+  });
+
   app.delete('/api/marketplace/cart/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { productId } = req.params;
