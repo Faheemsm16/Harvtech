@@ -81,11 +81,11 @@ export default function BuyCategoryPage() {
                   <div className={`w-12 h-12 bg-${category.color}-100 rounded-full flex items-center justify-center`}>
                     <IconComponent className={`h-6 w-6 text-${category.color}-600`} />
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <h3 className="font-semibold text-lg text-gray-900">{t(category.id as keyof typeof t)}</h3>
                     <p className="text-sm text-gray-600">{category.description}</p>
                   </div>
-                  <div className="ml-auto text-gray-400">→</div>
+                  <div className="flex-shrink-0 text-gray-400 self-center">→</div>
                 </Button>
               </CardContent>
             </Card>

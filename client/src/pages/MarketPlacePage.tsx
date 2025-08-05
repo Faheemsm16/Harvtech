@@ -44,11 +44,11 @@ export default function MarketPlacePage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <Truck className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Transport</h3>
-                <p className="text-sm text-gray-600">Book vehicles for transporting goods</p>
+              <div className="text-left flex-1">
+                <h3 className="font-semibold text-lg text-gray-900">{t('transport')}</h3>
+                <p className="text-sm text-gray-600">{t('book_vehicles_transport')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>
@@ -64,11 +64,11 @@ export default function MarketPlacePage() {
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                 <Warehouse className="h-6 w-6 text-purple-600" />
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Warehouse</h3>
-                <p className="text-sm text-gray-600">Find storage solutions for your crops</p>
+              <div className="text-left flex-1">
+                <h3 className="font-semibold text-lg text-gray-900">{t('warehouse')}</h3>
+                <p className="text-sm text-gray-600">{t('find_storage_solutions')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>
@@ -84,11 +84,11 @@ export default function MarketPlacePage() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <ShoppingBag className="h-6 w-6 text-green-600" />
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Buy</h3>
-                <p className="text-sm text-gray-600">Purchase agricultural products and equipment</p>
+              <div className="text-left flex-1">
+                <h3 className="font-semibold text-lg text-gray-900">{t('buy')}</h3>
+                <p className="text-sm text-gray-600">{t('purchase_agricultural_products')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>
@@ -104,11 +104,11 @@ export default function MarketPlacePage() {
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                 <ShoppingBag className="h-6 w-6 text-orange-600" />
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Sell</h3>
-                <p className="text-sm text-gray-600">Sell your agricultural products and equipment</p>
+              <div className="text-left flex-1">
+                <h3 className="font-semibold text-lg text-gray-900">{t('sell')}</h3>
+                <p className="text-sm text-gray-600">{t('sell_agricultural_products')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>

@@ -51,11 +51,11 @@ export default function PlatformsPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <Shield className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <h3 className="font-semibold text-lg text-gray-900">{t('insurance_finance')}</h3>
                 <p className="text-sm text-gray-600">{t('access_insurance_finance')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>
@@ -71,11 +71,11 @@ export default function PlatformsPage() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <Building className="h-6 w-6 text-green-600" />
               </div>
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <h3 className="font-semibold text-lg text-gray-900">{t('government_schemes')}</h3>
                 <p className="text-sm text-gray-600">{t('access_government_schemes')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>
@@ -91,11 +91,11 @@ export default function PlatformsPage() {
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                 <ShoppingCart className="h-6 w-6 text-orange-600" />
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-lg text-gray-900">Market Place</h3>
-                <p className="text-sm text-gray-600">Browse and shop agricultural products</p>
+              <div className="text-left flex-1">
+                <h3 className="font-semibold text-lg text-gray-900">{t('marketplace')}</h3>
+                <p className="text-sm text-gray-600">{t('browse_shop_agricultural')}</p>
               </div>
-              <div className="ml-auto text-gray-400">→</div>
+              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
             </Button>
           </CardContent>
         </Card>

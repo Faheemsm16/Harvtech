@@ -240,6 +240,12 @@ const translations = {
     product_added_successfully: 'Product added successfully to Marketplace!',
     registration_successful: 'Registration Successful!',
     welcome_message: 'Welcome to HARVTECH!',
+    // Description texts
+    browse_shop_agricultural: 'Browse and shop agricultural products',
+    book_vehicles_transport: 'Book vehicles for transporting goods',
+    find_storage_solutions: 'Find storage solutions for your crops',
+    purchase_agricultural_products: 'Purchase agricultural products',
+    sell_agricultural_products: 'Sell your agricultural products',
   },
   tamil: {
     company_name: 'ஹார்வ்டெக்',
@@ -467,8 +473,14 @@ const translations = {
     total: 'மொத்தம்',
     // Success Messages
     product_added_successfully: 'தயாரிப்பு சந்தையில் வெற்றிகரமாக சேர்க்கப்பட்டது!',
-    registration_successful: 'பதிவு வெற்றிகரமாக நடந்தது!',
+    registration_successful: 'பதிவு வெற்றியானது!',
     welcome_message: 'ஹார்வ்டெக்கிற்கு வரவேற்கிறோம்!',
+    // Description texts
+    browse_shop_agricultural: 'விவசாய தயாரிப்புகளை உலாவி வாங்கவும்',
+    book_vehicles_transport: 'பொருட்களை போக்குவரத்திற்கு வாகனங்களை முன்பதிவு செய்யவும்',
+    find_storage_solutions: 'உங்கள் பயிர்களுக்கு சேமிப்பு தீர்வுகளைக் கண்டறியவும்',
+    purchase_agricultural_products: 'விவசாய தயாரிப்புகளை வாங்கவும்',
+    sell_agricultural_products: 'உங்கள் விவசாய தயாரிப்புகளை விற்கவும்',
   },
   hindi: {
     company_name: 'हार्वटेक',
@@ -690,6 +702,12 @@ const translations = {
     product_added_successfully: 'उत्पाद सफलतापूर्वक बाज़ार में जोड़ा गया!',
     registration_successful: 'पंजीकरण सफल!',
     welcome_message: 'हार्वटेक में आपका स्वागत है!',
+    // Description texts
+    browse_shop_agricultural: 'कृषि उत्पादों को ब्राउज़ करें और खरीदारी करें',
+    book_vehicles_transport: 'सामान परिवहन के लिए वाहन बुक करें',
+    find_storage_solutions: 'अपनी फसलों के लिए भंडारण समाधान खोजें',
+    purchase_agricultural_products: 'कृषि उत्पाद खरीदें',
+    sell_agricultural_products: 'अपने कृषि उत्पाद बेचें',
   },
   telugu: {
     company_name: 'హార్వ్‌టెక్',
@@ -824,6 +842,12 @@ const translations = {
     product_added_successfully: 'ఉత్పాదకం మార్కెట్‌ప్లేస్‌కు విజయవంతంగా జోడించబడింది!',
     registration_successful: 'రిజిస్ట్రేషన్ విజయవంతం!',
     welcome_message: 'హార్వ్‌టెక్‌కు స్వాగతం!',
+    // Description texts
+    browse_shop_agricultural: 'వ్యవసాయ ఉత్పత్తులను బ్రౌజ్ చేసి కొనుగోలు చేయండి',
+    book_vehicles_transport: 'వస్తువులను రవాణా చేయడానికి వాహనాలను బుక్ చేయండి',
+    find_storage_solutions: 'మీ పంటలకు నిల్వ పరిష్కారాలను కనుగొనండి',
+    purchase_agricultural_products: 'వ్యవసాయ ఉత్పత్తులను కొనుగోలు చేయండి',
+    sell_agricultural_products: 'మీ వ్యవసాయ ఉత్పత్తులను అమ్మండి',
   },
   kannada: {
     company_name: 'ಹಾರ್ವ್‌ಟೆಕ್',
@@ -958,6 +982,12 @@ const translations = {
     product_added_successfully: 'ಉತ್ಪಾದನೆಯನ್ನು ಮಾರುಕಟ್ಟೆಗೆ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ!',
     registration_successful: 'ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಯಿತು!',
     welcome_message: 'ಹಾರ್ವ್‌ಟೆಕ್‌ಗೆ ಸ್ವಾಗತ!',
+    // Description texts
+    browse_shop_agricultural: 'ಕೃಷಿ ಉತ್ಪಾದನೆಗಳನ್ನು ಬ್ರೌಸ್ ಮಾಡಿ ಮತ್ತು ಖರೀದಿಸಿ',
+    book_vehicles_transport: 'ಸರಕುಗಳನ್ನು ಸಾಗಿಸಲು ವಾಹನಗಳನ್ನು ಬುಕ್ ಮಾಡಿ',
+    find_storage_solutions: 'ನಿಮ್ಮ ಬೆಳೆಗಳಿಗೆ ಸಂಗ್ರಹಣೆ ಪರಿಹಾರಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ',
+    purchase_agricultural_products: 'ಕೃಷಿ ಉತ್ಪಾದನೆಗಳನ್ನು ಖರೀದಿಸಿ',
+    sell_agricultural_products: 'ನಿಮ್ಮ ಕೃಷಿ ಉತ್ಪಾದನೆಗಳನ್ನು ಮಾರಾಟ ಮಾಡಿ',
   },
 };
 
