@@ -113,25 +113,7 @@ export default function MarketPlacePage() {
           </CardContent>
         </Card>
 
-        {/* My Products */}
-        <Card className="bg-white border border-gray-200 overflow-hidden">
-          <CardContent className="p-0">
-            <Button
-              variant="ghost"
-              className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-              onClick={() => setLocation('/marketplace/my-products')}
-            >
-              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                <Package className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div className="text-left flex-1">
-                <h3 className="font-semibold text-lg text-gray-900">My Products</h3>
-                <p className="text-sm text-gray-600">Manage your listed products</p>
-              </div>
-              <div className="flex-shrink-0 text-gray-400 self-center">→</div>
-            </Button>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );
