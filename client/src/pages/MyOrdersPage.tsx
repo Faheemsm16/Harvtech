@@ -133,7 +133,14 @@ export default function MyOrdersPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation('/')}
+            onClick={() => {
+              // Navigate back to appropriate dashboard based on user role
+              if (user?.role === 'owner') {
+                setLocation('/owner-dashboard');
+              } else {
+                setLocation('/user-dashboard');
+              }
+            }}
             className="text-white hover:bg-white/10 p-2"
           >
             <ArrowLeft className="h-5 w-5" />

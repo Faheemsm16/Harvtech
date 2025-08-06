@@ -95,6 +95,17 @@ export default function OwnerDashboard() {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
   const [isPinMode, setIsPinMode] = useState<'create' | 'unlock'>('create');
+
+  // Load PIN status from localStorage on component mount
+  useEffect(() => {
+    if (user?.id) {
+      const storedPin = localStorage.getItem(`vehicle_pin_${user.id}`);
+      if (storedPin) {
+        setVehiclePin(storedPin);
+        setHasPin(true);
+      }
+    }
+  }, [user?.id]);
   
   // Vehicle info states
   const [showVehicleInfo, setShowVehicleInfo] = useState(false);
@@ -254,18 +265,18 @@ export default function OwnerDashboard() {
   };
 
   const handlePinSubmit = () => {
-    if (isPinMode === 'create' && enteredPin.length === 4) {
+    if (isPinMode === 'create' && enteredPin.length === 4 && user?.id) {
+      // Save PIN to localStorage for persistence
+      localStorage.setItem(`vehicle_pin_${user.id}`, enteredPin);
       setVehiclePin(enteredPin);
       setHasPin(true);
       setIsLocked(false);
       setShowPinDialog(false);
       setEnteredPin('');
-      // Show success message or confirmation
     } else if (isPinMode === 'unlock' && enteredPin === vehiclePin) {
       setIsLocked(false);
       setShowPinDialog(false);
       setEnteredPin('');
-      // Show unlock success
     } else if (isPinMode === 'unlock' && enteredPin !== vehiclePin && enteredPin.length === 4) {
       // Show error for wrong PIN
       setEnteredPin('');

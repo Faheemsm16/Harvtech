@@ -36,12 +36,23 @@ import MyOrdersPage from "@/pages/MyOrdersPage";
 import MyProductsPage from "@/pages/marketplace/MyProductsPage";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useCustomAuth();
+  const { isAuthenticated, isLoading, user } = useCustomAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ag-green mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={EntryPage} />
+      {!isAuthenticated && <Route path="/" component={EntryPage} />}
       <Route path="/login" component={LoginPage} />
       <Route path="/role-selection" component={RoleSelectionPage} />
       <Route path="/user-registration" component={UserRegistrationPage} />
@@ -50,6 +61,10 @@ function Router() {
       {/* Protected routes */}
       {isAuthenticated && (
         <>
+          {/* Redirect authenticated users to appropriate dashboard */}
+          <Route path="/">
+            {user?.role === 'owner' ? <OwnerDashboard /> : <UserDashboard />}
+          </Route>
           <Route path="/user-dashboard" component={UserDashboard} />
           <Route path="/owner-dashboard" component={OwnerDashboard} />
           <Route path="/my-orders" component={MyOrdersPage} />

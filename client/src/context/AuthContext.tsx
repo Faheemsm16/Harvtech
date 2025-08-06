@@ -8,6 +8,7 @@ interface User {
   farmerId: string;
   city?: string;
   email?: string;
+  hasVehiclePin?: boolean;
 }
 
 interface AuthContextType {
