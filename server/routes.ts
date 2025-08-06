@@ -292,10 +292,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Booking routes
-  app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
+  app.post('/api/bookings', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const bookingData = { ...req.body, userId };
+      const bookingData = req.body;
       
       const validatedData = insertBookingSchema.parse(bookingData);
       const booking = await storage.createBooking(validatedData);
@@ -310,10 +309,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/bookings', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/bookings', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const userBookings = await storage.getBookingsByUser(userId);
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID required" });
+      }
+      const userBookings = await storage.getBookingsByUser(userId as string);
       res.json(userBookings);
     } catch (error) {
       console.error("User bookings error:", error);
@@ -321,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/bookings/:id/payment', isAuthenticated, async (req, res) => {
+  app.patch('/api/bookings/:id/payment', async (req, res) => {
     try {
       const { id } = req.params;
       const { status, paymentStatus } = req.body;
