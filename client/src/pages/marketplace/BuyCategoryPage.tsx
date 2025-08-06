@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Package, Sprout, Wheat, Milk, ShoppingCart, Star, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Package, Sprout, Wheat, Milk, ShoppingCart, Star, Plus, Minus, Edit, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCart } from '@/context/CartContext';
 import { CartIcon } from '@/components/CartIcon';
 import { useToast } from '@/hooks/use-toast';
+import { useCustomAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 // Sample products for each category with extended data for "View All" and measurement units
 const sampleProducts = {
@@ -92,9 +94,16 @@ export default function BuyCategoryPage() {
   const [, setLocation] = useLocation();
   const { addToCart, items } = useCart();
   const { toast } = useToast();
+  const { user } = useCustomAuth();
   const [showAll, setShowAll] = useState<{ [key: string]: boolean }>({});
   const [cartAnimations, setCartAnimations] = useState<{ [key: string]: number }>({});
   const [productQuantities, setProductQuantities] = useState<{ [key: string]: number }>({});
+
+  // Fetch user's own products
+  const { data: userProducts = [] } = useQuery<any[]>({
+    queryKey: ['/api/marketplace/products', 'user', user?.id],
+    enabled: !!user?.id,
+  });
 
   const handleBack = () => {
     setLocation('/marketplace');
@@ -196,6 +205,98 @@ export default function BuyCategoryPage() {
       
       {/* Main Content */}
       <div className="flex-1 p-6 space-y-6">
+        {/* My Products Section */}
+        {user && (
+          <Card className="bg-white border-2 border-ag-green/20">
+            <CardContent className="p-0">
+              <div className="p-6 bg-gradient-to-r from-ag-green/5 to-ag-green/10 border-b border-ag-green/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-ag-green/20 rounded-full flex items-center justify-center">
+                      <Package className="h-6 w-6 text-ag-green" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">My Products</h3>
+                      <p className="text-sm text-gray-600">Products you're currently selling</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setLocation('/marketplace/sell')}
+                    className="bg-ag-green hover:bg-ag-green/90 text-white"
+                  >
+                    + Add Product
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                {userProducts && userProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {userProducts.map((product: any) => (
+                      <Card key={product.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">{product.productName}</h4>
+                              <p className="text-sm text-gray-500">
+                                {product.quantity} {product.quantityUnit} available
+                              </p>
+                              <p className="text-lg font-semibold text-ag-green mt-1">
+                                ₹{product.pricePerUnit} per {product.quantityUnit}
+                              </p>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setLocation(`/marketplace/sell/upload?edit=${product.id}&category=${product.category}`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className={`px-2 py-1 rounded-full text-xs ${
+                              product.isAvailable 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {product.isAvailable ? 'Available' : 'Unavailable'}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Category: {product.category}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">No products yet</h4>
+                    <p className="text-gray-500 mb-4">Start selling by adding your first product</p>
+                    <Button
+                      onClick={() => setLocation('/marketplace/sell')}
+                      className="bg-ag-green hover:bg-ag-green/90 text-white"
+                    >
+                      Add Your First Product
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Categories with Products */}
         {categories.map((category) => {
           const IconComponent = category.icon;
           const products = sampleProducts[category.id as keyof typeof sampleProducts];

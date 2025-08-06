@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Upload, Package, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, Package, CheckCircle, Camera, Image as ImageIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,11 +17,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const quantityUnits = [
-  { value: 'KG', label: 'KG' },
-  { value: 'Quintal', label: 'Quintal' },
-  { value: 'Packet', label: 'Packet' },
-  { value: 'Piece', label: 'Piece' },
-  { value: 'Ton', label: 'Ton' },
+  { value: 'kg', label: 'Kilograms (kg)' },
+  { value: 'gm', label: 'Grams (gm)' },
+  { value: 'ton', label: 'Tons (ton)' },
+  { value: 'liter', label: 'Liters (L)' },
+  { value: 'ml', label: 'Milliliters (ml)' },
 ];
 
 // Remove hardcoded category names as we'll use translation
@@ -34,6 +33,9 @@ export default function ProductUploadPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Get category from URL params
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -49,9 +51,9 @@ export default function ProductUploadPage() {
       sellerId: user?.id || '',
       category: category as any,
       productName: '',
-      productDescription: '',
+      productDescription: '', // Keep for schema compatibility but won't show in form
       quantity: 1,
-      quantityUnit: 'KG',
+      quantityUnit: 'kg',
       pricePerUnit: 1,
       imageUrls: '[]',
       isAvailable: true,
@@ -87,6 +89,24 @@ export default function ProductUploadPage() {
     }
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          setUploadedImages(prev => [...prev, imageUrl]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const onSubmit = (data: InsertMarketplaceProduct) => {
     if (!user?.id) {
       toast({
@@ -100,6 +120,7 @@ export default function ProductUploadPage() {
     createProductMutation.mutate({
       ...data,
       sellerId: user.id,
+      imageUrls: JSON.stringify(uploadedImages),
     });
   };
 
@@ -188,25 +209,68 @@ export default function ProductUploadPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="productDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Product Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe your product..."
-                          className="resize-none"
-                          rows={3}
-                          {...field}
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                {/* Image Upload Section */}
+                <div className="space-y-4">
+                  <Label>Product Images</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-24 flex flex-col items-center justify-center space-y-2"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <ImageIcon className="h-6 w-6" />
+                      <span className="text-sm">Gallery</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-24 flex flex-col items-center justify-center space-y-2"
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="h-6 w-6" />
+                      <span className="text-sm">Camera</span>
+                    </Button>
+                  </div>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  
+                  {uploadedImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mt-4">
+                      {uploadedImages.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                />
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
