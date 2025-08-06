@@ -335,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insurance Application routes
-  app.post('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+  app.post('/api/insurance-applications', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applicationData = { ...req.body, userId };
@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+  app.get('/api/insurance-applications', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applications = await storage.getInsuranceApplicationsByUser(userId);
@@ -361,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications/current', isAuthenticated, async (req: any, res) => {
+  app.get('/api/insurance-applications/current', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const application = await storage.getInsuranceApplicationByUser(userId);
@@ -469,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/insurance-applications/:id/status', isAuthenticated, async (req, res) => {
+  app.patch('/api/insurance-applications/:id/status', async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
