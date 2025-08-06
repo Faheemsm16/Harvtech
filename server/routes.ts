@@ -621,6 +621,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           linkToApply: 'https://nmeo-oilpalm.dac.gov.in/',
           eligibilityStatus: 'not-eligible',
           tags: ['oil palm', 'cash crops', 'oilseed farming']
+        },
+        {
+          id: 'full-farming-improvement-support',
+          name: 'Full Farming Improvement Support',
+          category: 'Comprehensive Support',
+          schemeActualName: 'Green Revolution - Krishonnati Yojana',
+          eligibility: 'All farmers',
+          whatTheyGet: 'Support for seeds, tools, training',
+          details: 'Includes multiple schemes for overall growth.',
+          linkToApply: 'https://agricoop.gov.in/en/schemes',
+          eligibilityStatus: 'eligible',
+          tags: ['comprehensive support', 'seeds', 'tools', 'training', 'overall growth']
         }
       ];
 
