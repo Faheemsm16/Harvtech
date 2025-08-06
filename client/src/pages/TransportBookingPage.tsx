@@ -210,55 +210,49 @@ export default function TransportBookingPage() {
               });
             }
           } else {
-            // Demo mode - set mock current location
-            const mockAddress = "Current Location, Bangalore, Karnataka, India";
-            setPickupLocation({
-              latitude: latitude.toString(),
-              longitude: longitude.toString(),
-              address: mockAddress
-            });
+            // Use geolocation coordinates without map API
+            const currentLocationAddress = `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
             
-            toast({
-              title: "Location Detected",
-              description: "Current location set as pickup: " + mockAddress,
-            });
+            if (isSettingPickup) {
+              setPickupLocation({
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                address: currentLocationAddress
+              });
+              
+              toast({
+                title: "Pickup Location Set",
+                description: "Current location detected and set as pickup",
+              });
+            } else {
+              setDropLocation({
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                address: currentLocationAddress
+              });
+              
+              toast({
+                title: "Drop Location Set",
+                description: "Current location detected and set as drop",
+              });
+            }
           }
         },
         (error) => {
-          // Fallback to demo location
-          const demoLocation = {
-            latitude: "12.9716",
-            longitude: "77.5946",
-            address: "Demo Location, Bangalore, Karnataka, India"
-          };
-          
-          setPickupLocation(demoLocation);
-          
-          if (map && window.google) {
-            const latLng = new window.google.maps.LatLng(12.9716, 77.5946);
-            map.setCenter(latLng);
-            map.setZoom(13);
-          }
-          
+          console.log("Geolocation error:", error.message);
           toast({
-            title: "Demo Location Set",
-            description: "Demo location set as pickup. Tap on map to change.",
+            title: "Location Access Denied",
+            description: "Please enter your location manually or allow location access in your browser.",
+            variant: "destructive",
           });
         }
       );
     } else {
-      // Fallback for browsers without geolocation
-      const demoLocation = {
-        latitude: "12.9716",
-        longitude: "77.5946",
-        address: "Demo Location, Bangalore, Karnataka, India"
-      };
-      
-      setPickupLocation(demoLocation);
-      
+      // Geolocation not supported
       toast({
-        title: "Demo Location Set",
-        description: "Demo location set as pickup. Tap on map to change.",
+        title: "Geolocation Not Supported",
+        description: "Please enter your location manually in the input field.",
+        variant: "destructive",
       });
     }
   };
@@ -336,31 +330,20 @@ export default function TransportBookingPage() {
         }
       });
     } else {
-      // Demo mode search - simulate search results
-      const demoLocations = [
-        { query: "chennai", lat: 13.0827, lng: 80.2707, address: "Chennai, Tamil Nadu, India" },
-        { query: "coimbatore", lat: 11.0168, lng: 76.9558, address: "Coimbatore, Tamil Nadu, India" },
-        { query: "madurai", lat: 9.9252, lng: 78.1198, address: "Madurai, Tamil Nadu, India" },
-        { query: "salem", lat: 11.6643, lng: 78.1460, address: "Salem, Tamil Nadu, India" },
-        { query: "trichy", lat: 10.7905, lng: 78.7047, address: "Tiruchirappalli, Tamil Nadu, India" },
-        { query: "vellore", lat: 12.9165, lng: 79.1325, address: "Vellore, Tamil Nadu, India" },
-        { query: "bangalore", lat: 12.9716, lng: 77.5946, address: "Bangalore, Karnataka, India" },
-      ];
-      
-      const foundLocation = demoLocations.find(loc => 
-        loc.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        searchQuery.toLowerCase().includes(loc.query)
-      );
-      
-      if (foundLocation) {
+      // Set location based on search query
+      if (searchQuery.trim()) {
+        // Determine which location to set based on current selection mode
+        const targetLocation = isSettingPickup ? "pickup" : "drop";
+        handleLocationInput(isSettingPickup, searchQuery.trim());
+        
         toast({
-          title: "Location Found",
-          description: `Showing: ${foundLocation.address}`,
+          title: `${targetLocation === 'pickup' ? 'Pickup' : 'Drop'} Location Set`,
+          description: searchQuery.trim(),
         });
       } else {
         toast({
-          title: "Location Not Found",
-          description: "Try searching for cities like Chennai, Coimbatore, Madurai, etc.",
+          title: "Invalid Location",
+          description: "Please enter a valid location name",
           variant: "destructive",
         });
       }
@@ -369,24 +352,27 @@ export default function TransportBookingPage() {
     setSearchQuery("");
   };
 
-  const handleManualLocationSet = (isPickup: boolean) => {
-    // For demo purposes without Google Maps API key, set mock locations
-    const mockPickup = {
-      latitude: "12.9716",
-      longitude: "77.5946",
-      address: "Bangalore, Karnataka, India"
-    };
+  const handleLocationInput = (isPickup: boolean, address: string) => {
+    if (!address.trim()) return;
     
-    const mockDrop = {
-      latitude: "13.0827",
-      longitude: "80.2707",
-      address: "Chennai, Tamil Nadu, India"
+    const locationData = {
+      latitude: "",
+      longitude: "",
+      address: address.trim()
     };
 
     if (isPickup) {
-      setPickupLocation(mockPickup);
+      setPickupLocation(locationData);
+      toast({
+        title: "Pickup Location Set",
+        description: address,
+      });
     } else {
-      setDropLocation(mockDrop);
+      setDropLocation(locationData);
+      toast({
+        title: "Drop Location Set", 
+        description: address,
+      });
     }
   };
 
@@ -411,23 +397,49 @@ export default function TransportBookingPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Search Bar */}
+        {/* Location Input Bar */}
         <div className="p-4 bg-white border-b">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Search for a location (e.g., Chennai, Coimbatore)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch()}
-              className="flex-1"
-            />
-            <Button
-              onClick={handleLocationSearch}
-              className="bg-ag-green hover:bg-ag-green/90 text-white"
-              size="sm"
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+          <div className="space-y-3">
+            {/* Mode Selector */}
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setIsSettingPickup(true)}
+                variant={isSettingPickup ? "default" : "outline"}
+                size="sm"
+                className={`flex items-center ${isSettingPickup ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              >
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Set Pickup
+              </Button>
+              <Button
+                onClick={() => setIsSettingPickup(false)}
+                variant={!isSettingPickup ? "default" : "outline"}
+                size="sm"
+                className={`flex items-center ${!isSettingPickup ? 'bg-red-600 hover:bg-red-700' : ''}`}
+              >
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                Set Drop
+              </Button>
+            </div>
+            
+            {/* Search Input */}
+            <div className="flex space-x-2">
+              <Input
+                placeholder={`Enter ${isSettingPickup ? 'pickup' : 'drop'} location (e.g., Chennai Central Station, Coimbatore Airport)`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch()}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleLocationSearch}
+                disabled={!searchQuery.trim()}
+                className="bg-ag-green hover:bg-ag-green/90 text-white"
+                size="sm"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -495,14 +507,16 @@ export default function TransportBookingPage() {
           
           {/* Location Labels */}
           {pickupLocation.address && (
-            <div className="absolute bg-white rounded-md shadow-md p-1 text-xs max-w-24 text-center border border-green-200" style={{ top: '35%', left: '5%' }}>
-              Pickup
+            <div className="absolute bg-white rounded-md shadow-md p-1 text-xs max-w-32 text-center border border-green-200 truncate" 
+                 style={{ top: '35%', left: '5%' }}>
+              {pickupLocation.address.split(',')[0]}
             </div>
           )}
           
           {dropLocation.address && (
-            <div className="absolute bg-white rounded-md shadow-md p-1 text-xs max-w-24 text-center border border-red-200" style={{ top: '75%', left: '65%' }}>
-              Drop
+            <div className="absolute bg-white rounded-md shadow-md p-1 text-xs max-w-32 text-center border border-red-200 truncate" 
+                 style={{ top: '75%', left: '65%' }}>
+              {dropLocation.address.split(',')[0]}
             </div>
           )}
           
@@ -528,49 +542,17 @@ export default function TransportBookingPage() {
             </div>
           </div>
           
-          {/* Current Location Button */}
-          <Button
-            onClick={getCurrentLocation}
-            className="absolute bottom-4 right-4 bg-white text-gray-700 hover:bg-gray-50 shadow-lg"
-            size="sm"
-          >
-            <Navigation className="h-4 w-4 mr-2" />
-            Current Location
-          </Button>
-          
-          {/* Demo Mode Label */}
-          <div className="absolute bottom-4 left-4 bg-white rounded-md shadow-md p-1 border border-gray-200">
-            <div className="flex items-center space-x-1">
-              <MapPin className="h-3 w-3 text-blue-500" />
-              <span className="text-xs text-gray-600">Interactive Map</span>
-            </div>
-          </div>
-          
-          {/* Location Type Toggle */}
-          <div className="absolute bottom-4 left-4 flex space-x-2">
-            <Button
-              variant={isSettingPickup ? "default" : "outline"}
-              onClick={() => setIsSettingPickup(true)}
-              className={`shadow-lg ${isSettingPickup ? 'bg-ag-green text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              size="sm"
-            >
-              Set Pickup
-            </Button>
-            <Button
-              variant={!isSettingPickup ? "default" : "outline"}
-              onClick={() => setIsSettingPickup(false)}
-              className={`shadow-lg ${!isSettingPickup ? 'bg-red-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              size="sm"
-            >
-              Set Drop
-            </Button>
-          </div>
-          
           {/* Instructions */}
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
-            <p className="text-xs text-gray-700">
-              {isSettingPickup ? "🟢 Tap map to set pickup location" : "🔴 Tap map to set drop location"}
-            </p>
+          <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-3 border border-gray-200 max-w-48">
+            <div className="text-xs text-gray-700">
+              {!pickupLocation.address && !dropLocation.address ? (
+                "Use the buttons above to choose pickup/drop mode, then enter locations in the search bar"
+              ) : !dropLocation.address ? (
+                "Switch to 'Set Drop' mode and enter your drop-off location"
+              ) : (
+                "Both locations set! Continue to vehicle selection below"
+              )}
+            </div>
           </div>
         </div>
 
@@ -586,29 +568,35 @@ export default function TransportBookingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600 mb-2">
-                {pickupLocation.address || "Search above or tap on map to set pickup location"}
+                {pickupLocation.address || "Use the search bar above to set pickup location"}
               </div>
-              {pickupLocation.address && (
+              {pickupLocation.latitude && pickupLocation.longitude && (
                 <div className="text-xs text-gray-500 mt-1">
-                  {pickupLocation.latitude}, {pickupLocation.longitude}
+                  Coords: {pickupLocation.latitude}, {pickupLocation.longitude}
                 </div>
               )}
               <div className="flex space-x-2 mt-2">
-                <Button
-                  onClick={() => handleManualLocationSet(true)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Demo: Bangalore
-                </Button>
+                <Input
+                  placeholder="Enter pickup address manually"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const target = e.target as HTMLInputElement;
+                      if (target.value.trim()) {
+                        handleLocationInput(true, target.value);
+                        target.value = '';
+                      }
+                    }
+                  }}
+                  className="flex-1"
+                />
                 <Button
                   onClick={getCurrentLocation}
                   variant="outline"
                   size="sm"
-                  className="flex items-center"
+                  className="flex items-center whitespace-nowrap"
                 >
                   <Navigation className="h-3 w-3 mr-1" />
-                  Use Current
+                  Current
                 </Button>
               </div>
             </CardContent>
@@ -624,21 +612,28 @@ export default function TransportBookingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600 mb-2">
-                {dropLocation.address || "Search above or tap on map to set drop location"}
+                {dropLocation.address || "Use the search bar above to set drop location"}
               </div>
-              {dropLocation.address && (
+              {dropLocation.latitude && dropLocation.longitude && (
                 <div className="text-xs text-gray-500 mt-1">
-                  {dropLocation.latitude}, {dropLocation.longitude}
+                  Coords: {dropLocation.latitude}, {dropLocation.longitude}
                 </div>
               )}
-              <Button
-                onClick={() => handleManualLocationSet(false)}
-                variant="outline"
-                size="sm"
-                className="mt-2"
-              >
-                Demo: Chennai
-              </Button>
+              <div className="mt-2">
+                <Input
+                  placeholder="Enter drop address manually"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const target = e.target as HTMLInputElement;
+                      if (target.value.trim()) {
+                        handleLocationInput(false, target.value);
+                        target.value = '';
+                      }
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
             </CardContent>
           </Card>
 
