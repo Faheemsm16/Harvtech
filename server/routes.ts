@@ -2,7 +2,25 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertUserSchema, insertEquipmentSchema, insertBookingSchema, insertInsuranceApplicationSchema, insertTransportVehicleSchema, insertTransportBookingSchema, insertWarehouseSchema, insertMarketplaceProductSchema, insertCartItemSchema, insertMarketplaceOrderSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertEquipmentSchema, 
+  insertBookingSchema, 
+  insertInsuranceApplicationSchema, 
+  insertTransportVehicleSchema, 
+  insertTransportBookingSchema, 
+  insertWarehouseSchema, 
+  insertMarketplaceProductSchema, 
+  insertCartItemSchema, 
+  insertMarketplaceOrderSchema,
+  insertMarketplaceOrderItemSchema,
+  marketplaceOrders,
+  orderItems,
+  marketplaceProducts,
+  users
+} from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
@@ -671,52 +689,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Order routes
-  app.get('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
+  // Order routes - Get user's orders with items and product details
+  app.get('/api/marketplace/orders', async (req: any, res) => {
     try {
-      const buyerId = req.user.claims.sub;
-      const orders = await storage.getOrdersByUser(buyerId);
-      res.json(orders);
+      const { buyerId } = req.query;
+      if (!buyerId) {
+        return res.status(400).json({ message: "buyerId is required" });
+      }
+      
+      // Get orders with complete details including product and seller information
+      const ordersData = await db
+        .select({
+          id: marketplaceOrders.id,
+          totalAmount: marketplaceOrders.totalAmount,
+          orderStatus: marketplaceOrders.orderStatus,
+          paymentMethod: marketplaceOrders.paymentMethod,
+          paymentStatus: marketplaceOrders.paymentStatus,
+          shippingAddress: marketplaceOrders.shippingAddress,
+          estimatedDelivery: marketplaceOrders.estimatedDelivery,
+          createdAt: marketplaceOrders.createdAt,
+        })
+        .from(marketplaceOrders)
+        .where(eq(marketplaceOrders.buyerId, buyerId as string))
+        .orderBy(marketplaceOrders.createdAt);
+
+      // Get order items with product and seller details for each order
+      const ordersWithDetails = await Promise.all(
+        ordersData.map(async (order) => {
+          const items = await db
+            .select({
+              id: orderItems.id,
+              quantity: orderItems.quantity,
+              pricePerUnit: orderItems.pricePerUnit,
+              subtotal: orderItems.subtotal,
+              productName: marketplaceProducts.productName,
+              category: marketplaceProducts.category,
+              imageUrls: marketplaceProducts.imageUrls,
+              sellerName: users.name,
+              sellerCity: users.city,
+              sellerId: users.id,
+              productId: marketplaceProducts.id,
+            })
+            .from(orderItems)
+            .innerJoin(marketplaceProducts, eq(orderItems.productId, marketplaceProducts.id))
+            .innerJoin(users, eq(orderItems.sellerId, users.id))
+            .where(eq(orderItems.orderId, order.id));
+
+          return {
+            ...order,
+            items: items.map(item => ({
+              id: item.id,
+              quantity: item.quantity,
+              pricePerUnit: item.pricePerUnit,
+              subtotal: item.subtotal,
+              product: {
+                id: item.productId,
+                productName: item.productName,
+                category: item.category,
+                imageUrls: item.imageUrls,
+              },
+              seller: {
+                id: item.sellerId,
+                name: item.sellerName,
+                city: item.sellerCity,
+              },
+            })),
+          };
+        })
+      );
+
+      res.json(ordersWithDetails);
     } catch (error) {
       console.error("Orders fetch error:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
 
-  // My Orders endpoint with detailed information
-  app.get('/api/my-orders', isAuthenticated, async (req: any, res) => {
+  // Create order from cart
+  app.post('/api/marketplace/orders', async (req: any, res) => {
     try {
-      const buyerId = req.user.claims.sub;
-      const orders = await storage.getOrdersWithItems(buyerId);
-      res.json(orders);
-    } catch (error) {
-      console.error("My orders fetch error:", error);
-      res.status(500).json({ message: "Failed to fetch orders" });
-    }
-  });
+      const { buyerId, paymentMethod, shippingAddress } = req.body;
+      
+      if (!buyerId || !paymentMethod || !shippingAddress) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
 
-  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
-    try {
-      const orderData = req.body;
-      const buyerId = req.user.claims.sub;
+      // Get cart items for the buyer
+      const cartData = await storage.getCartByUser(buyerId);
       
-      const validatedOrderData = insertMarketplaceOrderSchema.parse({
-        ...orderData,
-        buyerId
-      });
+      if (cartData.length === 0) {
+        return res.status(400).json({ message: "Cart is empty" });
+      }
+
+      // Calculate total amount
+      const totalAmount = cartData.reduce((sum, item) => sum + (item.quantity * item.pricePerUnit), 0);
       
-      // Extract order items from request
-      const orderItems = orderData.items || [];
-      
-      const order = await storage.createOrder(validatedOrderData, orderItems);
+      // Create order
+      const orderData = {
+        buyerId,
+        totalAmount,
+        paymentMethod,
+        shippingAddress,
+        estimatedDelivery: "3-5 days",
+        orderStatus: "pending",
+        paymentStatus: "pending"
+      };
+
+      // Create order items from cart
+      const orderItemsData = cartData.map(item => ({
+        productId: item.productId,
+        sellerId: item.sellerId,
+        quantity: item.quantity,
+        pricePerUnit: item.pricePerUnit,
+        subtotal: item.quantity * item.pricePerUnit
+      }));
+
+      const order = await storage.createOrder(orderData, orderItemsData);
       
       // Clear cart after successful order
       await storage.clearCart(buyerId);
       
-      res.json(order);
+      res.json({ success: true, orderId: order.id });
     } catch (error) {
       console.error("Order creation error:", error);
-      res.status(400).json({ message: "Failed to create order" });
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  // Buy single product directly
+  app.post('/api/marketplace/buy-now', async (req: any, res) => {
+    try {
+      const { buyerId, productId, quantity, paymentMethod, shippingAddress } = req.body;
+      
+      if (!buyerId || !productId || !quantity || !paymentMethod || !shippingAddress) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Get product details
+      const product = await storage.getProductById(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      if (product.quantity < quantity) {
+        return res.status(400).json({ message: "Insufficient quantity available" });
+      }
+
+      // Calculate total amount
+      const totalAmount = product.pricePerUnit * quantity;
+      
+      // Create order
+      const orderData = {
+        buyerId,
+        totalAmount,
+        paymentMethod,
+        shippingAddress,
+        estimatedDelivery: "3-5 days",
+        orderStatus: "pending",
+        paymentStatus: "pending"
+      };
+
+      // Create single order item
+      const orderItemsData = [{
+        productId: product.id,
+        sellerId: product.sellerId,
+        quantity,
+        pricePerUnit: product.pricePerUnit,
+        subtotal: totalAmount
+      }];
+
+      const order = await storage.createOrder(orderData, orderItemsData);
+      
+      // Update product quantity
+      await storage.updateProductQuantity(productId, product.quantity - quantity);
+      
+      res.json({ success: true, orderId: order.id });
+    } catch (error) {
+      console.error("Direct buy error:", error);
+      res.status(500).json({ message: "Failed to purchase product" });
     }
   });
 

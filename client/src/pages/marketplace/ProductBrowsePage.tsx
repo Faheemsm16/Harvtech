@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Plus, Minus, ShoppingCart, Package } from "lucide-react";
+import { ArrowLeft, Search, Plus, Minus, ShoppingCart, Package, Zap } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,10 @@ import { type MarketplaceProduct, type InsertCartItem } from "@shared/schema";
 import { useCustomAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const categoryNames: Record<string, string> = {
   seeds: 'Seeds',
@@ -28,6 +32,10 @@ export default function ProductBrowsePage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<MarketplaceProduct | null>(null);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
 
   // Get category from URL params
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -63,6 +71,28 @@ export default function ProductBrowsePage() {
     },
   });
 
+  const buyNowMutation = useMutation({
+    mutationFn: async (data: { buyerId: string; productId: string; quantity: number; paymentMethod: string; shippingAddress: string }) => {
+      return await apiRequest('/api/marketplace/buy-now', 'POST', data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Order Placed Successfully!",
+        description: `Order #${data.orderId.slice(-8)} has been created`,
+      });
+      setShowBuyModal(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/marketplace/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/marketplace/products'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Order Failed",
+        description: error.message || "Failed to place order",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleBack = () => {
     setLocation('/marketplace/buy');
   };
@@ -89,6 +119,40 @@ export default function ProductBrowsePage() {
       buyerId: user.id,
       productId: product.id,
       quantity,
+    });
+  };
+
+  const handleBuyNow = (product: MarketplaceProduct) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "Please log in to buy products",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedProduct(product);
+    setShowBuyModal(true);
+  };
+
+  const handleConfirmBuy = () => {
+    if (!selectedProduct || !user?.id || !paymentMethod || !shippingAddress) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const quantity = quantities[selectedProduct.id] || 1;
+    buyNowMutation.mutate({
+      buyerId: user.id,
+      productId: selectedProduct.id,
+      quantity,
+      paymentMethod,
+      shippingAddress,
     });
   };
 
@@ -214,13 +278,24 @@ export default function ProductBrowsePage() {
                       </Button>
                     </div>
                     
-                    <Button
-                      onClick={() => handleAddToCart(product)}
-                      disabled={addToCartMutation.isPending || !product.isAvailable}
-                      className="bg-ag-green hover:bg-ag-green/90 text-white"
-                    >
-                      {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={() => handleBuyNow(product)}
+                        disabled={buyNowMutation.isPending || !product.isAvailable}
+                        variant="outline"
+                        className="border-ag-green text-ag-green hover:bg-ag-green/10"
+                      >
+                        <Zap className="h-4 w-4 mr-1" />
+                        Buy Now
+                      </Button>
+                      <Button
+                        onClick={() => handleAddToCart(product)}
+                        disabled={addToCartMutation.isPending || !product.isAvailable}
+                        className="bg-ag-green hover:bg-ag-green/90 text-white"
+                      >
+                        {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -228,6 +303,67 @@ export default function ProductBrowsePage() {
           </div>
         )}
       </div>
+
+      {/* Buy Now Modal */}
+      <Dialog open={showBuyModal} onOpenChange={setShowBuyModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Buy Now</DialogTitle>
+          </DialogHeader>
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900">{selectedProduct.productName}</h3>
+                <p className="text-sm text-gray-600">₹{selectedProduct.pricePerUnit} per {selectedProduct.quantityUnit}</p>
+                <p className="text-sm text-gray-600">Quantity: {quantities[selectedProduct.id] || 1}</p>
+                <p className="text-lg font-bold text-ag-green mt-2">
+                  Total: ₹{selectedProduct.pricePerUnit * (quantities[selectedProduct.id] || 1)}
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="payment">Payment Method</Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="UPI">UPI</SelectItem>
+                      <SelectItem value="Debit Card">Debit Card</SelectItem>
+                      <SelectItem value="Wallet">Wallet</SelectItem>
+                      <SelectItem value="COD">Cash on Delivery</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="address">Shipping Address</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="Enter your complete shipping address..."
+                    value={shippingAddress}
+                    onChange={(e) => setShippingAddress(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBuyModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmBuy}
+              disabled={buyNowMutation.isPending || !paymentMethod || !shippingAddress}
+              className="bg-ag-green hover:bg-ag-green/90"
+            >
+              {buyNowMutation.isPending ? "Placing Order..." : "Place Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
