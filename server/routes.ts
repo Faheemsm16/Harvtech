@@ -340,13 +340,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const applicationData = { ...req.body, userId };
       
+      // Convert string dates to Date objects
+      if (applicationData.dateOfBirth && typeof applicationData.dateOfBirth === 'string') {
+        applicationData.dateOfBirth = new Date(applicationData.dateOfBirth);
+      }
+      if (applicationData.sowingDate && typeof applicationData.sowingDate === 'string') {
+        applicationData.sowingDate = new Date(applicationData.sowingDate);
+      }
+      if (applicationData.expectedHarvestDate && typeof applicationData.expectedHarvestDate === 'string') {
+        applicationData.expectedHarvestDate = new Date(applicationData.expectedHarvestDate);
+      }
+      
       const validatedData = insertInsuranceApplicationSchema.parse(applicationData);
       const application = await storage.upsertInsuranceApplication(validatedData);
       
       res.json(application);
     } catch (error) {
       console.error("Insurance application creation error:", error);
-      res.status(400).json({ message: "Failed to create insurance application" });
+      console.error("Validation details:", error.errors || error.issues);
+      res.status(400).json({ message: "Failed to create insurance application", details: error.message });
     }
   });
 
