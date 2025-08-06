@@ -120,6 +120,7 @@ export default function ProductUploadPage() {
     createProductMutation.mutate({
       ...data,
       sellerId: user.id,
+      productDescription: "", // Default empty description since we removed the field
       imageUrls: JSON.stringify(uploadedImages),
     });
   };
@@ -339,19 +340,7 @@ export default function ProductUploadPage() {
                   )}
                 />
 
-                {/* Image Upload Placeholder */}
-                <div className="space-y-2">
-                  <Label>Upload Images</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
-                      Tap to upload images from phone gallery or camera
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      (Image upload will be implemented with object storage)
-                    </p>
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
 

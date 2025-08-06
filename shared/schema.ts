@@ -357,6 +357,8 @@ export const insertMarketplaceProductSchema = createInsertSchema(marketplaceProd
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  productDescription: z.string().optional(),
 });
 
 export const insertCartItemSchema = createInsertSchema(cartItems).omit({
