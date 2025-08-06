@@ -120,6 +120,13 @@ export default function OwnerDashboard() {
   const [savedMaps, setSavedMaps] = useState<Array<{id: string, name: string, path: Array<{lat: number, lng: number, timestamp: number}>, createdAt: string}>>([]);
   const [showSavedMapsDialog, setShowSavedMapsDialog] = useState(false);
   const mappingInterval = useRef<NodeJS.Timeout | null>(null);
+  
+  // Automated operation states
+  const [showPreOperationCheck, setShowPreOperationCheck] = useState(false);
+  const [selectedMapForOperation, setSelectedMapForOperation] = useState<{id: string, name: string, path: Array<{lat: number, lng: number, timestamp: number}>, createdAt: string} | null>(null);
+  const [isAutomatedRunning, setIsAutomatedRunning] = useState(false);
+  const [automatedProgress, setAutomatedProgress] = useState({ currentPoint: 0, totalPoints: 0, timeElapsed: 0, areaCompleted: 0 });
+  const automatedInterval = useRef<NodeJS.Timeout | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState({
     engineHealth: 85,
     engineTemperature: 92, // °C
@@ -393,10 +400,83 @@ export default function OwnerDashboard() {
     localStorage.setItem('saved_tractor_maps', JSON.stringify(updatedMaps));
   };
 
+  const loadMapForOperation = (map: typeof savedMaps[0]) => {
+    setSelectedMapForOperation(map);
+    setShowSavedMapsDialog(false);
+    setShowPreOperationCheck(true);
+  };
+
+  const startAutomatedOperation = () => {
+    if (!selectedMapForOperation || isLocked || !engineRunning) return;
+    
+    setIsAutomatedRunning(true);
+    setShowPreOperationCheck(false);
+    setAutomatedProgress({
+      currentPoint: 0,
+      totalPoints: selectedMapForOperation.path.length,
+      timeElapsed: 0,
+      areaCompleted: 0
+    });
+
+    // Simulate automated operation progress
+    automatedInterval.current = setInterval(() => {
+      setAutomatedProgress(prev => {
+        const newCurrentPoint = prev.currentPoint + 1;
+        const progress = newCurrentPoint / prev.totalPoints;
+        const timeElapsed = prev.timeElapsed + 3; // 3 seconds per point
+        const areaCompleted = Math.round(progress * 100);
+
+        if (newCurrentPoint >= prev.totalPoints) {
+          // Operation completed
+          if (automatedInterval.current) {
+            clearInterval(automatedInterval.current);
+            automatedInterval.current = null;
+          }
+          setIsAutomatedRunning(false);
+          return {
+            currentPoint: prev.totalPoints,
+            totalPoints: prev.totalPoints,
+            timeElapsed,
+            areaCompleted: 100
+          };
+        }
+
+        return {
+          currentPoint: newCurrentPoint,
+          totalPoints: prev.totalPoints,
+          timeElapsed,
+          areaCompleted
+        };
+      });
+    }, 3000); // Update every 3 seconds
+  };
+
+  const stopAutomatedOperation = () => {
+    setIsAutomatedRunning(false);
+    if (automatedInterval.current) {
+      clearInterval(automatedInterval.current);
+      automatedInterval.current = null;
+    }
+    setAutomatedProgress({ currentPoint: 0, totalPoints: 0, timeElapsed: 0, areaCompleted: 0 });
+    setSelectedMapForOperation(null);
+  };
+
   // Load saved maps on component mount
   useEffect(() => {
     const existingMaps = JSON.parse(localStorage.getItem('saved_tractor_maps') || '[]');
     setSavedMaps(existingMaps);
+  }, []);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (mappingInterval.current) {
+        clearInterval(mappingInterval.current);
+      }
+      if (automatedInterval.current) {
+        clearInterval(automatedInterval.current);
+      }
+    };
   }, []);
   const toggleSoilScan = () => {
     // Only allow soil scan if tractor is unlocked and engine is running
@@ -542,6 +622,9 @@ export default function OwnerDashboard() {
               )}
               {isMapping && (
                 <div className="absolute top-4 right-4 w-4 h-4 bg-orange-400 rounded-full animate-ping shadow-lg"></div>
+              )}
+              {isAutomatedRunning && (
+                <div className="absolute bottom-4 left-4 w-4 h-4 bg-green-400 rounded-full animate-ping shadow-lg"></div>
               )}
               
               {/* Scanning animation overlay */}
@@ -708,6 +791,49 @@ export default function OwnerDashboard() {
               <div className="mt-1 text-orange-200 flex items-center">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-ping mr-2"></div>
                 Mapping Active
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Automated Operation Progress - Center Right (Only visible when automated operation is running) */}
+        {isAutomatedRunning && (
+          <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-green-400/30 text-white p-4 min-w-48">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <Activity className="h-5 w-5 text-green-400 animate-pulse" />
+                <span className="text-sm font-medium">Auto Operation</span>
+              </div>
+              <Button
+                onClick={stopAutomatedOperation}
+                size="sm"
+                variant="outline"
+                className="border-red-500/50 text-red-400 hover:bg-red-500/20 text-xs px-2 py-1 h-6"
+              >
+                Stop
+              </Button>
+            </div>
+            <div className="text-xs text-green-300 space-y-1">
+              <div className="flex justify-between">
+                <span>Progress:</span>
+                <span className="font-bold">{automatedProgress.areaCompleted}%</span>
+              </div>
+              <Progress value={automatedProgress.areaCompleted} className="h-1.5 mb-2" />
+              <div className="flex justify-between">
+                <span>Points:</span>
+                <span>{automatedProgress.currentPoint}/{automatedProgress.totalPoints}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time:</span>
+                <span>{Math.floor(automatedProgress.timeElapsed / 60)}:{(automatedProgress.timeElapsed % 60).toString().padStart(2, '0')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Area:</span>
+                <span>{automatedProgress.areaCompleted}% covered</span>
+              </div>
+              <div className="mt-1 text-green-200 flex items-center">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-ping mr-2"></div>
+                {selectedMapForOperation?.name}
               </div>
             </div>
           </Card>
@@ -1012,10 +1138,7 @@ export default function OwnerDashboard() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
-                          onClick={() => {
-                            // TODO: Implement load map for automation
-                            console.log('Load map:', map.name);
-                          }}
+                          onClick={() => loadMapForOperation(map)}
                           size="sm"
                           className="bg-blue-600/80 hover:bg-blue-600 text-white text-xs px-2 py-1"
                         >
@@ -1367,6 +1490,100 @@ export default function OwnerDashboard() {
                 className="bg-blue-600/80 hover:bg-blue-500 text-white px-8"
               >
                 Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pre-Operation Check Dialog */}
+      <Dialog open={showPreOperationCheck} onOpenChange={setShowPreOperationCheck}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-yellow-400/30 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-yellow-400 flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 mr-2" />
+              Pre-Operation Safety Check
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-300">
+              Ensure all safety requirements are met before starting automated operation
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-400/30">
+              <div className="space-y-3 text-sm text-yellow-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">⚡</div>
+                  <div>
+                    <p className="font-semibold text-yellow-300">Position & Charge Check</p>
+                    <p>Ensure the tractor is positioned at the starting point of the mapped field and battery is adequately charged.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">🔧</div>
+                  <div>
+                    <p className="font-semibold text-yellow-300">System Check</p>
+                    <p>Verify all systems are functioning properly: engine, hydraulics, brakes, and safety sensors.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">🛡️</div>
+                  <div>
+                    <p className="font-semibold text-yellow-300">Safety Clearance</p>
+                    <p>Ensure the field is clear of people, animals, and obstacles before starting automated operation.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-green-500/10 p-3 rounded-lg border border-green-400/30">
+              <div className="flex items-center space-x-2 text-green-300">
+                <Map className="h-4 w-4 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-semibold">Selected Map: {selectedMapForOperation?.name}</p>
+                  <p className="text-xs text-green-200">{selectedMapForOperation?.path.length} GPS waypoints • Est. {Math.round((selectedMapForOperation?.path.length || 0) * 3 / 60)} min operation</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-400/30">
+              <div className="flex items-center space-x-2 text-blue-300">
+                <Battery className={`h-4 w-4 flex-shrink-0 ${batteryLevel > 20 ? 'text-green-400' : 'text-red-400'}`} />
+                <div className="text-sm">
+                  <p className="font-semibold">Battery Level: {batteryLevel}%</p>
+                  <p className="text-xs text-blue-200">
+                    {batteryLevel > 50 ? 'Sufficient for operation' : 
+                     batteryLevel > 20 ? 'Low battery - consider charging' : 
+                     'Critical battery - charging required'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button
+                onClick={() => {
+                  setShowPreOperationCheck(false);
+                  setSelectedMapForOperation(null);
+                }}
+                variant="outline"
+                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={startAutomatedOperation}
+                disabled={!engineRunning || isLocked || batteryLevel < 10}
+                className={`${
+                  !engineRunning || isLocked || batteryLevel < 10
+                    ? 'bg-gray-600 text-gray-400'
+                    : 'bg-green-600 hover:bg-green-500 text-white'
+                }`}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Start Operation
               </Button>
             </div>
           </div>
