@@ -422,49 +422,108 @@ export default function WarehousePage() {
                 </div>
                 
                 {/* Warehouse Markers */}
-                {warehouses.map((warehouse, index) => (
-                  <div 
-                    key={warehouse.id}
-                    className="absolute bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform"
-                    style={{
-                      top: `${20 + (index * 15) % 40}%`,
-                      left: `${30 + (index * 25) % 50}%`,
-                    }}
-                    title={warehouse.name}
-                  >
-                    {index + 1}
-                  </div>
-                ))}
+                {warehouses.slice(0, 8).map((warehouse, index) => {
+                  // Different positions for different warehouses based on their location in Tamil Nadu
+                  const positions = [
+                    { top: '25%', left: '35%' }, // Chennai area
+                    { top: '15%', left: '15%' }, // Coimbatore area
+                    { top: '55%', left: '25%' }, // Madurai area
+                    { top: '20%', left: '50%' }, // Salem area
+                    { top: '45%', left: '40%' }, // Tiruchirappalli area
+                    { top: '30%', left: '60%' }, // Vellore area
+                    { top: '65%', left: '50%' }, // Additional warehouse
+                    { top: '75%', left: '20%' }  // Additional warehouse
+                  ];
+                  const position = positions[index % positions.length];
+                  
+                  return (
+                    <div key={warehouse.id}>
+                      {/* Warehouse Marker */}
+                      <div 
+                        className={`absolute text-white rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform ${
+                          warehouse.warehouseType === 'Government' ? 'bg-blue-600' :
+                          warehouse.warehouseType === 'Cooperative' ? 'bg-green-600' :
+                          'bg-orange-500'
+                        }`}
+                        style={position}
+                        title={`${warehouse.name} - ${warehouse.warehouseType}`}
+                      >
+                        <Warehouse className="h-5 w-5" />
+                      </div>
+                      
+                      {/* Warehouse Info Popup */}
+                      <div 
+                        className="absolute bg-white rounded-lg shadow-lg p-2 border border-gray-200 text-xs min-w-32 z-10 opacity-0 hover:opacity-100 transition-opacity pointer-events-none"
+                        style={{ 
+                          top: `calc(${position.top} + 45px)`, 
+                          left: position.left,
+                          transform: 'translateX(-50%)'
+                        }}
+                      >
+                        <div className="font-semibold text-gray-800 truncate">{warehouse.name}</div>
+                        <div className="text-gray-600">{warehouse.warehouseType}</div>
+                        <div className="text-gray-600">{warehouse.availableSpace} available</div>
+                        <div className="text-green-600 font-medium">₹{warehouse.pricePerUnit}/{warehouse.priceUnit}</div>
+                        <div className="text-blue-600">{calculateDistance(warehouse)}km away</div>
+                      </div>
+                    </div>
+                  );
+                })}
                 
                 {/* Distance Lines */}
-                {warehouses.map((_, index) => (
-                  <svg 
-                    key={`line-${index}`}
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ zIndex: 1 }}
-                  >
-                    <line
-                      x1="10%"
-                      y1="20%"
-                      x2={`${30 + (index * 25) % 50}%`}
-                      y2={`${20 + (index * 15) % 40}%`}
-                      stroke="rgba(34, 197, 94, 0.3)"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                    />
-                  </svg>
-                ))}
+                {warehouses.slice(0, 8).map((warehouse, index) => {
+                  const positions = [
+                    { top: '25%', left: '35%' },
+                    { top: '15%', left: '15%' },
+                    { top: '55%', left: '25%' },
+                    { top: '20%', left: '50%' },
+                    { top: '45%', left: '40%' },
+                    { top: '30%', left: '60%' },
+                    { top: '65%', left: '50%' },
+                    { top: '75%', left: '20%' }
+                  ];
+                  const position = positions[index % positions.length];
+                  
+                  return (
+                    <svg 
+                      key={`line-${warehouse.id}`}
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ zIndex: 1 }}
+                    >
+                      <line
+                        x1="10%"
+                        y1="20%"
+                        x2={position.left}
+                        y2={position.top}
+                        stroke={`rgba(${warehouse.warehouseType === 'Government' ? '59, 130, 246' : 
+                                      warehouse.warehouseType === 'Cooperative' ? '34, 197, 94' : 
+                                      '249, 115, 22'}, 0.4)`}
+                        strokeWidth="2"
+                        strokeDasharray="4,4"
+                      />
+                    </svg>
+                  );
+                })}
                 
                 {/* Legend */}
-                <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-2 border border-green-200">
-                  <div className="flex items-center space-x-4 text-xs">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span>You</span>
+                <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-3 border border-gray-200">
+                  <div className="text-xs font-medium text-gray-700 mb-2">Map Legend</div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span>Your Location</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>Warehouses</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <span>Government</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <span>Cooperative</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <span>Private</span>
                     </div>
                   </div>
                 </div>
