@@ -629,6 +629,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schemeActualName: 'Green Revolution - Krishonnati Yojana',
           eligibility: 'All farmers',
           whatTheyGet: 'Support for seeds, tools, training',
+          details: 'Includes multiple schemes for overall growth and farming improvement.',
+          linkToApply: 'https://agricoop.gov.in/en/krishonnati-yojana',
+          eligibilityStatus: 'eligible',
+          tags: ['comprehensive support', 'green revolution', 'farming improvement']
+        },
+        {
+          id: 'full-farming-improvement-support',
+          name: 'Full Farming Improvement Support',
+          category: 'Comprehensive Support',
+          schemeActualName: 'Green Revolution - Krishonnati Yojana',
+          eligibility: 'All farmers',
+          whatTheyGet: 'Support for seeds, tools, training',
           details: 'Includes multiple schemes for overall growth.',
           linkToApply: 'https://agricoop.gov.in/en/schemes',
           eligibilityStatus: 'eligible',
@@ -640,6 +652,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Insurance options fetch error:", error);
       res.status(500).json({ message: "Failed to fetch insurance options" });
+    }
+  });
+
+  // Get available government schemes
+  app.get('/api/government-schemes', async (req, res) => {
+    try {
+      const governmentSchemes = [
+        {
+          id: 'pm-kisan-income-support',
+          name: 'PM-KISAN Income Support',
+          category: 'Direct Benefit Transfer',
+          schemeActualName: 'Pradhan Mantri Kisan Samman Nidhi',
+          eligibility: 'All small & marginal farmers',
+          whatTheyGet: '₹6,000/year in 3 parts (₹2,000 each)',
+          details: 'Direct income support scheme providing financial assistance to farmers.',
+          linkToApply: 'https://pmkisan.gov.in',
+          eligibilityStatus: 'eligible',
+          tags: ['income support', 'direct benefit', 'financial assistance']
+        },
+        {
+          id: 'pm-kmy-pension',
+          name: 'PM-KMY Pension for Farmers',
+          category: 'Social Security',
+          schemeActualName: 'Pradhan Mantri Kisan Maandhan Yojana',
+          eligibility: 'Small/marginal farmers aged 18–40 years',
+          whatTheyGet: '₹3,000/month pension after age 60',
+          details: 'Monthly pension scheme for farmers after retirement.',
+          linkToApply: 'https://maandhan.in',
+          eligibilityStatus: 'partially-eligible',
+          tags: ['pension', 'retirement', 'social security']
+        },
+        {
+          id: 'kcc-credit-card',
+          name: 'KCC Kisan Credit Card',
+          category: 'Credit Facility',
+          schemeActualName: 'Kisan Credit Card',
+          eligibility: 'All farmers (crop, dairy, fishery)',
+          whatTheyGet: 'Loan up to ₹3 lakh @ 4% interest',
+          details: 'Easy access to short-term loans for farming needs.',
+          linkToApply: 'https://www.nabard.org/content1.aspx?id=573',
+          eligibilityStatus: 'eligible',
+          tags: ['credit', 'loan', 'financing']
+        },
+        {
+          id: 'pmksy-irrigation',
+          name: 'PMKSY Irrigation Scheme',
+          category: 'Infrastructure',
+          schemeActualName: 'Pradhan Mantri Krishi Sinchayee Yojana',
+          eligibility: 'Farmers with irrigation needs',
+          whatTheyGet: 'Subsidy for drip/sprinkler systems',
+          details: 'Improve irrigation and water use efficiency.',
+          linkToApply: 'https://pmksy.gov.in',
+          eligibilityStatus: 'eligible',
+          tags: ['irrigation', 'water management', 'infrastructure']
+        },
+        {
+          id: 'soil-health-card',
+          name: 'Soil Health Card Scheme',
+          category: 'Soil Health',
+          schemeActualName: 'Soil Health Card',
+          eligibility: 'All farmers',
+          whatTheyGet: 'Free soil testing + usage guidance',
+          details: 'Test soil quality and improve crop productivity.',
+          linkToApply: 'https://soilhealth.dac.gov.in',
+          eligibilityStatus: 'eligible',
+          tags: ['soil testing', 'crop productivity', 'guidance']
+        },
+        {
+          id: 'enam-online-market',
+          name: 'eNAM Online Market',
+          category: 'Market Access',
+          schemeActualName: 'National Agriculture Market',
+          eligibility: 'Registered farmers with mandis',
+          whatTheyGet: 'National access to markets, price transparency',
+          details: 'Sell crops online at better prices through digital platform.',
+          linkToApply: 'https://enam.gov.in/web/',
+          eligibilityStatus: 'eligible',
+          tags: ['online selling', 'market access', 'price transparency']
+        },
+        {
+          id: 'rkvy-development',
+          name: 'RKVY Farming Development',
+          category: 'Development',
+          schemeActualName: 'Rashtriya Krishi Vikas Yojana',
+          eligibility: 'Farmers under state projects',
+          whatTheyGet: 'Subsidies for tools, seeds, dairy, etc.',
+          details: 'Promote agricultural innovations and mechanization.',
+          linkToApply: 'https://rkvy.nic.in',
+          eligibilityStatus: 'partially-eligible',
+          tags: ['development', 'innovation', 'mechanization']
+        },
+        {
+          id: 'pm-aasha-price-support',
+          name: 'PM-AASHA Price Support',
+          category: 'Price Support',
+          schemeActualName: 'PM Annadata Aay Sanrakshan Abhiyan',
+          eligibility: 'Farmers growing MSP crops',
+          whatTheyGet: 'Price support or deficiency payments',
+          details: 'Ensure fair price for produce through MSP mechanism.',
+          linkToApply: 'https://agricoop.gov.in/en/AASHA',
+          eligibilityStatus: 'eligible',
+          tags: ['price support', 'MSP', 'fair pricing']
+        },
+        {
+          id: 'agri-infrastructure-fund',
+          name: 'Agri Infrastructure Fund',
+          category: 'Infrastructure',
+          schemeActualName: 'Agriculture Infrastructure Fund',
+          eligibility: 'Individual farmers, FPOs, SHGs, agri-entrepreneurs',
+          whatTheyGet: 'Loan with interest subsidy',
+          details: 'Build cold stores, godowns, processing units.',
+          linkToApply: 'https://agriinfra.dac.gov.in',
+          eligibilityStatus: 'partially-eligible',
+          tags: ['infrastructure', 'storage', 'processing']
+        },
+        {
+          id: 'nmsa-smart-farming',
+          name: 'NMSA Smart Farming Support',
+          category: 'Sustainable Agriculture',
+          schemeActualName: 'National Mission on Sustainable Agriculture',
+          eligibility: 'All farmers, esp. in dry/rain-fed areas',
+          whatTheyGet: 'Training, equipment, and subsidy',
+          details: 'Promote organic, water-saving and climate-smart farming.',
+          linkToApply: 'https://nmsa.dac.gov.in',
+          eligibilityStatus: 'eligible',
+          tags: ['sustainable farming', 'climate-smart', 'organic']
+        }
+      ];
+      
+      res.json(governmentSchemes);
+    } catch (error) {
+      console.error("Government schemes fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch government schemes" });
     }
   });
 
