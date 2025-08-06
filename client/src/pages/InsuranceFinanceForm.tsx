@@ -77,7 +77,36 @@ export default function InsuranceFinanceForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<any>({
+    fullName: '',
+    fatherHusbandName: '',
+    dateOfBirth: '',
+    gender: '',
+    aadhaarNumber: '',
+    mobileNumber: '',
+    address: '',
+    state: '',
+    district: '',
+    villagePanchayat: '',
+    pincode: '',
+    surveyKhasraNumber: '',
+    totalLandHolding: '',
+    landOwnership: '',
+    cropSeason: '',
+    cropType: '',
+    sowingDate: '',
+    expectedHarvestDate: '',
+    irrigationType: '',
+    bankName: '',
+    branchName: '',
+    accountNumber: '',
+    ifscCode: '',
+    aadhaarDocumentUrl: '',
+    bankPassbookUrl: '',
+    landRecordUrl: '',
+    cropPhotoUrl: '',
+    declarationAccepted: false,
+  });
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Load existing application data
@@ -135,37 +164,7 @@ export default function InsuranceFinanceForm() {
   const form = useForm({
     resolver: zodResolver(stepSchemas[currentStep - 1]),
     mode: "onChange",
-    defaultValues: {
-      fullName: '',
-      fatherHusbandName: '',
-      dateOfBirth: '',
-      gender: '',
-      aadhaarNumber: '',
-      mobileNumber: '',
-      address: '',
-      state: '',
-      district: '',
-      villagePanchayat: '',
-      pincode: '',
-      surveyKhasraNumber: '',
-      totalLandHolding: '',
-      landOwnership: '',
-      cropSeason: '',
-      cropType: '',
-      sowingDate: '',
-      expectedHarvestDate: '',
-      irrigationType: '',
-      bankName: '',
-      branchName: '',
-      accountNumber: '',
-      ifscCode: '',
-      aadhaarDocumentUrl: '',
-      bankPassbookUrl: '',
-      landRecordUrl: '',
-      cropPhotoUrl: '',
-      declarationAccepted: false,
-      ...formData
-    }
+    defaultValues: formData
   });
 
   // Auto-save mutation for intermediate steps
@@ -281,38 +280,8 @@ export default function InsuranceFinanceForm() {
 
   // Reset form when data changes and step changes
   useEffect(() => {
-    const currentValues = {
-      fullName: formData.fullName || '',
-      fatherHusbandName: formData.fatherHusbandName || '',
-      dateOfBirth: formData.dateOfBirth || '',
-      gender: formData.gender || '',
-      aadhaarNumber: formData.aadhaarNumber || '',
-      mobileNumber: formData.mobileNumber || '',
-      address: formData.address || '',
-      state: formData.state || '',
-      district: formData.district || '',
-      villagePanchayat: formData.villagePanchayat || '',
-      pincode: formData.pincode || '',
-      surveyKhasraNumber: formData.surveyKhasraNumber || '',
-      totalLandHolding: formData.totalLandHolding || '',
-      landOwnership: formData.landOwnership || '',
-      cropSeason: formData.cropSeason || '',
-      cropType: formData.cropType || '',
-      sowingDate: formData.sowingDate || '',
-      expectedHarvestDate: formData.expectedHarvestDate || '',
-      irrigationType: formData.irrigationType || '',
-      bankName: formData.bankName || '',
-      branchName: formData.branchName || '',
-      accountNumber: formData.accountNumber || '',
-      ifscCode: formData.ifscCode || '',
-      aadhaarDocumentUrl: formData.aadhaarDocumentUrl || '',
-      bankPassbookUrl: formData.bankPassbookUrl || '',
-      landRecordUrl: formData.landRecordUrl || '',
-      cropPhotoUrl: formData.cropPhotoUrl || '',
-      declarationAccepted: formData.declarationAccepted || false,
-    };
-    form.reset(currentValues);
-  }, [currentStep]);
+    form.reset(formData);
+  }, [currentStep, formData, form]);
 
   if (isSubmitted) {
     return (
