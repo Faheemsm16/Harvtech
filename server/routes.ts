@@ -1178,7 +1178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Get cart items for the buyer
+      // Get cart items for the buyer (using userId since we renamed buyerId to userId in cart)
       const cartData = await storage.getCartByUser(buyerId);
       
       if (cartData.length === 0) {

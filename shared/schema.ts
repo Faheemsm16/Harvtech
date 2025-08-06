@@ -238,7 +238,7 @@ export const marketplaceProducts = pgTable("marketplace_products", {
 // Cart Items table
 export const cartItems = pgTable("cart_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   productId: varchar("product_id").references(() => marketplaceProducts.id).notNull(),
   quantity: integer("quantity").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -247,7 +247,7 @@ export const cartItems = pgTable("cart_items", {
 // Marketplace Orders table
 export const marketplaceOrders = pgTable("marketplace_orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   totalAmount: integer("total_amount").notNull(), // in rupees
   orderStatus: varchar("order_status").default("pending"), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
   paymentMethod: varchar("payment_method").notNull(), // 'UPI', 'Debit Card', 'Wallet', 'COD'

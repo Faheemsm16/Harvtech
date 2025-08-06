@@ -90,16 +90,16 @@ export interface IStorage {
   searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]>;
 
   // Cart operations
-  getCartByUser(buyerId: string): Promise<any[]>; // Returns cart items with product details
+  getCartByUser(userId: string): Promise<any[]>; // Returns cart items with product details
   addToCart(cartItem: InsertCartItem): Promise<CartItem>;
   updateCartItemQuantity(itemId: string, quantity: number): Promise<void>;
   removeCartItem(itemId: string): Promise<void>;
-  removeFromCart(buyerId: string, productId: string): Promise<void>;
-  clearCart(buyerId: string): Promise<void>;
+  removeFromCart(userId: string, productId: string): Promise<void>;
+  clearCart(userId: string): Promise<void>;
 
   // Order operations
   createOrder(order: InsertMarketplaceOrder, orderItems: InsertMarketplaceOrderItem[]): Promise<MarketplaceOrder>;
-  getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]>;
+  getOrdersByUser(userId: string): Promise<MarketplaceOrder[]>;
   getOrderById(id: string): Promise<MarketplaceOrder | undefined>;
   updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void>;
 }
@@ -373,12 +373,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Cart operations
-  async getCartByUser(buyerId: string): Promise<any[]> {
+  async getCartByUser(userId: string): Promise<any[]> {
     const result = await db
       .select({
         id: cartItems.id,
         quantity: cartItems.quantity,
-        buyerId: cartItems.buyerId,
+        userId: cartItems.userId,
         productId: cartItems.productId,
         product: {
           id: marketplaceProducts.id,
@@ -394,7 +394,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(cartItems)
       .leftJoin(marketplaceProducts, eq(cartItems.productId, marketplaceProducts.id))
-      .where(eq(cartItems.buyerId, buyerId));
+      .where(eq(cartItems.userId, userId));
     
     return result;
   }
@@ -414,12 +414,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(cartItems.id, itemId));
   }
 
-  async updateCartQuantity(buyerId: string, productId: string, quantity: number): Promise<void> {
+  async updateCartQuantity(userId: string, productId: string, quantity: number): Promise<void> {
     await db
       .update(cartItems)
       .set({ quantity })
       .where(and(
-        eq(cartItems.buyerId, buyerId),
+        eq(cartItems.userId, userId),
         eq(cartItems.productId, productId)
       ));
   }
@@ -428,17 +428,17 @@ export class DatabaseStorage implements IStorage {
     await db.delete(cartItems).where(eq(cartItems.id, itemId));
   }
 
-  async removeFromCart(buyerId: string, productId: string): Promise<void> {
+  async removeFromCart(userId: string, productId: string): Promise<void> {
     await db
       .delete(cartItems)
       .where(and(
-        eq(cartItems.buyerId, buyerId),
+        eq(cartItems.userId, userId),
         eq(cartItems.productId, productId)
       ));
   }
 
-  async clearCart(buyerId: string): Promise<void> {
-    await db.delete(cartItems).where(eq(cartItems.buyerId, buyerId));
+  async clearCart(userId: string): Promise<void> {
+    await db.delete(cartItems).where(eq(cartItems.userId, userId));
   }
 
   // Order operations
@@ -461,8 +461,8 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]> {
-    return await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.buyerId, buyerId));
+  async getOrdersByUser(userId: string): Promise<MarketplaceOrder[]> {
+    return await db.select().from(marketplaceOrders).where(eq(marketplaceOrders.userId, userId));
   }
 
   async getOrderById(id: string): Promise<MarketplaceOrder | undefined> {
@@ -470,7 +470,7 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async getOrdersWithItems(buyerId: string): Promise<any[]> {
+  async getOrdersWithItems(userId: string): Promise<any[]> {
     const ordersData = await db
       .select({
         id: marketplaceOrders.id,
@@ -483,7 +483,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: marketplaceOrders.createdAt,
       })
       .from(marketplaceOrders)
-      .where(eq(marketplaceOrders.buyerId, buyerId))
+      .where(eq(marketplaceOrders.userId, userId))
       .orderBy(marketplaceOrders.createdAt);
 
     // Get order items for each order
