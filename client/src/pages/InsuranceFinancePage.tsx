@@ -27,14 +27,11 @@ interface InsuranceOption {
   id: string;
   name: string;
   category: string;
-  shortDescription: string;
-  detailedDescription: string;
+  schemeActualName: string;
   eligibility: string;
-  premium: string;
-  maxCoverage: string;
-  documents: string[];
-  benefits: string[];
-  eligibilityStatus: 'eligible' | 'partially-eligible' | 'not-eligible';
+  whatTheyGet: string;
+  details: string;
+  linkToApply: string;
   tags: string[];
 }
 
@@ -72,9 +69,9 @@ export default function InsuranceFinancePage() {
       return (
         option.name.toLowerCase().includes(query) ||
         option.category.toLowerCase().includes(query) ||
-        option.shortDescription.toLowerCase().includes(query) ||
-        option.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        option.benefits.some(benefit => benefit.toLowerCase().includes(query))
+        option.schemeActualName.toLowerCase().includes(query) ||
+        option.details.toLowerCase().includes(query) ||
+        option.tags.some(tag => tag.toLowerCase().includes(query))
       );
     });
 
@@ -99,45 +96,6 @@ export default function InsuranceFinancePage() {
   const handlePrevCard = () => {
     if (currentCardIndex > 0) {
       setCurrentCardIndex(currentCardIndex - 1);
-    }
-  };
-
-  const getEligibilityIcon = (status: string) => {
-    switch (status) {
-      case 'eligible':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'partially-eligible':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-      case 'not-eligible':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getEligibilityText = (status: string) => {
-    switch (status) {
-      case 'eligible':
-        return 'Eligible';
-      case 'partially-eligible':
-        return 'Partially Eligible';
-      case 'not-eligible':
-        return 'Not Eligible';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const getEligibilityBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'eligible':
-        return 'default';
-      case 'partially-eligible':
-        return 'secondary';
-      case 'not-eligible':
-        return 'destructive';
-      default:
-        return 'outline';
     }
   };
 
@@ -270,36 +228,26 @@ export default function InsuranceFinancePage() {
                       <span className="inline-block px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full mb-3">
                         {currentOption.category}
                       </span>
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {currentOption.shortDescription}
+                      <p className="text-gray-600 text-sm leading-relaxed font-medium">
+                        {currentOption.schemeActualName}
                       </p>
                     </div>
                     <div className="ml-4 text-center">
-                      {getEligibilityIcon(currentOption.eligibilityStatus)}
-                      <span 
-                        className={`mt-2 text-xs px-2 py-1 rounded-full font-medium ${
-                          currentOption.eligibilityStatus === 'eligible' 
-                            ? 'bg-green-100 text-green-800' 
-                            : currentOption.eligibilityStatus === 'partially-eligible'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {getEligibilityText(currentOption.eligibilityStatus)}
-                      </span>
+                      <Shield className="h-8 w-8 text-ag-green mx-auto mb-2" />
+                      <span className="text-xs text-gray-500">Government Scheme</span>
                     </div>
                   </div>
                 </CardHeader>
                 
                 <CardContent className="space-y-6">
-                  {/* Detailed Description */}
+                  {/* Description */}
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                       <FileText className="h-4 w-4 mr-2 text-ag-green" />
-                      About This Insurance
+                      What This Scheme Offers
                     </h4>
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      {currentOption.detailedDescription}
+                      {currentOption.details}
                     </p>
                   </div>
 
@@ -307,56 +255,31 @@ export default function InsuranceFinancePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-gray-50 rounded-lg p-3">
                       <div className="flex items-center mb-2">
-                        <IndianRupee className="h-4 w-4 text-ag-green mr-2" />
-                        <span className="font-medium text-sm">Premium</span>
+                        <Users className="h-4 w-4 text-ag-green mr-2" />
+                        <span className="font-medium text-sm">Eligibility</span>
                       </div>
-                      <p className="text-sm text-gray-600">{currentOption.premium}</p>
+                      <p className="text-sm text-gray-600">{currentOption.eligibility}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-3">
                       <div className="flex items-center mb-2">
-                        <Shield className="h-4 w-4 text-ag-green mr-2" />
-                        <span className="font-medium text-sm">Max Coverage</span>
+                        <IndianRupee className="h-4 w-4 text-ag-green mr-2" />
+                        <span className="font-medium text-sm">What You Get</span>
                       </div>
-                      <p className="text-sm text-gray-600">{currentOption.maxCoverage}</p>
+                      <p className="text-sm text-gray-600">{currentOption.whatTheyGet}</p>
                     </div>
                   </div>
 
-                  {/* Eligibility */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <Users className="h-4 w-4 mr-2 text-ag-green" />
-                      Eligibility Criteria
-                    </h4>
-                    <p className="text-sm text-gray-600">{currentOption.eligibility}</p>
-                  </div>
-
-                  {/* Benefits */}
+                  {/* Tags */}
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                       <CheckCircle className="h-4 w-4 mr-2 text-ag-green" />
-                      Benefits
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {currentOption.benefits.map((benefit, index) => (
-                        <div key={index} className="flex items-start">
-                          <CheckCircle className="h-3 w-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-gray-600">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Required Documents */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <FileText className="h-4 w-4 mr-2 text-ag-green" />
-                      Required Documents
+                      Categories
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {currentOption.documents.map((document, index) => (
-                        <span key={index} className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                          {document}
+                      {currentOption.tags.map((tag, index) => (
+                        <span key={index} className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                          {tag}
                         </span>
                       ))}
                     </div>
@@ -366,11 +289,9 @@ export default function InsuranceFinancePage() {
                   <div className="pt-4">
                     <Button 
                       className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-                      disabled={currentOption.eligibilityStatus === 'not-eligible'}
+                      onClick={() => window.open(currentOption.linkToApply, '_blank')}
                     >
-                      {currentOption.eligibilityStatus === 'eligible' ? 'Apply Now' : 
-                       currentOption.eligibilityStatus === 'partially-eligible' ? 'Check Eligibility' : 
-                       'Not Eligible'}
+                      Apply Now - Visit Official Website
                     </Button>
                   </div>
                 </CardContent>
