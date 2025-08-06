@@ -28,14 +28,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware (commented out for development)
   // await setupAuth(app);
   
-  // Mock authentication middleware for development
+  // Custom authentication middleware that works with session-based auth
+  const requireAuth = (req: any, res: any, next: any) => {
+    // Extract user ID from session or request headers
+    const authHeader = req.headers.authorization;
+    const sessionUserId = req.session?.userId;
+    
+    if (sessionUserId) {
+      req.user = {
+        claims: {
+          sub: sessionUserId
+        }
+      };
+      req.isAuthenticated = () => true;
+      return next();
+    }
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const userId = authHeader.substring(7); // Remove 'Bearer ' prefix
+      req.user = {
+        claims: {
+          sub: userId
+        }
+      };
+      req.isAuthenticated = () => true;
+      return next();
+    }
+    
+    // If no authentication found, return 401
+    res.status(401).json({ message: "Unauthorized" });
+  };
+
+  // Apply session middleware for user tracking
   app.use((req: any, res, next) => {
-    req.isAuthenticated = () => true;
-    req.user = {
-      claims: {
-        sub: 'dev-user-id-123'
-      }
-    };
+    if (!req.session) {
+      req.session = {};
+    }
     next();
   });
 
@@ -335,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insurance Application routes
-  app.post('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+  app.post('/api/insurance-applications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applicationData = { ...req.body, userId };
@@ -370,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
+  app.get('/api/insurance-applications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applications = await storage.getInsuranceApplicationsByUser(userId);
@@ -381,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications/current', isAuthenticated, async (req: any, res) => {
+  app.get('/api/insurance-applications/current', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const application = await storage.getInsuranceApplicationByUser(userId);
