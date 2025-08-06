@@ -993,20 +993,12 @@ export default function OwnerDashboard() {
               </div>
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex justify-center">
               <Button
                 onClick={() => setShowVehicleInfo(false)}
-                className="flex-1 bg-blue-600/80 hover:bg-blue-500 text-white"
+                className="bg-blue-600/80 hover:bg-blue-500 text-white px-8"
               >
                 Close
-              </Button>
-              <Button
-                onClick={() => {/* TODO: Schedule maintenance */}}
-                className="flex-1 bg-orange-600/80 hover:bg-orange-500 text-white"
-                disabled={getCriticalIssues().length === 0}
-              >
-                <Wrench className="h-4 w-4 mr-2" />
-                Schedule Maintenance
               </Button>
             </div>
           </div>
