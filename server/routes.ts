@@ -9,6 +9,17 @@ import { seedDatabase } from "./seedData";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware (commented out for development)
   // await setupAuth(app);
+  
+  // Mock authentication middleware for development
+  app.use((req: any, res, next) => {
+    req.isAuthenticated = () => true;
+    req.user = {
+      claims: {
+        sub: 'dev-user-id-123'
+      }
+    };
+    next();
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -518,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(product);
     } catch (error) {
       console.error("Product creation error:", error);
-      res.status(400).json({ message: "Failed to create product", error: error.message });
+      res.status(400).json({ message: "Failed to create product", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
