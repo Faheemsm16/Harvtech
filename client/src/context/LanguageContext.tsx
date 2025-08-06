@@ -149,7 +149,7 @@ const translations = {
     maintenance: 'Maintenance',
     // Menu & Navigation
     schemes: 'Schemes',
-    transportation: 'Transportation',
+    transport: 'Transport',
     warehouse: 'Warehouse',
     marketplace: 'Marketplace',
     insurance_finance: 'Insurance & Finance',

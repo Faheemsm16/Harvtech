@@ -356,6 +356,97 @@ export default function WarehousePage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Interactive Map View */}
+        {showWarehouses && currentLocation && (
+          <Card className="mt-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-base">
+                <MapPin className="h-5 w-5 text-ag-green" />
+                <span>Warehouse Map</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg h-64 relative overflow-hidden border-2 border-green-200">
+                {/* Map Grid Pattern */}
+                <div 
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+                
+                {/* Current Location */}
+                <div className="absolute top-4 left-4 bg-white rounded-lg shadow-md p-2 border border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium text-gray-700">Your Location</span>
+                  </div>
+                </div>
+                
+                {/* Warehouse Markers */}
+                {warehouses.map((warehouse, index) => (
+                  <div 
+                    key={warehouse.id}
+                    className="absolute bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform"
+                    style={{
+                      top: `${20 + (index * 15) % 40}%`,
+                      left: `${30 + (index * 25) % 50}%`,
+                    }}
+                    title={warehouse.name}
+                  >
+                    {index + 1}
+                  </div>
+                ))}
+                
+                {/* Distance Lines */}
+                {warehouses.map((_, index) => (
+                  <svg 
+                    key={`line-${index}`}
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ zIndex: 1 }}
+                  >
+                    <line
+                      x1="10%"
+                      y1="20%"
+                      x2={`${30 + (index * 25) % 50}%`}
+                      y2={`${20 + (index * 15) % 40}%`}
+                      stroke="rgba(34, 197, 94, 0.3)"
+                      strokeWidth="2"
+                      strokeDasharray="5,5"
+                    />
+                  </svg>
+                ))}
+                
+                {/* Legend */}
+                <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-md p-2 border border-green-200">
+                  <div className="flex items-center space-x-4 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>You</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Warehouses</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Distance Info */}
+                <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 border border-green-200">
+                  <div className="text-xs text-gray-600">
+                    <div className="font-medium">Nearest: {warehouses.length > 0 ? calculateDistance(warehouses[0]) : '0'}km</div>
+                    <div>Total: {warehouses.length} warehouses</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
