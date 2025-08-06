@@ -46,10 +46,13 @@ export default function SellCategoryPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch user's own products
-  const { data: userProducts = [] } = useQuery<any[]>({
+  // Fetch user's own products with real-time updates
+  const { data: userProducts = [], refetch: refetchProducts } = useQuery<any[]>({
     queryKey: ['/api/marketplace/products', 'user', user?.id],
     enabled: !!user?.id,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always fetch fresh data
   });
 
   // Delete product mutation
@@ -124,7 +127,7 @@ export default function SellCategoryPage() {
                     </div>
                   </div>
                   <Button
-                    onClick={() => handleCategorySelect('seeds')}
+                    onClick={() => setLocation('/marketplace/sell/upload?category=seeds')}
                     className="bg-ag-green hover:bg-ag-green/90 text-white"
                   >
                     + Add Product
@@ -182,7 +185,7 @@ export default function SellCategoryPage() {
                     <h4 className="text-lg font-medium text-gray-900 mb-2">No products yet</h4>
                     <p className="text-gray-500 mb-4">Start selling by adding your first product</p>
                     <Button
-                      onClick={() => handleCategorySelect('seeds')}
+                      onClick={() => setLocation('/marketplace/sell/upload?category=seeds')}
                       className="bg-ag-green hover:bg-ag-green/90 text-white"
                     >
                       Add Your First Product
@@ -193,30 +196,6 @@ export default function SellCategoryPage() {
             </CardContent>
           </Card>
         )}
-
-        {categories.map((category) => {
-          const IconComponent = category.icon;
-          return (
-            <Card key={category.id} className="bg-white border border-gray-200 overflow-hidden">
-              <CardContent className="p-0">
-                <Button
-                  variant="ghost"
-                  className="w-full h-auto p-6 flex items-center justify-start space-x-4 hover:bg-gray-50 rounded-none"
-                  onClick={() => handleCategorySelect(category.id)}
-                >
-                  <div className={`w-12 h-12 bg-${category.color}-100 rounded-full flex items-center justify-center`}>
-                    <IconComponent className={`h-6 w-6 text-${category.color}-600`} />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-semibold text-lg text-gray-900">{t(category.id as keyof typeof t)}</h3>
-                    <p className="text-sm text-gray-600">{category.description}</p>
-                  </div>
-                  <div className="flex-shrink-0 text-gray-400 self-center">→</div>
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
       </div>
     </div>
   );
