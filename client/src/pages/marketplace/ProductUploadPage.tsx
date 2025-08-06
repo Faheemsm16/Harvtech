@@ -73,6 +73,7 @@ export default function ProductUploadPage() {
       });
     },
     onError: (error: Error) => {
+      console.error("Product upload error:", error);
       toast({
         title: t('error'),
         description: error.message || "Failed to upload product",
