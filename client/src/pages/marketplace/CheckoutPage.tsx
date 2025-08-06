@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, MapPin, CreditCard, Truck } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, Truck, QrCode } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from 'wouter';
@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCustomAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { QRCode } from '@/components/QRCode';
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart, formatUnit } = useCart();
@@ -34,6 +36,8 @@ export default function CheckoutPage() {
   
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showUpiQr, setShowUpiQr] = useState(false);
+  const [upiTransactionId, setUpiTransactionId] = useState('');
 
   const handleBack = () => {
     setLocation('/marketplace/cart');
@@ -82,10 +86,16 @@ export default function CheckoutPage() {
       return;
     }
 
+    // If UPI is selected, show QR code for payment
+    if (paymentMethod === 'upi') {
+      setShowUpiQr(true);
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
-      // Create order via API
+      // Create order via API for non-UPI payments
       const orderData = {
         buyerId: user?.id,
         totalAmount: finalTotal,
@@ -94,7 +104,7 @@ export default function CheckoutPage() {
         estimatedDelivery: '3-5 days',
       };
 
-      await apiRequest('/api/marketplace/orders', 'POST', orderData);
+      await apiRequest('POST', '/api/marketplace/orders', orderData);
       
       clearCart();
       toast({
@@ -108,6 +118,53 @@ export default function CheckoutPage() {
       setLocation('/marketplace/order-success');
     } catch (error: any) {
       console.error('Order creation failed:', error);
+      toast({
+        title: "Order Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUpiPaymentComplete = async () => {
+    if (!upiTransactionId.trim()) {
+      toast({
+        title: "Transaction ID Required",
+        description: "Please enter the UPI transaction ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      // Create order via API with UPI transaction ID
+      const orderData = {
+        buyerId: user?.id,
+        totalAmount: finalTotal,
+        paymentMethod: `upi-${upiTransactionId}`,
+        shippingAddress: `${deliveryAddress.fullName}, ${deliveryAddress.mobile}\n${deliveryAddress.address}\n${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}${deliveryAddress.landmark ? `\nLandmark: ${deliveryAddress.landmark}` : ''}`,
+        estimatedDelivery: '3-5 days',
+      };
+
+      await apiRequest('POST', '/api/marketplace/orders', orderData);
+      
+      clearCart();
+      setShowUpiQr(false);
+      toast({
+        title: "Payment Successful!",
+        description: `Your order of ₹${finalTotal} has been confirmed via UPI. You will receive a confirmation SMS shortly.`,
+      });
+      
+      // Invalidate orders cache to refresh user's orders
+      queryClient.invalidateQueries({ queryKey: ['/api/marketplace/orders'] });
+      
+      setLocation('/marketplace/order-success');
+    } catch (error: any) {
+      console.error('UPI order creation failed:', error);
       toast({
         title: "Order Failed",
         description: error.message || "Something went wrong. Please try again.",
@@ -318,6 +375,65 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* UPI QR Code Modal */}
+      <Dialog open={showUpiQr} onOpenChange={setShowUpiQr}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">UPI Payment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-lg font-semibold text-ag-green">₹{finalTotal}</p>
+              <p className="text-sm text-gray-600">Scan QR code to pay</p>
+            </div>
+            
+            {/* QR Code */}
+            <div className="flex justify-center">
+              <div className="bg-white p-4 rounded-lg shadow-inner border-2 border-gray-200">
+                <QRCode 
+                  value={`upi://pay?pa=farmer@upi&pn=HarvTech Agriculture&am=${finalTotal}&cu=INR&tn=Order Payment`}
+                  size={200}
+                />
+              </div>
+            </div>
+            
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-600">After payment, enter transaction ID below:</p>
+              <Input
+                placeholder="Enter UPI Transaction ID"
+                value={upiTransactionId}
+                onChange={(e) => setUpiTransactionId(e.target.value)}
+                className="text-center"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Button 
+                onClick={handleUpiPaymentComplete}
+                disabled={isProcessing}
+                className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
+              >
+                {isProcessing ? 'Processing...' : 'Confirm Payment'}
+              </Button>
+              <Button 
+                onClick={() => setShowUpiQr(false)}
+                variant="outline" 
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-600 text-center">
+                Pay using any UPI app like GPay, PhonePe, Paytm, etc. 
+                After successful payment, enter the transaction ID to confirm your order.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
