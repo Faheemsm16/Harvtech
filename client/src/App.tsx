@@ -18,6 +18,7 @@ import PlatformsPage from "@/pages/PlatformsPage";
 import GovernmentSchemesPage from "@/pages/GovernmentSchemesPage";
 import MarketPlacePage from "@/pages/MarketPlacePage";
 import InsuranceFinanceForm from "@/pages/InsuranceFinanceForm";
+import InsuranceFinancePage from "@/pages/InsuranceFinancePage";
 import TransportBookingPage from "@/pages/TransportBookingPage";
 import TransportVehicleSelectionPage from "@/pages/TransportVehicleSelectionPage";
 import TransportPaymentPage from "@/pages/TransportPaymentPage";
@@ -71,7 +72,8 @@ function Router() {
           <Route path="/platforms" component={PlatformsPage} />
           <Route path="/government-schemes" component={GovernmentSchemesPage} />
           <Route path="/marketplace" component={MarketPlacePage} />
-          <Route path="/insurance-finance" component={InsuranceFinanceForm} />
+          <Route path="/insurance-finance" component={InsuranceFinancePage} />
+          <Route path="/insurance-finance/form" component={InsuranceFinanceForm} />
           <Route path="/transport-booking" component={TransportBookingPage} />
           <Route path="/transport-vehicle-selection" component={TransportVehicleSelectionPage} />
           <Route path="/transport-payment" component={TransportPaymentPage} />

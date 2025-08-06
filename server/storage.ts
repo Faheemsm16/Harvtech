@@ -59,7 +59,9 @@ export interface IStorage {
   
   // Insurance Application operations
   createInsuranceApplication(application: InsertInsuranceApplication): Promise<InsuranceApplication>;
+  upsertInsuranceApplication(application: InsertInsuranceApplication): Promise<InsuranceApplication>;
   getInsuranceApplicationsByUser(userId: string): Promise<InsuranceApplication[]>;
+  getInsuranceApplicationByUser(userId: string): Promise<InsuranceApplication | undefined>;
   updateInsuranceApplicationStatus(id: string, status: string): Promise<void>;
   
   // Transport Vehicle operations
@@ -215,8 +217,38 @@ export class DatabaseStorage implements IStorage {
     return application;
   }
 
+  async upsertInsuranceApplication(applicationData: InsertInsuranceApplication): Promise<InsuranceApplication> {
+    const existing = await db.select().from(insuranceApplications)
+      .where(eq(insuranceApplications.userId, applicationData.userId))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing application
+      const [updated] = await db
+        .update(insuranceApplications)
+        .set({ ...applicationData, updatedAt: new Date() })
+        .where(eq(insuranceApplications.userId, applicationData.userId))
+        .returning();
+      return updated;
+    } else {
+      // Create new application
+      const [created] = await db
+        .insert(insuranceApplications)
+        .values(applicationData)
+        .returning();
+      return created;
+    }
+  }
+
   async getInsuranceApplicationsByUser(userId: string): Promise<InsuranceApplication[]> {
     return await db.select().from(insuranceApplications).where(eq(insuranceApplications.userId, userId));
+  }
+
+  async getInsuranceApplicationByUser(userId: string): Promise<InsuranceApplication | undefined> {
+    const [application] = await db.select().from(insuranceApplications)
+      .where(eq(insuranceApplications.userId, userId))
+      .limit(1);
+    return application;
   }
 
   async updateInsuranceApplicationStatus(id: string, status: string): Promise<void> {

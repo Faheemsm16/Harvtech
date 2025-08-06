@@ -337,10 +337,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Insurance Application routes
   app.post('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
     try {
-      const applicationData = req.body;
+      const userId = req.user.claims.sub;
+      const applicationData = { ...req.body, userId };
       
       const validatedData = insertInsuranceApplicationSchema.parse(applicationData);
-      const application = await storage.createInsuranceApplication(validatedData);
+      const application = await storage.upsertInsuranceApplication(validatedData);
       
       res.json(application);
     } catch (error) {
@@ -357,6 +358,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Insurance applications fetch error:", error);
       res.status(500).json({ message: "Failed to fetch insurance applications" });
+    }
+  });
+
+  app.get('/api/insurance-applications/current', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const application = await storage.getInsuranceApplicationByUser(userId);
+      res.json(application || null);
+    } catch (error) {
+      console.error("Current insurance application fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch current insurance application" });
+    }
+  });
+
+  // Get available insurance options
+  app.get('/api/insurance-options', async (req, res) => {
+    try {
+      const insuranceOptions = [
+        {
+          id: 'pmfby-crop',
+          name: 'PMFBY - Crop Insurance',
+          category: 'Crop Insurance',
+          shortDescription: 'Comprehensive crop insurance scheme covering risks from sowing to post-harvest',
+          detailedDescription: 'Pradhan Mantri Fasal Bima Yojana provides insurance coverage for farmers against all non-preventable natural risks from pre-sowing to post-harvest stages.',
+          eligibility: 'All farmers (loanee and non-loanee) growing notified crops',
+          premium: '2% for Kharif, 1.5% for Rabi crops',
+          maxCoverage: '₹2,00,000 per hectare',
+          documents: ['Land records', 'Aadhaar card', 'Bank account details', 'Crop sowing details'],
+          benefits: ['Natural disasters coverage', 'Post-harvest losses coverage', 'Technology-enabled quick settlement'],
+          eligibilityStatus: 'eligible',
+          tags: ['crop', 'natural disaster', 'pmfby', 'government scheme']
+        },
+        {
+          id: 'livestock-insurance',
+          name: 'Livestock Insurance Scheme',
+          category: 'Livestock Insurance',
+          shortDescription: 'Insurance coverage for cattle, buffalo, sheep, goats, and other livestock',
+          detailedDescription: 'Comprehensive insurance scheme providing coverage for livestock against death due to diseases, accidents, natural calamities, and surgical operations.',
+          eligibility: 'All farmers and livestock owners',
+          premium: '3-4% of sum insured',
+          maxCoverage: '₹50,000 per animal',
+          documents: ['Livestock ownership proof', 'Veterinary certificate', 'Aadhaar card', 'Bank details'],
+          benefits: ['Disease coverage', 'Accident protection', 'Natural calamity protection', 'Surgical coverage'],
+          eligibilityStatus: 'eligible',
+          tags: ['livestock', 'cattle', 'buffalo', 'animal insurance']
+        },
+        {
+          id: 'weather-insurance',
+          name: 'Weather Based Crop Insurance',
+          category: 'Weather Insurance',
+          shortDescription: 'Insurance based on weather parameters affecting crop yield',
+          detailedDescription: 'Weather-based crop insurance provides protection against adverse weather conditions like rainfall deficit/excess, temperature variations, humidity, and wind speed.',
+          eligibility: 'Farmers growing weather-sensitive crops',
+          premium: '3-5% of sum insured',
+          maxCoverage: '₹1,50,000 per hectare',
+          documents: ['Land records', 'Crop details', 'Weather station proximity certificate', 'Bank details'],
+          benefits: ['Weather parameter protection', 'Quick settlement', 'Objective assessment', 'Technology-driven'],
+          eligibilityStatus: 'partially-eligible',
+          tags: ['weather', 'rainfall', 'temperature', 'climate']
+        },
+        {
+          id: 'kisan-credit-card',
+          name: 'Kisan Credit Card Insurance',
+          category: 'Credit Insurance',
+          shortDescription: 'Personal accident insurance for KCC holders',
+          detailedDescription: 'Free personal accident insurance coverage for Kisan Credit Card holders providing financial security against accidental death and permanent disability.',
+          eligibility: 'Active KCC holders aged 18-70 years',
+          premium: 'Free (Government sponsored)',
+          maxCoverage: '₹50,000 to ₹2,00,000',
+          documents: ['KCC details', 'Aadhaar card', 'Nominee details', 'Bank account proof'],
+          benefits: ['Accidental death coverage', 'Permanent disability coverage', 'Free premium', 'Easy enrollment'],
+          eligibilityStatus: 'eligible',
+          tags: ['kcc', 'accident', 'death', 'disability', 'credit card']
+        },
+        {
+          id: 'organic-farming-insurance',
+          name: 'Organic Farming Insurance',
+          category: 'Specialty Insurance',
+          shortDescription: 'Special insurance coverage for organic farming practices',
+          detailedDescription: 'Specialized insurance scheme for organic farmers covering organic crop production, certification costs, and premium market access risks.',
+          eligibility: 'Certified organic farmers or those in transition',
+          premium: '4-6% of sum insured',
+          maxCoverage: '₹3,00,000 per hectare',
+          documents: ['Organic certification', 'Land records', 'Crop production plan', 'Market linkage proof'],
+          benefits: ['Organic crop coverage', 'Certification cost protection', 'Premium price guarantee', 'Market access support'],
+          eligibilityStatus: 'not-eligible',
+          tags: ['organic', 'certification', 'premium crops', 'sustainable']
+        },
+        {
+          id: 'fruit-orchard-insurance',
+          name: 'Horticultural Crop Insurance',
+          category: 'Horticultural Insurance',
+          shortDescription: 'Insurance coverage for fruits, vegetables, and plantation crops',
+          detailedDescription: 'Comprehensive insurance scheme covering horticultural crops including fruits, vegetables, spices, plantation crops against various perils.',
+          eligibility: 'Farmers growing horticultural crops',
+          premium: '5-7% of sum insured',
+          maxCoverage: '₹5,00,000 per hectare',
+          documents: ['Land records', 'Crop type certification', 'Previous yield records', 'Bank details'],
+          benefits: ['High-value crop protection', 'Market price fluctuation coverage', 'Quality degradation coverage', 'Export support'],
+          eligibilityStatus: 'eligible',
+          tags: ['fruits', 'vegetables', 'horticulture', 'plantation']
+        }
+      ];
+
+      res.json(insuranceOptions);
+    } catch (error) {
+      console.error("Insurance options fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch insurance options" });
     }
   });
 
