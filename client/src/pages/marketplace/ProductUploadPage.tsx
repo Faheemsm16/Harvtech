@@ -322,7 +322,14 @@ export default function ProductUploadPage() {
                             min="1"
                             placeholder="1"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '') {
+                                field.onChange('');
+                              } else {
+                                field.onChange(parseInt(value) || '');
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -368,7 +375,14 @@ export default function ProductUploadPage() {
                           min="1"
                           placeholder="Enter price"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '') {
+                              field.onChange('');
+                            } else {
+                              field.onChange(parseInt(value) || '');
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

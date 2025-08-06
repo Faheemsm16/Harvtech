@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Package, Sprout, Wheat, Milk, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, Sprout, Wheat, Milk, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const categories = [
   {
@@ -41,11 +43,34 @@ export default function SellCategoryPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { user } = useCustomAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user's own products
   const { data: userProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/marketplace/products', 'user', user?.id],
     enabled: !!user?.id,
+  });
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return await apiRequest('DELETE', `/api/marketplace/products/${productId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/marketplace/products'] });
+      toast({
+        title: "Product deleted",
+        description: "Your product has been successfully removed from the marketplace",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete product",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleBack = () => {
@@ -54,6 +79,12 @@ export default function SellCategoryPage() {
 
   const handleCategorySelect = (categoryId: string) => {
     setLocation(`/marketplace/sell/upload?category=${categoryId}`);
+  };
+
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+      deleteProductMutation.mutate(productId);
+    }
   };
 
   return (
@@ -121,14 +152,9 @@ export default function SellCategoryPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setLocation(`/marketplace/sell/upload?edit=${product.id}&category=${product.category}`)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteProduct(product.id, product.productName)}
+                                disabled={deleteProductMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
