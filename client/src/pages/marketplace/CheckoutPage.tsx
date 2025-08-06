@@ -87,6 +87,7 @@ export default function CheckoutPage() {
     try {
       // Create order via API
       const orderData = {
+        buyerId: user?.id,
         totalAmount: finalTotal,
         paymentMethod: paymentMethod,
         shippingAddress: `${deliveryAddress.fullName}, ${deliveryAddress.mobile}\n${deliveryAddress.address}\n${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}${deliveryAddress.landmark ? `\nLandmark: ${deliveryAddress.landmark}` : ''}`,

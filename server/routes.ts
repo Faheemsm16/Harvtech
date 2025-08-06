@@ -1170,9 +1170,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create order from cart
-  app.post('/api/marketplace/orders', async (req: any, res) => {
+  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
     try {
+      const authenticatedUserId = req.user.claims.sub;
       const { buyerId, paymentMethod, shippingAddress } = req.body;
+      
+      // Ensure the user can only create orders for themselves
+      if (buyerId !== authenticatedUserId) {
+        return res.status(403).json({ message: "Cannot create order for another user" });
+      }
       
       if (!buyerId || !paymentMethod || !shippingAddress) {
         return res.status(400).json({ message: "Missing required fields" });
