@@ -349,6 +349,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: 'Demo',
           lastName: 'User',
           profileImageUrl: null,
+          name: 'Demo User',
+          mobileNumber: '9876543000',
+          role: 'user',
+          farmerId: 'FRM-DEMO001',
+          city: 'Demo City',
+          country: 'India',
+          aadhaarNumber: '123456789000',
+          isVerified: true,
         });
       }
       
