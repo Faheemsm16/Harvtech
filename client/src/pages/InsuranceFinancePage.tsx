@@ -45,17 +45,6 @@ export default function InsuranceFinancePage() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [filteredOptions, setFilteredOptions] = useState<InsuranceOption[]>([]);
 
-  // Handle authentication requirement for personal insurance data
-  useEffect(() => {
-    if (!isAuthLoading && !user && currentApplication !== undefined) {
-      // Only show login message when trying to access personal data
-      toast({
-        title: "Login Required",
-        description: "Please log in to access your insurance applications.",
-      });
-    }
-  }, [user, isAuthLoading, toast, currentApplication]);
-
   // Check if user has completed insurance application
   const { data: currentApplication, isLoading: isApplicationLoading, error: applicationError } = useQuery({
     queryKey: ['/api/insurance-applications/current'],
