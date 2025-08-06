@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Package, Sprout, Wheat, Milk, ShoppingCart, Star } from "lucide-react";
+import { ArrowLeft, Package, Sprout, Wheat, Milk, ShoppingCart, Star, Plus, Minus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useCart } from '@/context/CartContext';
@@ -90,9 +90,11 @@ const categories = [
 export default function BuyCategoryPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { addToCart } = useCart();
+  const { addToCart, items } = useCart();
   const { toast } = useToast();
   const [showAll, setShowAll] = useState<{ [key: string]: boolean }>({});
+  const [cartAnimations, setCartAnimations] = useState<{ [key: string]: number }>({});
+  const [productQuantities, setProductQuantities] = useState<{ [key: string]: number }>({});
 
   const handleBack = () => {
     setLocation('/marketplace');
@@ -102,19 +104,52 @@ export default function BuyCategoryPage() {
     setLocation(`/marketplace/buy/browse?category=${categoryId}`);
   };
 
-  const handleAddToCart = (product: any) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      seller: product.seller,
-      rating: product.rating
-    });
+  const handleAddToCart = (product: any, quantity: number = 1) => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        seller: product.seller,
+        rating: product.rating
+      });
+    }
+
+    // Show animated feedback
+    setCartAnimations(prev => ({
+      ...prev,
+      [product.id]: (prev[product.id] || 0) + quantity
+    }));
+
+    // Clear animation after 2 seconds
+    setTimeout(() => {
+      setCartAnimations(prev => ({
+        ...prev,
+        [product.id]: 0
+      }));
+    }, 2000);
+
     toast({
       title: "Added to cart",
-      description: `${product.name} has been added to your cart`,
+      description: `${quantity > 1 ? `${quantity}x ` : ''}${product.name} ${quantity > 1 ? 'have' : 'has'} been added to your cart`,
     });
+  };
+
+  const updateProductQuantity = (productId: string, change: number) => {
+    setProductQuantities(prev => {
+      const currentQty = prev[productId] || 1;
+      const newQty = Math.max(1, currentQty + change);
+      return {
+        ...prev,
+        [productId]: newQty
+      };
+    });
+  };
+
+  const getCartItemQuantity = (productId: string) => {
+    const cartItem = items.find(item => item.id === productId);
+    return cartItem ? cartItem.quantity : 0;
   };
 
   const toggleShowAll = (categoryId: string) => {
@@ -184,29 +219,87 @@ export default function BuyCategoryPage() {
                 {/* Sample Products */}
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {displayProducts.map((product) => (
-                      <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-gray-900 text-sm">{product.name}</h4>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-gray-600">{product.rating}</span>
+                    {displayProducts.map((product) => {
+                      const currentQuantity = productQuantities[product.id] || 1;
+                      const cartQuantity = getCartItemQuantity(product.id);
+                      const animationCount = cartAnimations[product.id] || 0;
+                      
+                      return (
+                        <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                          {/* Cart Animation Feedback */}
+                          {animationCount > 0 && (
+                            <div className="absolute -top-2 -right-2 bg-ag-green text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold animate-bounce z-10">
+                              +{animationCount}
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-medium text-gray-900 text-sm">{product.name}</h4>
+                            <div className="flex items-center space-x-1">
+                              <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                              <span className="text-xs text-gray-600">{product.rating}</span>
+                            </div>
                           </div>
+                          <p className="text-xs text-gray-500 mb-2">{t('by_seller')} {product.seller}</p>
+                          
+                          {/* Cart quantity indicator if item is in cart */}
+                          {cartQuantity > 0 && (
+                            <div className="mb-2">
+                              <span className="text-xs bg-ag-green/10 text-ag-green px-2 py-1 rounded-full">
+                                {cartQuantity} in cart
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="font-semibold text-ag-green">₹{product.price}</span>
+                            <div className="text-xs text-gray-500">per unit</div>
+                          </div>
+                          
+                          {/* Quantity Controls */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateProductQuantity(product.id, -1)}
+                                className="h-7 w-7 p-0 border-gray-300"
+                                disabled={currentQuantity <= 1}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="text-sm font-medium w-8 text-center">{currentQuantity}</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateProductQuantity(product.id, 1)}
+                                className="h-7 w-7 p-0 border-gray-300"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleAddToCart(product, currentQuantity)}
+                              className="h-7 px-3 text-xs bg-ag-green hover:bg-ag-green/90 text-white flex items-center space-x-1"
+                            >
+                              <ShoppingCart className="h-3 w-3" />
+                              <span>Add {currentQuantity > 1 ? `(${currentQuantity})` : ''}</span>
+                            </Button>
+                          </div>
+                          
+                          {/* Total price for selected quantity */}
+                          {currentQuantity > 1 && (
+                            <div className="mt-2 text-center">
+                              <span className="text-xs text-gray-600">
+                                Total: ₹{(product.price * currentQuantity).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <p className="text-xs text-gray-500 mb-2">{t('by_seller')} {product.seller}</p>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-ag-green">₹{product.price}</span>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleAddToCart(product)}
-                            className="h-7 px-2 text-xs bg-ag-green hover:bg-ag-green/90 text-white"
-                          >
-                            <ShoppingCart className="h-3 w-3 mr-1" />
-                            {t('add_to_cart')}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </CardContent>
