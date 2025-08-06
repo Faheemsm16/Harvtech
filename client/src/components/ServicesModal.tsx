@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MapPin, TrendingUp, ArrowRight } from "lucide-react";
+import { MapPin, TrendingUp, ArrowRight, BarChart3, Leaf, CloudSun } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,16 +22,44 @@ interface Service {
 const services: Service[] = [
   {
     id: "1",
-    title: "Available Land",
-    description: "Find available agricultural land for lease or purchase in your area",
-    icon: <MapPin className="h-8 w-8 text-ag-orange" />,
+    title: "Slope Data/Elevation Data",
+    description: "Irrigation management based on land elevation and slope analysis",
+    icon: <MapPin className="h-8 w-8 text-red-500" />,
     comingSoon: true
   },
   {
-    id: "2",
-    title: "Crop Yield Prediction",
-    description: "AI-powered predictions for crop yields based on weather, soil, and historical data",
-    icon: <TrendingUp className="h-8 w-8 text-ag-green" />,
+    id: "2", 
+    title: "MSAVI, RECI",
+    description: "Amount of fertilizers calculation using vegetation indices",
+    icon: <BarChart3 className="h-8 w-8 text-ag-green" />,
+    comingSoon: true
+  },
+  {
+    id: "3",
+    title: "NDRE - Plate State",
+    description: "Yield prediction and harvest planning using normalized difference red edge",
+    icon: <Leaf className="h-8 w-8 text-ag-green" />,
+    comingSoon: true
+  },
+  {
+    id: "4",
+    title: "NDVI - Pest Reduction",
+    description: "Pest management and reduction using normalized difference vegetation index",
+    icon: <Leaf className="h-8 w-8 text-ag-green" />,
+    comingSoon: true
+  },
+  {
+    id: "5",
+    title: "Forecast Analysis",
+    description: "Weather forecast analysis for agricultural planning",
+    icon: <CloudSun className="h-8 w-8 text-blue-500" />,
+    comingSoon: true
+  },
+  {
+    id: "6",
+    title: "Analysis History", 
+    description: "Historical weather and crop analysis data",
+    icon: <CloudSun className="h-8 w-8 text-blue-500" />,
     comingSoon: true
   }
 ];
@@ -62,6 +90,11 @@ export function ServicesModal({ isOpen, onClose }: ServicesModalProps) {
         
         <ScrollArea className="max-h-96">
           <div className="space-y-4">
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                All services require land mapping where your agricultural land will be marked and used for analysis.
+              </p>
+            </div>
             {services.map((service) => (
               <Card 
                 key={service.id} 

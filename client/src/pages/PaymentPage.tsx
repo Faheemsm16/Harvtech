@@ -57,9 +57,10 @@ export default function PaymentPage() {
     if (!equipment || !user) return;
 
     const bookingDataPayload = {
+      userId: user.id,
       equipmentId: equipment.id,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day later
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1 day later
       totalCost: ADVANCE_AMOUNT, // Fixed advance amount
       securityDeposit: 0, // No security deposit for advance
     };
