@@ -62,7 +62,7 @@ export default function ProductUploadPage() {
 
   const createProductMutation = useMutation({
     mutationFn: async (data: InsertMarketplaceProduct) => {
-      return await apiRequest('/api/marketplace/products', 'POST', data);
+      return await apiRequest('POST', '/api/marketplace/products', data);
     },
     onSuccess: () => {
       setIsSuccess(true);

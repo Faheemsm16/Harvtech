@@ -533,6 +533,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update product (PATCH)
+  app.patch('/api/marketplace/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const sellerId = req.user.claims.sub;
+      
+      // Verify the product belongs to the seller
+      const existingProduct = await storage.getProductById(id);
+      if (!existingProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      if (existingProduct.sellerId !== sellerId) {
+        return res.status(403).json({ message: "Unauthorized to update this product" });
+      }
+      
+      await storage.updateProduct(id, updateData);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Product update error:", error);
+      res.status(400).json({ message: "Failed to update product", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Delete product (DELETE)
+  app.delete('/api/marketplace/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const sellerId = req.user.claims.sub;
+      
+      // Verify the product belongs to the seller
+      const existingProduct = await storage.getProductById(id);
+      if (!existingProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      if (existingProduct.sellerId !== sellerId) {
+        return res.status(403).json({ message: "Unauthorized to delete this product" });
+      }
+      
+      await storage.deleteProduct(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Product deletion error:", error);
+      res.status(400).json({ message: "Failed to delete product", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // Cart routes
   app.get('/api/marketplace/cart', async (req: any, res) => {
     try {

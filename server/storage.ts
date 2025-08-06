@@ -83,6 +83,8 @@ export interface IStorage {
   getProductsBySeller(sellerId: string): Promise<MarketplaceProduct[]>;
   createProduct(product: InsertMarketplaceProduct): Promise<MarketplaceProduct>;
   updateProductQuantity(id: string, quantity: number): Promise<void>;
+  updateProduct(id: string, updateData: Partial<MarketplaceProduct>): Promise<void>;
+  deleteProduct(id: string): Promise<void>;
   searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]>;
 
   // Cart operations
@@ -94,7 +96,7 @@ export interface IStorage {
   clearCart(buyerId: string): Promise<void>;
 
   // Order operations
-  createOrder(order: InsertMarketplaceOrder, orderItems: InsertOrderItem[]): Promise<MarketplaceOrder>;
+  createOrder(order: InsertMarketplaceOrder, orderItems: InsertMarketplaceOrderItem[]): Promise<MarketplaceOrder>;
   getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]>;
   getOrderById(id: string): Promise<MarketplaceOrder | undefined>;
   updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void>;
@@ -313,6 +315,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(marketplaceProducts.id, id));
   }
 
+  async updateProduct(id: string, updateData: Partial<MarketplaceProduct>): Promise<void> {
+    await db
+      .update(marketplaceProducts)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(marketplaceProducts.id, id));
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db
+      .delete(marketplaceProducts)
+      .where(eq(marketplaceProducts.id, id));
+  }
+
   async searchProducts(query: string, category?: string): Promise<MarketplaceProduct[]> {
     const conditions = [];
     if (category) {
@@ -335,14 +350,14 @@ export class DatabaseStorage implements IStorage {
         productId: cartItems.productId,
         product: {
           id: marketplaceProducts.id,
-          name: marketplaceProducts.name,
-          description: marketplaceProducts.description,
-          price: marketplaceProducts.price,
+          productName: marketplaceProducts.productName,
+          productDescription: marketplaceProducts.productDescription,
+          pricePerUnit: marketplaceProducts.pricePerUnit,
           category: marketplaceProducts.category,
           imageUrls: marketplaceProducts.imageUrls,
           sellerId: marketplaceProducts.sellerId,
           quantity: marketplaceProducts.quantity,
-          unit: marketplaceProducts.unit
+          quantityUnit: marketplaceProducts.quantityUnit
         }
       })
       .from(cartItems)
@@ -427,18 +442,12 @@ export class DatabaseStorage implements IStorage {
     const ordersData = await db
       .select({
         id: marketplaceOrders.id,
-        orderNumber: marketplaceOrders.orderNumber,
         totalAmount: marketplaceOrders.totalAmount,
-        deliveryFee: marketplaceOrders.deliveryFee,
-        status: marketplaceOrders.status,
+        orderStatus: marketplaceOrders.orderStatus,
         paymentMethod: marketplaceOrders.paymentMethod,
         paymentStatus: marketplaceOrders.paymentStatus,
-        deliveryName: marketplaceOrders.deliveryName,
-        deliveryMobile: marketplaceOrders.deliveryMobile,
-        deliveryAddress: marketplaceOrders.deliveryAddress,
-        deliveryCity: marketplaceOrders.deliveryCity,
-        deliveryState: marketplaceOrders.deliveryState,
-        deliveryPincode: marketplaceOrders.deliveryPincode,
+        shippingAddress: marketplaceOrders.shippingAddress,
+        estimatedDelivery: marketplaceOrders.estimatedDelivery,
         createdAt: marketplaceOrders.createdAt,
       })
       .from(marketplaceOrders)
@@ -451,11 +460,11 @@ export class DatabaseStorage implements IStorage {
         const items = await db
           .select({
             id: orderItems.id,
-            productName: orderItems.productName,
-            productPrice: orderItems.productPrice,
+            productId: orderItems.productId,
+            sellerId: orderItems.sellerId,
             quantity: orderItems.quantity,
-            sellerName: orderItems.sellerName,
-            category: orderItems.category,
+            pricePerUnit: orderItems.pricePerUnit,
+            subtotal: orderItems.subtotal,
           })
           .from(orderItems)
           .where(eq(orderItems.orderId, order.id));

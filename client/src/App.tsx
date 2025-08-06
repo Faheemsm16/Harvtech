@@ -33,6 +33,7 @@ import CheckoutPage from "@/pages/marketplace/CheckoutPage";
 import OrderSuccessPage from "@/pages/marketplace/OrderSuccessPage";
 import MarketplacePaymentPage from "@/pages/marketplace/PaymentPage";
 import MyOrdersPage from "@/pages/MyOrdersPage";
+import MyProductsPage from "@/pages/marketplace/MyProductsPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useCustomAuth();
@@ -70,6 +71,7 @@ function Router() {
           <Route path="/marketplace/checkout" component={CheckoutPage} />
           <Route path="/marketplace/order-success" component={OrderSuccessPage} />
           <Route path="/marketplace/payment" component={MarketplacePaymentPage} />
+          <Route path="/marketplace/my-products" component={MyProductsPage} />
         </>
       )}
       
