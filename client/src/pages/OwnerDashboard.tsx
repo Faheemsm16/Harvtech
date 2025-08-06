@@ -2,6 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +35,14 @@ import {
   Loader2,
   Menu,
   Package2,
-  X
+  X,
+  Info,
+  Settings,
+  Gauge,
+  Zap,
+  Circle,
+  Droplets,
+  Thermometer
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -66,6 +82,24 @@ export default function OwnerDashboard() {
   const [tractorRotation, setTractorRotation] = useState({ x: 0, y: 0 });
   const [showSoilResults, setShowSoilResults] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  
+  // PIN system states
+  const [vehiclePin, setVehiclePin] = useState<string>('');
+  const [hasPin, setHasPin] = useState(false);
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
+  const [isPinMode, setIsPinMode] = useState<'create' | 'unlock'>('create');
+  
+  // Vehicle info states
+  const [showVehicleInfo, setShowVehicleInfo] = useState(false);
+  const [vehicleInfo, setVehicleInfo] = useState({
+    engineHealth: 92,
+    tyreAirLevel: 85,
+    brakeHealth: 88,
+    fuelLevel: 76,
+    oilLevel: 94,
+    coolantLevel: 89
+  });
   
   // 3D model interaction
   const tractorRef = useRef<HTMLDivElement>(null);
@@ -132,8 +166,47 @@ export default function OwnerDashboard() {
     isDragging.current = false;
   };
 
+  // PIN management functions
+  const handleUnlockClick = () => {
+    if (!hasPin) {
+      setIsPinMode('create');
+      setShowPinDialog(true);
+    } else {
+      setIsPinMode('unlock');
+      setEnteredPin('');
+      setShowPinDialog(true);
+    }
+  };
+
+  const handlePinSubmit = () => {
+    if (isPinMode === 'create' && enteredPin.length === 4) {
+      setVehiclePin(enteredPin);
+      setHasPin(true);
+      setIsLocked(false);
+      setShowPinDialog(false);
+      setEnteredPin('');
+    } else if (isPinMode === 'unlock' && enteredPin === vehiclePin) {
+      setIsLocked(false);
+      setShowPinDialog(false);
+      setEnteredPin('');
+    }
+  };
+
+  const handlePinCancel = () => {
+    setShowPinDialog(false);
+    setEnteredPin('');
+  };
+
   // Control handlers
-  const toggleLock = () => setIsLocked(!isLocked);
+  const toggleLock = () => {
+    if (isLocked) {
+      handleUnlockClick();
+    } else {
+      setIsLocked(true);
+      setEngineRunning(false); // Turn off engine when locking
+    }
+  };
+  
   const toggleEngine = () => {
     if (!isLocked) {
       setEngineRunning(!engineRunning);
@@ -336,18 +409,14 @@ export default function OwnerDashboard() {
           </Button>
         </Card>
 
-        {/* Engine Control - Bottom Left */}
-        <Card className="absolute bottom-24 left-6 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
+        {/* Vehicle Info Button - Bottom Left */}
+        <Card className="absolute bottom-24 left-6 bg-black/40 backdrop-blur-md border-blue-400/30 text-white p-4">
           <Button
-            onClick={toggleEngine}
-            disabled={isLocked}
-            className={`w-full ${engineRunning 
-              ? 'bg-red-500/80 hover:bg-red-500 text-white animate-pulse' 
-              : 'bg-green-500/80 hover:bg-green-500 text-white'
-            } transition-all duration-300 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => setShowVehicleInfo(true)}
+            className="w-full bg-blue-600/80 hover:bg-blue-500 text-white transition-all duration-300"
           >
-            <Power className="h-5 w-5 mr-2" />
-            {engineRunning ? t('stop_engine') : t('start_engine')}
+            <Info className="h-5 w-5 mr-2" />
+            Vehicle Info
           </Button>
         </Card>
 
@@ -382,18 +451,35 @@ export default function OwnerDashboard() {
           </Button>
         </Card>
 
-        {/* GPS Location - Center Right */}
-        <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-cyan-400/30 text-white p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <MapPin className="h-5 w-5 text-cyan-400 animate-bounce" />
-            <span className="text-sm font-medium">{t('gps_location')}</span>
-          </div>
-          <div className="text-xs text-cyan-300">
-            <div>{t('latitude')}: 11.0168° N</div>
-            <div>{t('longitude')}: 76.9558° E</div>
-            <div className="mt-1 text-green-300">{t('status_active')}</div>
-          </div>
+        {/* Engine Control - Center Bottom */}
+        <Card className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
+          <Button
+            onClick={toggleEngine}
+            disabled={isLocked}
+            className={`w-full ${engineRunning 
+              ? 'bg-red-500/80 hover:bg-red-500 text-white animate-pulse' 
+              : 'bg-green-500/80 hover:bg-green-500 text-white'
+            } transition-all duration-300 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Power className="h-5 w-5 mr-2" />
+            {engineRunning ? t('stop_engine') : t('start_engine')}
+          </Button>
         </Card>
+
+        {/* GPS Location - Center Right (Only visible when engine is running) */}
+        {engineRunning && (
+          <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-cyan-400/30 text-white p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <MapPin className="h-5 w-5 text-cyan-400 animate-bounce" />
+              <span className="text-sm font-medium">{t('gps_location')}</span>
+            </div>
+            <div className="text-xs text-cyan-300">
+              <div>{t('latitude')}: 11.0168° N</div>
+              <div>{t('longitude')}: 76.9558° E</div>
+              <div className="mt-1 text-green-300">{t('status_active')}</div>
+            </div>
+          </Card>
+        )}
 
         {/* Soil Scan Results Modal */}
         {showSoilResults && (
@@ -492,6 +578,190 @@ export default function OwnerDashboard() {
         onClose={() => setShowOwnerEquipment(false)}
         equipment={equipment}
       />
+
+      {/* PIN Entry Dialog */}
+      <Dialog open={showPinDialog} onOpenChange={setShowPinDialog}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-blue-400/30 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-blue-400">
+              {isPinMode === 'create' ? 'Create Vehicle PIN' : 'Enter PIN to Unlock'}
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-300">
+              {isPinMode === 'create' 
+                ? 'Set a 4-digit PIN to secure your vehicle'
+                : 'Enter your 4-digit PIN to unlock the vehicle'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex justify-center space-x-2">
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center text-2xl font-bold
+                    ${enteredPin.length > index 
+                      ? 'bg-blue-500/30 border-blue-400 text-blue-400' 
+                      : 'bg-gray-700/50 border-gray-500 text-gray-400'
+                    }`}
+                >
+                  {enteredPin.length > index ? '●' : ''}
+                </div>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map((num, index) => (
+                <Button
+                  key={index}
+                  onClick={() => {
+                    if (num === '⌫') {
+                      setEnteredPin(prev => prev.slice(0, -1));
+                    } else if (num !== '' && enteredPin.length < 4) {
+                      setEnteredPin(prev => prev + num);
+                    }
+                  }}
+                  disabled={num === ''}
+                  className={`h-12 ${
+                    num === '⌫' 
+                      ? 'bg-red-600/80 hover:bg-red-500' 
+                      : num === ''
+                      ? 'invisible'
+                      : 'bg-gray-600/80 hover:bg-gray-500'
+                  } text-white font-bold text-lg`}
+                >
+                  {num}
+                </Button>
+              ))}
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button
+                onClick={handlePinCancel}
+                className="flex-1 bg-gray-600/80 hover:bg-gray-500 text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePinSubmit}
+                disabled={enteredPin.length !== 4}
+                className={`flex-1 ${
+                  enteredPin.length === 4
+                    ? 'bg-green-600/80 hover:bg-green-500'
+                    : 'bg-gray-600/50 cursor-not-allowed'
+                } text-white`}
+              >
+                {isPinMode === 'create' ? 'Set PIN' : 'Unlock'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Info Dialog */}
+      <Dialog open={showVehicleInfo} onOpenChange={setShowVehicleInfo}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-blue-400/30 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-blue-400 flex items-center justify-center space-x-2">
+              <Settings className="h-6 w-6" />
+              <span>Vehicle Information</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {primaryEquipment && (
+              <div className="space-y-3">
+                <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-400/30">
+                  <h3 className="text-blue-300 text-sm mb-2">Equipment Details</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-400">Model:</span>
+                      <div className="text-white font-medium">{primaryEquipment.modelNumber}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Type:</span>
+                      <div className="text-white font-medium capitalize">{primaryEquipment.type}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
+                  <h3 className="text-green-300 text-sm mb-2">Engine Health</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Zap className="h-4 w-4 text-green-400" />
+                      <span className="text-sm">Engine Status</span>
+                    </div>
+                    <Badge className="bg-green-600/80 text-white">
+                      {engineRunning ? 'Running' : 'Stopped'}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 text-xs text-green-200">
+                    Temperature: 85°C • Oil Level: Normal
+                  </div>
+                </div>
+
+                <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-400/30">
+                  <h3 className="text-blue-300 text-sm mb-2">Tire Air Pressure</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-blue-200">Front Left</span>
+                      <div className="flex items-center space-x-1">
+                        <Circle className="h-3 w-3 text-green-400 fill-current" />
+                        <span className="text-xs text-white">32 PSI</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-blue-200">Front Right</span>
+                      <div className="flex items-center space-x-1">
+                        <Circle className="h-3 w-3 text-green-400 fill-current" />
+                        <span className="text-xs text-white">31 PSI</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-blue-200">Rear Left</span>
+                      <div className="flex items-center space-x-1">
+                        <Circle className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-white">28 PSI</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-blue-200">Rear Right</span>
+                      <div className="flex items-center space-x-1">
+                        <Circle className="h-3 w-3 text-green-400 fill-current" />
+                        <span className="text-xs text-white">30 PSI</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-red-500/20 p-3 rounded-lg border border-red-400/30">
+                  <h3 className="text-red-300 text-sm mb-2">Brake Health</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Circle className="h-4 w-4 text-red-400" />
+                        <span className="text-sm">Brake System</span>
+                      </div>
+                      <Badge className="bg-green-600/80 text-white">Good</Badge>
+                    </div>
+                    <div className="text-xs text-red-200">
+                      Brake Fluid: 80% • Brake Pads: Good
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <Button
+              onClick={() => setShowVehicleInfo(false)}
+              className="w-full bg-blue-600/80 hover:bg-blue-500 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
