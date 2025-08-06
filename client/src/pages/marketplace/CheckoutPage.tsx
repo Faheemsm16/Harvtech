@@ -10,12 +10,17 @@ import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCustomAuth } from '@/context/AuthContext';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart, formatUnit } = useCart();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useCustomAuth();
+  const queryClient = useQueryClient();
   
   const [deliveryAddress, setDeliveryAddress] = useState({
     fullName: '',
@@ -79,16 +84,37 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
     
-    // Simulate order processing
-    setTimeout(() => {
+    try {
+      // Create order via API
+      const orderData = {
+        totalAmount: finalTotal,
+        paymentMethod: paymentMethod,
+        shippingAddress: `${deliveryAddress.fullName}, ${deliveryAddress.mobile}\n${deliveryAddress.address}\n${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}${deliveryAddress.landmark ? `\nLandmark: ${deliveryAddress.landmark}` : ''}`,
+        estimatedDelivery: '3-5 days',
+      };
+
+      await apiRequest('/api/marketplace/orders', 'POST', orderData);
+      
       clearCart();
       toast({
         title: "Order Placed Successfully!",
         description: `Your order of ₹${finalTotal} has been confirmed. You will receive a confirmation SMS shortly.`,
       });
+      
+      // Invalidate orders cache to refresh user's orders
+      queryClient.invalidateQueries({ queryKey: ['/api/marketplace/orders'] });
+      
       setLocation('/marketplace/order-success');
+    } catch (error: any) {
+      console.error('Order creation failed:', error);
+      toast({
+        title: "Order Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   if (items.length === 0) {
