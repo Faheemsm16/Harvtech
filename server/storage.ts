@@ -98,7 +98,7 @@ export interface IStorage {
   clearCart(buyerId: string): Promise<void>;
 
   // Order operations
-  createOrder(order: InsertMarketplaceOrder, orderItems: InsertMarketplaceOrderItem[]): Promise<MarketplaceOrder>;
+  createOrder(order: InsertMarketplaceOrder, orderItems: Omit<InsertMarketplaceOrderItem, 'orderId'>[]): Promise<MarketplaceOrder>;
   getOrdersByUser(buyerId: string): Promise<MarketplaceOrder[]>;
   getOrderById(id: string): Promise<MarketplaceOrder | undefined>;
   updateOrderStatus(id: string, orderStatus: string, paymentStatus?: string): Promise<void>;
@@ -442,7 +442,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order operations
-  async createOrder(orderData: InsertMarketplaceOrder, orderItemsData: InsertMarketplaceOrderItem[]): Promise<MarketplaceOrder> {
+  async createOrder(orderData: InsertMarketplaceOrder, orderItemsData: Omit<InsertMarketplaceOrderItem, 'orderId'>[]): Promise<MarketplaceOrder> {
     // Create order and order items in a transaction
     const [order] = await db
       .insert(marketplaceOrders)

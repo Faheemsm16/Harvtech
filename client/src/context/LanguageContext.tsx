@@ -679,7 +679,6 @@ const translations = {
     upload_product: 'उत्पाद अपलोड करें',
     product_uploaded: 'उत्पाद अपलोड किया गया',
     success: 'सफलता!',
-    error: 'त्रुटि',
     please_enter_name: 'कृपया अपना पूरा नाम दर्ज करें',
     please_enter_city: 'कृपया अपना शहर दर्ज करें',
     back_to_marketplace: 'बाज़ार में वापस जाएं',

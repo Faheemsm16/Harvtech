@@ -25,8 +25,10 @@ import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware (commented out for development)
-  // await setupAuth(app);
+  // Set up session middleware for auth
+  app.set("trust proxy", 1);
+  const { getSession } = await import("./replitAuth");
+  app.use(getSession());
   
   // Custom authentication middleware that works with session-based auth
   const requireAuth = (req: any, res: any, next: any) => {
@@ -59,13 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(401).json({ message: "Unauthorized" });
   };
 
-  // Apply session middleware for user tracking
-  app.use((req: any, res, next) => {
-    if (!req.session) {
-      req.session = {};
-    }
-    next();
-  });
+  // Session is now properly initialized by getSession() middleware above
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -391,10 +387,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const application = await storage.upsertInsuranceApplication(validatedData);
       
       res.json(application);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Insurance application creation error:", error);
-      console.error("Validation details:", error.errors || error.issues);
-      res.status(400).json({ message: "Failed to create insurance application", details: error.message });
+      console.error("Validation details:", error?.errors || error?.issues);
+      res.status(400).json({ message: "Failed to create insurance application", details: error?.message });
     }
   });
 
