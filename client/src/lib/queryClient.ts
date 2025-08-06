@@ -12,28 +12,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Get user ID from localStorage for authentication
-  let headers: Record<string, string> = {};
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  const storedUser = localStorage.getItem('harvtech_user');
-  if (storedUser) {
-    try {
-      const user = JSON.parse(storedUser);
-      if (user.id) {
-        headers["Authorization"] = `Bearer ${user.id}`;
-      }
-    } catch (error) {
-      console.error('Error parsing stored user for auth:', error);
-    }
-  }
-
   const res = await fetch(url, {
     method,
-    headers,
+    headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -48,23 +29,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get user ID from localStorage for authentication
-    let headers: Record<string, string> = {};
-    
-    const storedUser = localStorage.getItem('harvtech_user');
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        if (user.id) {
-          headers["Authorization"] = `Bearer ${user.id}`;
-        }
-      } catch (error) {
-        console.error('Error parsing stored user for auth:', error);
-      }
-    }
-
     const res = await fetch(queryKey.join("/") as string, {
-      headers,
       credentials: "include",
     });
 

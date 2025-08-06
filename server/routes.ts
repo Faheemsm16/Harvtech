@@ -25,43 +25,19 @@ import { z } from "zod";
 import { seedDatabase } from "./seedData";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up session middleware for auth
-  app.set("trust proxy", 1);
-  const { getSession } = await import("./replitAuth");
-  app.use(getSession());
+  // Auth middleware (commented out for development)
+  // await setupAuth(app);
   
-  // Custom authentication middleware that works with session-based auth
-  const requireAuth = (req: any, res: any, next: any) => {
-    // Extract user ID from session or request headers
-    const authHeader = req.headers.authorization;
-    const sessionUserId = req.session?.userId;
-    
-    if (sessionUserId) {
-      req.user = {
-        claims: {
-          sub: sessionUserId
-        }
-      };
-      req.isAuthenticated = () => true;
-      return next();
-    }
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const userId = authHeader.substring(7); // Remove 'Bearer ' prefix
-      req.user = {
-        claims: {
-          sub: userId
-        }
-      };
-      req.isAuthenticated = () => true;
-      return next();
-    }
-    
-    // If no authentication found, return 401
-    res.status(401).json({ message: "Unauthorized" });
-  };
-
-  // Session is now properly initialized by getSession() middleware above
+  // Mock authentication middleware for development
+  app.use((req: any, res, next) => {
+    req.isAuthenticated = () => true;
+    req.user = {
+      claims: {
+        sub: 'dev-user-id-123'
+      }
+    };
+    next();
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -359,10 +335,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insurance Application routes
-  app.post('/api/insurance-applications', requireAuth, async (req: any, res) => {
+  app.post('/api/insurance-applications', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const applicationData = { ...req.body, userId };
+      // Create a demo user if it doesn't exist
+      const demoUserId = 'demo-user-id-123';
+      try {
+        await storage.getUser(demoUserId);
+      } catch {
+        // Create demo user if it doesn't exist
+        await storage.upsertUser({
+          id: demoUserId,
+          email: 'demo@harvtech.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          profileImageUrl: null,
+          name: 'Demo User',
+          mobileNumber: '9876543000',
+          role: 'user',
+          farmerId: 'FRM-DEMO001',
+          city: 'Demo City',
+          country: 'India',
+          aadhaarNumber: '123456789000',
+          isVerified: true,
+        });
+      }
+      
+      const applicationData = { ...req.body, userId: demoUserId };
       
       // Convert string dates to Date objects
       if (applicationData.dateOfBirth && typeof applicationData.dateOfBirth === 'string') {
@@ -387,14 +385,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const application = await storage.upsertInsuranceApplication(validatedData);
       
       res.json(application);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Insurance application creation error:", error);
-      console.error("Validation details:", error?.errors || error?.issues);
-      res.status(400).json({ message: "Failed to create insurance application", details: error?.message });
+      console.error("Validation details:", error.errors || error.issues);
+      res.status(400).json({ message: "Failed to create insurance application", details: error.message });
     }
   });
 
-  app.get('/api/insurance-applications', requireAuth, async (req: any, res) => {
+  app.get('/api/insurance-applications', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applications = await storage.getInsuranceApplicationsByUser(userId);
@@ -405,10 +403,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications/current', requireAuth, async (req: any, res) => {
+  app.get('/api/insurance-applications/current', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const application = await storage.getInsuranceApplicationByUser(userId);
+      const demoUserId = 'demo-user-id-123';
+      const application = await storage.getInsuranceApplicationByUser(demoUserId);
       res.json(application || null);
     } catch (error) {
       console.error("Current insurance application fetch error:", error);

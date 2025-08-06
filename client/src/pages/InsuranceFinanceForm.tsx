@@ -15,7 +15,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useCustomAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
-import { isUnauthorizedError } from '@/lib/authUtils';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -74,39 +73,9 @@ const declarationSchema = z.object({
 
 export default function InsuranceFinanceForm() {
   const [, setLocation] = useLocation();
-  const { user, isLoading: isAuthLoading } = useCustomAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Check authentication - redirect unauthenticated users
-  if (!isAuthLoading && !user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-        <div className="text-center max-w-md">
-          <Shield className="h-16 w-16 text-ag-green mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Login Required</h2>
-          <p className="text-gray-600 mb-8">
-            You need to log in to access insurance applications and save your personal information securely.
-          </p>
-          <div className="space-y-4">
-            <Button
-              onClick={() => window.location.href = "/api/login"}
-              className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-            >
-              Login to Continue
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setLocation('/platforms')}
-              className="w-full"
-            >
-              Go Back
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<any>({
     fullName: '',
@@ -207,21 +176,7 @@ export default function InsuranceFinanceForm() {
         title: "Progress Saved",
         description: "Your form data has been auto-saved.",
       });
-    },
-    onError: (error: any) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Session Expired",
-          description: "Please log in again to continue.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 1000);
-        return;
-      }
-      console.error('Auto-save error:', error);
-    },
+    }
   });
 
   // Final submission mutation
@@ -236,17 +191,6 @@ export default function InsuranceFinanceForm() {
       });
     },
     onError: (error: any) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Session Expired",
-          description: "Please log in again to continue.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 1000);
-        return;
-      }
       console.error('Submission error:', error);
       toast({
         title: "Submission Failed", 
