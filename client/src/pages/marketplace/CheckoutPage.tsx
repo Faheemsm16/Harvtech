@@ -12,7 +12,7 @@ import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CheckoutPage() {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart, formatUnit } = useCart();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -259,9 +259,9 @@ export default function CheckoutPage() {
                 <div key={item.id} className="flex justify-between items-center">
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity} × ₹{item.price}</p>
+                    <p className="text-xs text-gray-500">Qty: {formatUnit(item.quantity, item.unit)} × ₹{item.price} per {item.unit}</p>
                   </div>
-                  <span className="font-medium">₹{item.price * item.quantity}</span>
+                  <span className="font-medium">₹{(item.price * item.quantity).toLocaleString()}</span>
                 </div>
               ))}
               

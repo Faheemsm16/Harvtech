@@ -4,10 +4,18 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from 'wouter';
 
 export function CartIcon() {
-  const { getTotalItems } = useCart();
+  const { getTotalItems, items, formatUnit } = useCart();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const totalItems = getTotalItems();
+  
+  // Calculate total units for display
+  const totalUnits = items.reduce((total, item) => {
+    if (item.unit === 'kg' || item.unit === 'liter') {
+      return total + item.quantity;
+    }
+    return total + (item.quantity / 1000); // Convert gm/ml to kg/liter for display
+  }, 0);
 
   return (
     <button

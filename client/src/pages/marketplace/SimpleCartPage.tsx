@@ -7,7 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from 'wouter';
 
 export default function SimpleCartPage() {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, formatUnit } = useCart();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
@@ -77,7 +77,7 @@ export default function SimpleCartPage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{item.name}</h3>
                   <p className="text-sm text-gray-500">{t('by_seller')} {item.seller}</p>
-                  <p className="text-lg font-semibold text-ag-green mt-1">₹{item.price}</p>
+                  <p className="text-lg font-semibold text-ag-green mt-1">₹{item.price} per {item.unit}</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -99,7 +99,9 @@ export default function SimpleCartPage() {
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                  <span className="font-medium px-3">{item.quantity}</span>
+                  <div className="px-3 text-center">
+                    <span className="font-medium">{formatUnit(item.quantity, item.unit)}</span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -111,7 +113,7 @@ export default function SimpleCartPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Subtotal</p>
-                  <p className="font-semibold">₹{item.price * item.quantity}</p>
+                  <p className="font-semibold">₹{(item.price * item.quantity).toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>

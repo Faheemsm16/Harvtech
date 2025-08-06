@@ -8,6 +8,7 @@ export interface CartItem {
   seller: string;
   rating: number;
   quantity: number;
+  unit: string;
 }
 
 interface CartContextType {
@@ -18,12 +19,23 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  formatUnit: (quantity: number, unit: string) => string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+
+  const formatUnit = (quantity: number, unit: string) => {
+    if (unit === 'gm' && quantity >= 1000) {
+      return `${(quantity / 1000).toFixed(1)} kg`;
+    }
+    if (unit === 'ml' && quantity >= 1000) {
+      return `${(quantity / 1000).toFixed(1)} liter`;
+    }
+    return `${quantity} ${unit}`;
+  };
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setItems(prevItems => {
@@ -73,7 +85,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQuantity,
       clearCart,
       getTotalItems,
-      getTotalPrice
+      getTotalPrice,
+      formatUnit
     }}>
       {children}
     </CartContext.Provider>
