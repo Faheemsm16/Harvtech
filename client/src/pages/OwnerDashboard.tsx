@@ -42,7 +42,13 @@ import {
   Zap,
   Circle,
   Droplets,
-  Thermometer
+  Thermometer,
+  AlertTriangle,
+  CheckCircle,
+  Activity,
+  Wrench,
+  Car,
+  Fuel
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomAuth } from "@/context/AuthContext";
@@ -93,13 +99,82 @@ export default function OwnerDashboard() {
   // Vehicle info states
   const [showVehicleInfo, setShowVehicleInfo] = useState(false);
   const [vehicleInfo, setVehicleInfo] = useState({
-    engineHealth: 92,
-    tyreAirLevel: 85,
-    brakeHealth: 88,
+    engineHealth: 85,
+    engineTemperature: 92, // °C
+    oilLevel: 78,
+    coolantLevel: 88,
+    tyreAirLevel: {
+      frontLeft: 95,
+      frontRight: 93,
+      rearLeft: 72, // Low - issue
+      rearRight: 90
+    },
+    brakeHealth: {
+      system: 94,
+      fluidLevel: 68, // Low - issue
+      padWear: 85
+    },
+    hydraulicSystem: 91,
+    batteryVoltage: 12.4,
     fuelLevel: 76,
-    oilLevel: 94,
-    coolantLevel: 89
+    transmissionHealth: 89,
+    overallCondition: 0 // Will be calculated
   });
+
+  // Calculate overall tractor condition
+  const calculateOverallCondition = () => {
+    const metrics = [
+      vehicleInfo.engineHealth,
+      vehicleInfo.oilLevel,
+      vehicleInfo.coolantLevel,
+      Math.min(
+        vehicleInfo.tyreAirLevel.frontLeft,
+        vehicleInfo.tyreAirLevel.frontRight,
+        vehicleInfo.tyreAirLevel.rearLeft,
+        vehicleInfo.tyreAirLevel.rearRight
+      ),
+      Math.min(
+        vehicleInfo.brakeHealth.system,
+        vehicleInfo.brakeHealth.fluidLevel,
+        vehicleInfo.brakeHealth.padWear
+      ),
+      vehicleInfo.hydraulicSystem,
+      vehicleInfo.transmissionHealth
+    ];
+    
+    return Math.round(metrics.reduce((sum, metric) => sum + metric, 0) / metrics.length);
+  };
+
+  // Get health status and color
+  const getHealthStatus = (percentage: number) => {
+    if (percentage >= 90) return { status: 'Excellent', color: 'text-green-400', bgColor: 'bg-green-500/20', borderColor: 'border-green-400/30' };
+    if (percentage >= 75) return { status: 'Good', color: 'text-blue-400', bgColor: 'bg-blue-500/20', borderColor: 'border-blue-400/30' };
+    if (percentage >= 60) return { status: 'Fair', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20', borderColor: 'border-yellow-400/30' };
+    return { status: 'Needs Attention', color: 'text-red-400', bgColor: 'bg-red-500/20', borderColor: 'border-red-400/30' };
+  };
+
+  // Get critical issues
+  const getCriticalIssues = () => {
+    const issues = [];
+    
+    if (vehicleInfo.tyreAirLevel.rearLeft < 80) {
+      issues.push({ component: 'Rear Left Tyre', issue: 'Low air pressure', severity: 'medium' });
+    }
+    
+    if (vehicleInfo.brakeHealth.fluidLevel < 70) {
+      issues.push({ component: 'Brake System', issue: 'Low brake fluid', severity: 'high' });
+    }
+    
+    if (vehicleInfo.engineTemperature > 90) {
+      issues.push({ component: 'Engine', issue: 'High temperature', severity: 'high' });
+    }
+    
+    if (vehicleInfo.oilLevel < 80) {
+      issues.push({ component: 'Engine Oil', issue: 'Oil level low', severity: 'medium' });
+    }
+    
+    return issues;
+  };
   
   // 3D model interaction
   const tractorRef = useRef<HTMLDivElement>(null);
@@ -660,105 +735,254 @@ export default function OwnerDashboard() {
 
       {/* Vehicle Info Dialog */}
       <Dialog open={showVehicleInfo} onOpenChange={setShowVehicleInfo}>
-        <DialogContent className="bg-black/90 backdrop-blur-md border-blue-400/30 text-white max-w-md">
+        <DialogContent className="bg-black/90 backdrop-blur-md border-blue-400/30 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold text-blue-400 flex items-center justify-center space-x-2">
-              <Settings className="h-6 w-6" />
-              <span>Vehicle Information</span>
+              <Car className="h-6 w-6" />
+              <span>Vehicle Diagnostics</span>
             </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
-            {primaryEquipment && (
-              <div className="space-y-3">
-                <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-400/30">
-                  <h3 className="text-blue-300 text-sm mb-2">Equipment Details</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-gray-400">Model:</span>
-                      <div className="text-white font-medium">{primaryEquipment.modelNumber}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Type:</span>
-                      <div className="text-white font-medium capitalize">{primaryEquipment.type}</div>
-                    </div>
+            {/* Overall Health Summary */}
+            <div className={`${getHealthStatus(calculateOverallCondition()).bgColor} p-4 rounded-lg border ${getHealthStatus(calculateOverallCondition()).borderColor}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Activity className={`h-5 w-5 ${getHealthStatus(calculateOverallCondition()).color}`} />
+                  <span className="font-semibold">Overall Condition</span>
+                </div>
+                <div className="text-right">
+                  <div className={`text-2xl font-bold ${getHealthStatus(calculateOverallCondition()).color}`}>
+                    {calculateOverallCondition()}%
+                  </div>
+                  <div className={`text-sm ${getHealthStatus(calculateOverallCondition()).color}`}>
+                    {getHealthStatus(calculateOverallCondition()).status}
                   </div>
                 </div>
+              </div>
+              <Progress value={calculateOverallCondition()} className="h-2" />
+            </div>
 
-                <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
-                  <h3 className="text-green-300 text-sm mb-2">Engine Health</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Zap className="h-4 w-4 text-green-400" />
-                      <span className="text-sm">Engine Status</span>
+            {/* Critical Issues Alert */}
+            {getCriticalIssues().length > 0 && (
+              <div className="bg-red-500/20 p-4 rounded-lg border border-red-400/30">
+                <div className="flex items-center space-x-2 mb-3">
+                  <AlertTriangle className="h-5 w-5 text-red-400 animate-pulse" />
+                  <span className="font-semibold text-red-300">Critical Issues Detected</span>
+                </div>
+                <div className="space-y-2">
+                  {getCriticalIssues().map((issue, index) => (
+                    <div key={index} className="flex items-center justify-between bg-red-600/20 p-2 rounded">
+                      <div>
+                        <div className="text-sm font-medium text-red-200">{issue.component}</div>
+                        <div className="text-xs text-red-300">{issue.issue}</div>
+                      </div>
+                      <Badge className={`${issue.severity === 'high' ? 'bg-red-600/80' : 'bg-yellow-600/80'} text-white text-xs`}>
+                        {issue.severity === 'high' ? 'HIGH' : 'MEDIUM'}
+                      </Badge>
                     </div>
-                    <Badge className="bg-green-600/80 text-white">
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Equipment Details */}
+            {primaryEquipment && (
+              <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-400/30">
+                <h3 className="text-blue-300 text-sm mb-2 flex items-center space-x-2">
+                  <Info className="h-4 w-4" />
+                  <span>Equipment Details</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-400">Model:</span>
+                    <div className="text-white font-medium">{primaryEquipment.modelNumber}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Type:</span>
+                    <div className="text-white font-medium capitalize">{primaryEquipment.type}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Chassis:</span>
+                    <div className="text-white font-medium">{primaryEquipment.chassisNumber}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Status:</span>
+                    <Badge className="bg-green-600/80 text-white text-xs">
                       {engineRunning ? 'Running' : 'Stopped'}
                     </Badge>
-                  </div>
-                  <div className="mt-2 text-xs text-green-200">
-                    Temperature: 85°C • Oil Level: Normal
-                  </div>
-                </div>
-
-                <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-400/30">
-                  <h3 className="text-blue-300 text-sm mb-2">Tire Air Pressure</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-blue-200">Front Left</span>
-                      <div className="flex items-center space-x-1">
-                        <Circle className="h-3 w-3 text-green-400 fill-current" />
-                        <span className="text-xs text-white">32 PSI</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-blue-200">Front Right</span>
-                      <div className="flex items-center space-x-1">
-                        <Circle className="h-3 w-3 text-green-400 fill-current" />
-                        <span className="text-xs text-white">31 PSI</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-blue-200">Rear Left</span>
-                      <div className="flex items-center space-x-1">
-                        <Circle className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-white">28 PSI</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-blue-200">Rear Right</span>
-                      <div className="flex items-center space-x-1">
-                        <Circle className="h-3 w-3 text-green-400 fill-current" />
-                        <span className="text-xs text-white">30 PSI</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-red-500/20 p-3 rounded-lg border border-red-400/30">
-                  <h3 className="text-red-300 text-sm mb-2">Brake Health</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Circle className="h-4 w-4 text-red-400" />
-                        <span className="text-sm">Brake System</span>
-                      </div>
-                      <Badge className="bg-green-600/80 text-white">Good</Badge>
-                    </div>
-                    <div className="text-xs text-red-200">
-                      Brake Fluid: 80% • Brake Pads: Good
-                    </div>
                   </div>
                 </div>
               </div>
             )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Engine Health */}
+              <div className={`${getHealthStatus(vehicleInfo.engineHealth).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.engineHealth).borderColor}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Zap className={`h-4 w-4 ${getHealthStatus(vehicleInfo.engineHealth).color}`} />
+                    <span className="text-sm font-medium">Engine Health</span>
+                  </div>
+                  <span className={`text-lg font-bold ${getHealthStatus(vehicleInfo.engineHealth).color}`}>
+                    {vehicleInfo.engineHealth}%
+                  </span>
+                </div>
+                <Progress value={vehicleInfo.engineHealth} className="h-1.5 mb-2" />
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Temperature:</span>
+                    <span className={vehicleInfo.engineTemperature > 90 ? 'text-red-300' : 'text-green-300'}>
+                      {vehicleInfo.engineTemperature}°C
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Oil Level:</span>
+                    <span className={vehicleInfo.oilLevel < 80 ? 'text-yellow-300' : 'text-green-300'}>
+                      {vehicleInfo.oilLevel}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Coolant:</span>
+                    <span className="text-green-300">{vehicleInfo.coolantLevel}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Brake Health */}
+              <div className={`${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).bgColor} p-3 rounded-lg border ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).borderColor}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Circle className={`h-4 w-4 ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`} />
+                    <span className="text-sm font-medium">Brake Health</span>
+                  </div>
+                  <span className={`text-lg font-bold ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`}>
+                    {Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)}%
+                  </span>
+                </div>
+                <Progress value={Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)} className="h-1.5 mb-2" />
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">System:</span>
+                    <span className="text-green-300">{vehicleInfo.brakeHealth.system}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Brake Fluid:</span>
+                    <span className={vehicleInfo.brakeHealth.fluidLevel < 70 ? 'text-red-300' : 'text-green-300'}>
+                      {vehicleInfo.brakeHealth.fluidLevel}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Pad Wear:</span>
+                    <span className="text-green-300">{vehicleInfo.brakeHealth.padWear}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tyre Air Pressure */}
+            <div className={`${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).bgColor} p-3 rounded-lg border ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).borderColor}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Circle className={`h-4 w-4 ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).color}`} />
+                  <span className="text-sm font-medium">Tyre Air Pressure</span>
+                </div>
+                <span className={`text-lg font-bold ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).color}`}>
+                  {Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)}%
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { name: 'Front Left', value: vehicleInfo.tyreAirLevel.frontLeft },
+                  { name: 'Front Right', value: vehicleInfo.tyreAirLevel.frontRight },
+                  { name: 'Rear Left', value: vehicleInfo.tyreAirLevel.rearLeft },
+                  { name: 'Rear Right', value: vehicleInfo.tyreAirLevel.rearRight }
+                ].map((tyre, index) => (
+                  <div key={index} className="flex items-center justify-between bg-black/20 p-2 rounded">
+                    <span className="text-xs text-gray-300">{tyre.name}</span>
+                    <div className="flex items-center space-x-1">
+                      <Circle className={`h-3 w-3 ${tyre.value >= 85 ? 'text-green-400' : tyre.value >= 75 ? 'text-yellow-400' : 'text-red-400'} fill-current`} />
+                      <span className="text-xs text-white">{tyre.value}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Systems */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className={`${getHealthStatus(vehicleInfo.hydraulicSystem).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.hydraulicSystem).borderColor}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Droplets className={`h-4 w-4 ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`} />
+                    <span className="text-sm font-medium">Hydraulic</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`}>
+                    {vehicleInfo.hydraulicSystem}%
+                  </span>
+                </div>
+                <Progress value={vehicleInfo.hydraulicSystem} className="h-1.5" />
+              </div>
+
+              <div className={`${getHealthStatus(vehicleInfo.transmissionHealth).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.transmissionHealth).borderColor}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Settings className={`h-4 w-4 ${getHealthStatus(vehicleInfo.transmissionHealth).color}`} />
+                    <span className="text-sm font-medium">Transmission</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthStatus(vehicleInfo.transmissionHealth).color}`}>
+                    {vehicleInfo.transmissionHealth}%
+                  </span>
+                </div>
+                <Progress value={vehicleInfo.transmissionHealth} className="h-1.5" />
+              </div>
+            </div>
+
+            {/* Fuel and Battery */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className={`${getHealthStatus(vehicleInfo.fuelLevel).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.fuelLevel).borderColor}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Fuel className={`h-4 w-4 ${getHealthStatus(vehicleInfo.fuelLevel).color}`} />
+                    <span className="text-sm font-medium">Fuel Level</span>
+                  </div>
+                  <span className={`text-sm font-bold ${getHealthStatus(vehicleInfo.fuelLevel).color}`}>
+                    {vehicleInfo.fuelLevel}%
+                  </span>
+                </div>
+                <Progress value={vehicleInfo.fuelLevel} className="h-1.5" />
+              </div>
+
+              <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Battery className="h-4 w-4 text-green-400" />
+                    <span className="text-sm font-medium">Battery</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-400">
+                    {vehicleInfo.batteryVoltage}V
+                  </span>
+                </div>
+                <div className="text-xs text-green-300">Charging System: Normal</div>
+              </div>
+            </div>
             
-            <Button
-              onClick={() => setShowVehicleInfo(false)}
-              className="w-full bg-blue-600/80 hover:bg-blue-500 text-white"
-            >
-              Close
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => setShowVehicleInfo(false)}
+                className="flex-1 bg-blue-600/80 hover:bg-blue-500 text-white"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {/* TODO: Schedule maintenance */}}
+                className="flex-1 bg-orange-600/80 hover:bg-orange-500 text-white"
+                disabled={getCriticalIssues().length === 0}
+              >
+                <Wrench className="h-4 w-4 mr-2" />
+                Schedule Maintenance
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
