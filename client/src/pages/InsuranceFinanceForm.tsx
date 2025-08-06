@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useCustomAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
+import { isUnauthorizedError } from '@/lib/authUtils';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -176,7 +177,21 @@ export default function InsuranceFinanceForm() {
         title: "Progress Saved",
         description: "Your form data has been auto-saved.",
       });
-    }
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 1000);
+        return;
+      }
+      console.error('Auto-save error:', error);
+    },
   });
 
   // Final submission mutation
@@ -191,6 +206,17 @@ export default function InsuranceFinanceForm() {
       });
     },
     onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 1000);
+        return;
+      }
       console.error('Submission error:', error);
       toast({
         title: "Submission Failed", 

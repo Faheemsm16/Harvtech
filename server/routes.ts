@@ -335,32 +335,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insurance Application routes
-  app.post('/api/insurance-applications', async (req: any, res) => {
+  app.post('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
     try {
-      // Create a demo user if it doesn't exist
-      const demoUserId = 'demo-user-id-123';
-      try {
-        await storage.getUser(demoUserId);
-      } catch {
-        // Create demo user if it doesn't exist
-        await storage.upsertUser({
-          id: demoUserId,
-          email: 'demo@harvtech.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          profileImageUrl: null,
-          name: 'Demo User',
-          mobileNumber: '9876543000',
-          role: 'user',
-          farmerId: 'FRM-DEMO001',
-          city: 'Demo City',
-          country: 'India',
-          aadhaarNumber: '123456789000',
-          isVerified: true,
-        });
-      }
-      
-      const applicationData = { ...req.body, userId: demoUserId };
+      const userId = req.user.claims.sub;
+      const applicationData = { ...req.body, userId };
       
       // Convert string dates to Date objects
       if (applicationData.dateOfBirth && typeof applicationData.dateOfBirth === 'string') {
@@ -392,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications', async (req: any, res) => {
+  app.get('/api/insurance-applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const applications = await storage.getInsuranceApplicationsByUser(userId);
@@ -403,10 +381,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/insurance-applications/current', async (req: any, res) => {
+  app.get('/api/insurance-applications/current', isAuthenticated, async (req: any, res) => {
     try {
-      const demoUserId = 'demo-user-id-123';
-      const application = await storage.getInsuranceApplicationByUser(demoUserId);
+      const userId = req.user.claims.sub;
+      const application = await storage.getInsuranceApplicationByUser(userId);
       res.json(application || null);
     } catch (error) {
       console.error("Current insurance application fetch error:", error);

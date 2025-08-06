@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 // import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomAuth } from '@/context/AuthContext';
+import { isUnauthorizedError } from '@/lib/authUtils';
 import { 
   ArrowLeft, 
   Search, 
@@ -45,11 +46,25 @@ export default function InsuranceFinancePage() {
   const [filteredOptions, setFilteredOptions] = useState<InsuranceOption[]>([]);
 
   // Check if user has completed insurance application
-  const { data: currentApplication, isLoading: isApplicationLoading } = useQuery({
+  const { data: currentApplication, isLoading: isApplicationLoading, error: applicationError } = useQuery({
     queryKey: ['/api/insurance-applications/current'],
     enabled: !!user,
     retry: false,
   });
+
+  // Handle authentication errors
+  useEffect(() => {
+    if (applicationError && isUnauthorizedError(applicationError as Error)) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 1000);
+    }
+  }, [applicationError, toast]);
 
   // Fetch insurance options
   const { data: insuranceOptions = [], isLoading: isOptionsLoading } = useQuery({
