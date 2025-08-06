@@ -8,51 +8,51 @@ import { useCart } from '@/context/CartContext';
 import { CartIcon } from '@/components/CartIcon';
 import { useToast } from '@/hooks/use-toast';
 
-// Sample products for each category with extended data for "View All"
+// Sample products for each category with extended data for "View All" and measurement units
 const sampleProducts = {
   seeds: [
-    { id: 'seeds-1', name: 'Basmati Rice Seeds', price: 2500, rating: 4.5, seller: 'Green Valley Seeds', category: 'seeds' },
-    { id: 'seeds-2', name: 'Hybrid Tomato Seeds', price: 1200, rating: 4.3, seller: 'Agri Solutions', category: 'seeds' },
-    { id: 'seeds-3', name: 'Wheat Seeds (HD-2967)', price: 35, rating: 4.7, seller: 'Farm Direct', category: 'seeds' },
-    { id: 'seeds-4', name: 'Sunflower Seeds', price: 180, rating: 4.2, seller: 'Sunny Farms', category: 'seeds' },
+    { id: 'seeds-1', name: 'Basmati Rice Seeds', price: 2500, rating: 4.5, seller: 'Green Valley Seeds', category: 'seeds', unit: 'kg', unitStep: 0.5, minOrder: 1 },
+    { id: 'seeds-2', name: 'Hybrid Tomato Seeds', price: 1200, rating: 4.3, seller: 'Agri Solutions', category: 'seeds', unit: 'gm', unitStep: 100, minOrder: 250 },
+    { id: 'seeds-3', name: 'Wheat Seeds (HD-2967)', price: 35, rating: 4.7, seller: 'Farm Direct', category: 'seeds', unit: 'kg', unitStep: 1, minOrder: 5 },
+    { id: 'seeds-4', name: 'Sunflower Seeds', price: 180, rating: 4.2, seller: 'Sunny Farms', category: 'seeds', unit: 'kg', unitStep: 0.5, minOrder: 2 },
     // Additional products for "View All"
-    { id: 'seeds-5', name: 'Cotton Seeds (Bt)', price: 890, rating: 4.4, seller: 'Cotton Kings', category: 'seeds' },
-    { id: 'seeds-6', name: 'Mustard Seeds', price: 85, rating: 4.1, seller: 'Oil Seeds Co.', category: 'seeds' },
-    { id: 'seeds-7', name: 'Corn Seeds (Hybrid)', price: 320, rating: 4.6, seller: 'Maize Masters', category: 'seeds' },
-    { id: 'seeds-8', name: 'Chili Seeds', price: 2200, rating: 4.3, seller: 'Spice Gardens', category: 'seeds' }
+    { id: 'seeds-5', name: 'Cotton Seeds (Bt)', price: 890, rating: 4.4, seller: 'Cotton Kings', category: 'seeds', unit: 'gm', unitStep: 500, minOrder: 1000 },
+    { id: 'seeds-6', name: 'Mustard Seeds', price: 85, rating: 4.1, seller: 'Oil Seeds Co.', category: 'seeds', unit: 'kg', unitStep: 1, minOrder: 2 },
+    { id: 'seeds-7', name: 'Corn Seeds (Hybrid)', price: 320, rating: 4.6, seller: 'Maize Masters', category: 'seeds', unit: 'kg', unitStep: 0.5, minOrder: 1 },
+    { id: 'seeds-8', name: 'Chili Seeds', price: 2200, rating: 4.3, seller: 'Spice Gardens', category: 'seeds', unit: 'gm', unitStep: 50, minOrder: 100 }
   ],
   crops: [
-    { id: 'crops-1', name: 'Fresh Basmati Rice', price: 65, rating: 4.6, seller: 'Rice Valley', category: 'crops' },
-    { id: 'crops-2', name: 'Organic Wheat', price: 28, rating: 4.4, seller: 'Organic Farm Co.', category: 'crops' },
-    { id: 'crops-3', name: 'Red Onions', price: 22, rating: 4.1, seller: 'Onion Traders', category: 'crops' },
-    { id: 'crops-4', name: 'Fresh Tomatoes', price: 35, rating: 4.3, seller: 'Veggie Fresh', category: 'crops' },
+    { id: 'crops-1', name: 'Fresh Basmati Rice', price: 65, rating: 4.6, seller: 'Rice Valley', category: 'crops', unit: 'kg', unitStep: 1, minOrder: 5 },
+    { id: 'crops-2', name: 'Organic Wheat', price: 28, rating: 4.4, seller: 'Organic Farm Co.', category: 'crops', unit: 'kg', unitStep: 5, minOrder: 25 },
+    { id: 'crops-3', name: 'Red Onions', price: 22, rating: 4.1, seller: 'Onion Traders', category: 'crops', unit: 'kg', unitStep: 1, minOrder: 10 },
+    { id: 'crops-4', name: 'Fresh Tomatoes', price: 35, rating: 4.3, seller: 'Veggie Fresh', category: 'crops', unit: 'kg', unitStep: 1, minOrder: 5 },
     // Additional products for "View All"
-    { id: 'crops-5', name: 'Green Chili', price: 45, rating: 4.2, seller: 'Spicy Harvest', category: 'crops' },
-    { id: 'crops-6', name: 'Fresh Cauliflower', price: 30, rating: 4.0, seller: 'Veggie Garden', category: 'crops' },
-    { id: 'crops-7', name: 'Organic Carrots', price: 40, rating: 4.5, seller: 'Root Veggies', category: 'crops' },
-    { id: 'crops-8', name: 'Fresh Spinach', price: 25, rating: 4.7, seller: 'Leafy Greens', category: 'crops' }
+    { id: 'crops-5', name: 'Green Chili', price: 45, rating: 4.2, seller: 'Spicy Harvest', category: 'crops', unit: 'kg', unitStep: 0.5, minOrder: 2 },
+    { id: 'crops-6', name: 'Fresh Cauliflower', price: 30, rating: 4.0, seller: 'Veggie Garden', category: 'crops', unit: 'kg', unitStep: 1, minOrder: 3 },
+    { id: 'crops-7', name: 'Organic Carrots', price: 40, rating: 4.5, seller: 'Root Veggies', category: 'crops', unit: 'kg', unitStep: 1, minOrder: 2 },
+    { id: 'crops-8', name: 'Fresh Spinach', price: 25, rating: 4.7, seller: 'Leafy Greens', category: 'crops', unit: 'gm', unitStep: 250, minOrder: 500 }
   ],
   fertilizers: [
-    { id: 'fert-1', name: 'Cow Dung Manure', price: 8, rating: 4.8, seller: 'Organic Manure Co.', category: 'fertilizers' },
-    { id: 'fert-2', name: 'NPK Fertilizer (20:20:20)', price: 1850, rating: 4.2, seller: 'FertiFarm', category: 'fertilizers' },
-    { id: 'fert-3', name: 'Vermicompost', price: 12, rating: 4.7, seller: 'Worm Farms', category: 'fertilizers' },
-    { id: 'fert-4', name: 'Urea Fertilizer', price: 1200, rating: 4.0, seller: 'Agri Inputs', category: 'fertilizers' },
+    { id: 'fert-1', name: 'Cow Dung Manure', price: 8, rating: 4.8, seller: 'Organic Manure Co.', category: 'fertilizers', unit: 'kg', unitStep: 5, minOrder: 25 },
+    { id: 'fert-2', name: 'NPK Fertilizer (20:20:20)', price: 1850, rating: 4.2, seller: 'FertiFarm', category: 'fertilizers', unit: 'kg', unitStep: 1, minOrder: 5 },
+    { id: 'fert-3', name: 'Vermicompost', price: 12, rating: 4.7, seller: 'Worm Farms', category: 'fertilizers', unit: 'kg', unitStep: 5, minOrder: 10 },
+    { id: 'fert-4', name: 'Urea Fertilizer', price: 1200, rating: 4.0, seller: 'Agri Inputs', category: 'fertilizers', unit: 'kg', unitStep: 10, minOrder: 50 },
     // Additional products for "View All"
-    { id: 'fert-5', name: 'Bone Meal Fertilizer', price: 45, rating: 4.3, seller: 'Organic Plus', category: 'fertilizers' },
-    { id: 'fert-6', name: 'Potash Fertilizer', price: 1680, rating: 4.1, seller: 'Potash Pro', category: 'fertilizers' },
-    { id: 'fert-7', name: 'Neem Cake', price: 35, rating: 4.6, seller: 'Neem Naturals', category: 'fertilizers' },
-    { id: 'fert-8', name: 'Bio Compost', price: 15, rating: 4.4, seller: 'Bio Farm', category: 'fertilizers' }
+    { id: 'fert-5', name: 'Bone Meal Fertilizer', price: 45, rating: 4.3, seller: 'Organic Plus', category: 'fertilizers', unit: 'kg', unitStep: 1, minOrder: 5 },
+    { id: 'fert-6', name: 'Potash Fertilizer', price: 1680, rating: 4.1, seller: 'Potash Pro', category: 'fertilizers', unit: 'kg', unitStep: 1, minOrder: 10 },
+    { id: 'fert-7', name: 'Neem Cake', price: 35, rating: 4.6, seller: 'Neem Naturals', category: 'fertilizers', unit: 'kg', unitStep: 1, minOrder: 5 },
+    { id: 'fert-8', name: 'Bio Compost', price: 15, rating: 4.4, seller: 'Bio Farm', category: 'fertilizers', unit: 'kg', unitStep: 5, minOrder: 20 }
   ],
   dairy: [
-    { id: 'dairy-1', name: 'Fresh Buffalo Milk', price: 55, rating: 4.9, seller: 'Dairy Fresh', category: 'dairy' },
-    { id: 'dairy-2', name: 'Cow Milk (A2)', price: 65, rating: 4.8, seller: 'Pure Milk Co.', category: 'dairy' },
-    { id: 'dairy-3', name: 'Fresh Paneer', price: 320, rating: 4.5, seller: 'Paneer Palace', category: 'dairy' },
-    { id: 'dairy-4', name: 'Farm Butter', price: 450, rating: 4.6, seller: 'Creamy Delights', category: 'dairy' },
+    { id: 'dairy-1', name: 'Fresh Buffalo Milk', price: 55, rating: 4.9, seller: 'Dairy Fresh', category: 'dairy', unit: 'liter', unitStep: 0.5, minOrder: 1 },
+    { id: 'dairy-2', name: 'Cow Milk (A2)', price: 65, rating: 4.8, seller: 'Pure Milk Co.', category: 'dairy', unit: 'liter', unitStep: 0.5, minOrder: 1 },
+    { id: 'dairy-3', name: 'Fresh Paneer', price: 320, rating: 4.5, seller: 'Paneer Palace', category: 'dairy', unit: 'kg', unitStep: 0.25, minOrder: 0.5 },
+    { id: 'dairy-4', name: 'Farm Butter', price: 450, rating: 4.6, seller: 'Creamy Delights', category: 'dairy', unit: 'gm', unitStep: 250, minOrder: 500 },
     // Additional products for "View All"
-    { id: 'dairy-5', name: 'Greek Yogurt', price: 180, rating: 4.4, seller: 'Yogurt Craft', category: 'dairy' },
-    { id: 'dairy-6', name: 'Fresh Cream', price: 290, rating: 4.2, seller: 'Cream Dreams', category: 'dairy' },
-    { id: 'dairy-7', name: 'Cottage Cheese', price: 280, rating: 4.3, seller: 'Cheese Corner', category: 'dairy' },
-    { id: 'dairy-8', name: 'Ghee (Pure)', price: 850, rating: 4.8, seller: 'Golden Ghee', category: 'dairy' }
+    { id: 'dairy-5', name: 'Greek Yogurt', price: 180, rating: 4.4, seller: 'Yogurt Craft', category: 'dairy', unit: 'gm', unitStep: 250, minOrder: 500 },
+    { id: 'dairy-6', name: 'Fresh Cream', price: 290, rating: 4.2, seller: 'Cream Dreams', category: 'dairy', unit: 'ml', unitStep: 200, minOrder: 500 },
+    { id: 'dairy-7', name: 'Cottage Cheese', price: 280, rating: 4.3, seller: 'Cheese Corner', category: 'dairy', unit: 'gm', unitStep: 250, minOrder: 500 },
+    { id: 'dairy-8', name: 'Ghee (Pure)', price: 850, rating: 4.8, seller: 'Golden Ghee', category: 'dairy', unit: 'gm', unitStep: 250, minOrder: 500 }
   ]
 };
 
@@ -112,7 +112,8 @@ export default function BuyCategoryPage() {
         price: product.price,
         category: product.category,
         seller: product.seller,
-        rating: product.rating
+        rating: product.rating,
+        unit: product.unit
       });
     }
 
@@ -132,19 +133,29 @@ export default function BuyCategoryPage() {
 
     toast({
       title: "Added to cart",
-      description: `${quantity > 1 ? `${quantity}x ` : ''}${product.name} ${quantity > 1 ? 'have' : 'has'} been added to your cart`,
+      description: `${formatUnit(quantity, product.unit)} of ${product.name} added to your cart`,
     });
   };
 
-  const updateProductQuantity = (productId: string, change: number) => {
+  const updateProductQuantity = (productId: string, change: number, product: any) => {
     setProductQuantities(prev => {
-      const currentQty = prev[productId] || 1;
-      const newQty = Math.max(1, currentQty + change);
+      const currentQty = prev[productId] || product.minOrder;
+      const newQty = Math.max(product.minOrder, currentQty + (change * product.unitStep));
       return {
         ...prev,
         [productId]: newQty
       };
     });
+  };
+
+  const formatUnit = (quantity: number, unit: string) => {
+    if (unit === 'gm' && quantity >= 1000) {
+      return `${(quantity / 1000).toFixed(1)} kg`;
+    }
+    if (unit === 'ml' && quantity >= 1000) {
+      return `${(quantity / 1000).toFixed(1)} liter`;
+    }
+    return `${quantity} ${unit}`;
   };
 
   const getCartItemQuantity = (productId: string) => {
@@ -220,7 +231,7 @@ export default function BuyCategoryPage() {
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {displayProducts.map((product) => {
-                      const currentQuantity = productQuantities[product.id] || 1;
+                      const currentQuantity = productQuantities[product.id] || product.minOrder;
                       const cartQuantity = getCartItemQuantity(product.id);
                       const animationCount = cartAnimations[product.id] || 0;
                       
@@ -228,8 +239,8 @@ export default function BuyCategoryPage() {
                         <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
                           {/* Cart Animation Feedback */}
                           {animationCount > 0 && (
-                            <div className="absolute -top-2 -right-2 bg-ag-green text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold animate-bounce z-10">
-                              +{animationCount}
+                            <div className="absolute -top-2 -right-2 bg-ag-green text-white rounded-full w-10 h-8 flex items-center justify-center text-xs font-bold animate-bounce z-10">
+                              +{formatUnit(animationCount, product.unit)}
                             </div>
                           )}
                           
@@ -246,57 +257,65 @@ export default function BuyCategoryPage() {
                           {cartQuantity > 0 && (
                             <div className="mb-2">
                               <span className="text-xs bg-ag-green/10 text-ag-green px-2 py-1 rounded-full">
-                                {cartQuantity} in cart
+                                {formatUnit(cartQuantity, product.unit)} in cart
                               </span>
                             </div>
                           )}
                           
                           <div className="flex justify-between items-center mb-3">
                             <span className="font-semibold text-ag-green">₹{product.price}</span>
-                            <div className="text-xs text-gray-500">per unit</div>
+                            <div className="text-xs text-gray-500">per {product.unit}</div>
                           </div>
                           
-                          {/* Quantity Controls */}
-                          <div className="flex items-center justify-between">
+                          {/* Unit-based Quantity Controls */}
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-gray-600">Quantity:</span>
+                              <span className="text-xs text-gray-500">Min: {formatUnit(product.minOrder, product.unit)}</span>
+                            </div>
                             <div className="flex items-center space-x-2">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => updateProductQuantity(product.id, -1)}
+                                onClick={() => updateProductQuantity(product.id, -1, product)}
                                 className="h-7 w-7 p-0 border-gray-300"
-                                disabled={currentQuantity <= 1}
+                                disabled={currentQuantity <= product.minOrder}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="text-sm font-medium w-8 text-center">{currentQuantity}</span>
+                              <div className="flex-1 text-center">
+                                <span className="text-sm font-medium bg-gray-50 px-2 py-1 rounded border">
+                                  {formatUnit(currentQuantity, product.unit)}
+                                </span>
+                              </div>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => updateProductQuantity(product.id, 1)}
+                                onClick={() => updateProductQuantity(product.id, 1, product)}
                                 className="h-7 w-7 p-0 border-gray-300"
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
                             </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm">
+                              <span className="text-gray-600">Total: </span>
+                              <span className="font-semibold text-ag-green">
+                                ₹{(product.price * currentQuantity).toLocaleString()}
+                              </span>
+                            </div>
                             
                             <Button 
                               size="sm" 
                               onClick={() => handleAddToCart(product, currentQuantity)}
-                              className="h-7 px-3 text-xs bg-ag-green hover:bg-ag-green/90 text-white flex items-center space-x-1"
+                              className="h-8 px-3 text-xs bg-ag-green hover:bg-ag-green/90 text-white flex items-center space-x-1"
                             >
                               <ShoppingCart className="h-3 w-3" />
-                              <span>Add {currentQuantity > 1 ? `(${currentQuantity})` : ''}</span>
+                              <span>Add to Cart</span>
                             </Button>
                           </div>
-                          
-                          {/* Total price for selected quantity */}
-                          {currentQuantity > 1 && (
-                            <div className="mt-2 text-center">
-                              <span className="text-xs text-gray-600">
-                                Total: ₹{(product.price * currentQuantity).toLocaleString()}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       );
                     })}
