@@ -521,15 +521,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/marketplace/products', async (req: any, res) => {
     try {
       const productData = req.body;
+      console.log("Creating product:", productData);
       
       // Validate the data including sellerId from the request body
       const validatedData = insertMarketplaceProductSchema.parse(productData);
+      console.log("Validated data:", validatedData);
       
       const product = await storage.createProduct(validatedData);
-      res.json(product);
-    } catch (error) {
+      console.log("Product created successfully:", product);
+      
+      res.status(201).json(product);
+    } catch (error: any) {
       console.error("Product creation error:", error);
-      res.status(400).json({ message: "Failed to create product", error: error instanceof Error ? error.message : String(error) });
+      if (error.name === 'ZodError') {
+        res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      } else {
+        res.status(500).json({ 
+          message: error.message || "Failed to create product" 
+        });
+      }
     }
   });
 

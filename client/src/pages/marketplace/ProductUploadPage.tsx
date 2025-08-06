@@ -62,7 +62,17 @@ export default function ProductUploadPage() {
 
   const createProductMutation = useMutation({
     mutationFn: async (data: InsertMarketplaceProduct) => {
-      return await apiRequest('POST', '/api/marketplace/products', data);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      try {
+        const result = await apiRequest('POST', '/api/marketplace/products', data);
+        clearTimeout(timeoutId);
+        return result;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
     },
     onSuccess: () => {
       setIsSuccess(true);
@@ -76,7 +86,7 @@ export default function ProductUploadPage() {
       console.error("Product upload error:", error);
       toast({
         title: t('error'),
-        description: error.message || "Failed to upload product",
+        description: error.message || "Failed to upload product. Please try again.",
         variant: "destructive",
       });
     },
