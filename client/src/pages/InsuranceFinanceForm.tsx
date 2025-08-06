@@ -217,9 +217,14 @@ export default function InsuranceFinanceForm() {
         };
         
         autoSaveMutation.mutate(saveData);
+      } else {
+        // Show auto-save message in demo mode
+        toast({
+          title: "Progress Saved",
+          description: "Your form data has been saved locally.",
+        });
       }
       setCurrentStep(currentStep + 1);
-      form.reset(updatedFormData);
     } else {
       // Final submission
       if (user) {
@@ -234,8 +239,8 @@ export default function InsuranceFinanceForm() {
       } else {
         // Demo mode - show success without saving
         toast({
-          title: "Demo Submission Complete",
-          description: "Form completed! In production, this would be saved to your account.",
+          title: "Application Submitted Successfully!",
+          description: "Your insurance application has been completed. In production, this would be saved to your account.",
         });
         setIsSubmitted(true);
       }
@@ -245,7 +250,6 @@ export default function InsuranceFinanceForm() {
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-      form.reset(formData);
     }
   };
 
@@ -274,10 +278,40 @@ export default function InsuranceFinanceForm() {
     return titles[step - 1];
   };
 
-  // Reset form when data changes
+  // Reset form when data changes and step changes
   useEffect(() => {
-    form.reset(formData);
-  }, [formData, form]);
+    const currentValues = {
+      fullName: formData.fullName || '',
+      fatherHusbandName: formData.fatherHusbandName || '',
+      dateOfBirth: formData.dateOfBirth || '',
+      gender: formData.gender || '',
+      aadhaarNumber: formData.aadhaarNumber || '',
+      mobileNumber: formData.mobileNumber || '',
+      address: formData.address || '',
+      state: formData.state || '',
+      district: formData.district || '',
+      villagePanchayat: formData.villagePanchayat || '',
+      pincode: formData.pincode || '',
+      surveyKhasraNumber: formData.surveyKhasraNumber || '',
+      totalLandHolding: formData.totalLandHolding || '',
+      landOwnership: formData.landOwnership || '',
+      cropSeason: formData.cropSeason || '',
+      cropType: formData.cropType || '',
+      sowingDate: formData.sowingDate || '',
+      expectedHarvestDate: formData.expectedHarvestDate || '',
+      irrigationType: formData.irrigationType || '',
+      bankName: formData.bankName || '',
+      branchName: formData.branchName || '',
+      accountNumber: formData.accountNumber || '',
+      ifscCode: formData.ifscCode || '',
+      aadhaarDocumentUrl: formData.aadhaarDocumentUrl || '',
+      bankPassbookUrl: formData.bankPassbookUrl || '',
+      landRecordUrl: formData.landRecordUrl || '',
+      cropPhotoUrl: formData.cropPhotoUrl || '',
+      declarationAccepted: formData.declarationAccepted || false,
+    };
+    form.reset(currentValues);
+  }, [currentStep]);
 
   if (isSubmitted) {
     return (

@@ -141,11 +141,15 @@ export default function InsuranceFinancePage() {
     }
   };
 
-  // If application not completed, redirect to form (but only if user is authenticated)
-  if (!isApplicationLoading && !currentApplication && user) {
-    setLocation('/insurance-finance/form');
-    return null;
-  }
+  // Use effect to handle redirect to avoid state update during render
+  useEffect(() => {
+    if (!isApplicationLoading && !currentApplication && user) {
+      setLocation('/insurance-finance/form');
+    }
+  }, [isApplicationLoading, currentApplication, user, setLocation]);
+
+  // Skip redirect check during loading or if no user (show options directly)
+  const shouldShowForm = !isApplicationLoading && user && !currentApplication;
 
   if (isApplicationLoading || isOptionsLoading) {
     return (
@@ -156,6 +160,11 @@ export default function InsuranceFinancePage() {
         </div>
       </div>
     );
+  }
+
+  // Show the main insurance page regardless of authentication status
+  if (shouldShowForm) {
+    return null; // The useEffect will handle the redirect
   }
 
   const currentOption = filteredOptions[currentCardIndex];
