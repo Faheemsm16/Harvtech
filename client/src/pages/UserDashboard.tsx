@@ -75,20 +75,6 @@ export default function UserDashboard() {
                   <Package2 className="h-4 w-4 mr-2" />
                   My Orders
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowSchemes(true)}
-                  className="hover:bg-gray-100 focus:bg-gray-100"
-                >
-                  <Network className="h-4 w-4 mr-2" />
-                  {t('schemes') || 'Schemes'}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowServices(true)}
-                  className="hover:bg-gray-100 focus:bg-gray-100"
-                >
-                  <Bell className="h-4 w-4 mr-2" />
-                  {t('services') || 'Services'}
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -134,6 +120,24 @@ export default function UserDashboard() {
               <span className="text-sm font-medium">{t('tractor')}</span>
             </Button>
             
+            {/* Tiller */}
+            <Button
+              variant="outline"
+              onClick={() => navigateToEquipment('tiller')}
+              className="h-auto p-4 flex flex-col items-center space-y-2 bg-white border border-gray-200 hover:border-ag-green"
+            >
+              <Wrench className="h-8 w-8 text-ag-green" />
+              <span className="text-sm font-medium">{t('tiller')}</span>
+            </Button>
+            
+
+          </div>
+        </div>
+        
+        {/* Equipment Sale Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Equipment Sale</h3>
+          <div className="grid grid-cols-3 gap-4">
             {/* Weeder */}
             <Button
               variant="outline"
@@ -143,8 +147,6 @@ export default function UserDashboard() {
               <Wrench className="h-8 w-8 text-ag-green" />
               <span className="text-sm font-medium">{t('weeder')}</span>
             </Button>
-            
-
           </div>
         </div>
         
