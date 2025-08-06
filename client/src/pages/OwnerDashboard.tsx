@@ -260,9 +260,14 @@ export default function OwnerDashboard() {
       setIsLocked(false);
       setShowPinDialog(false);
       setEnteredPin('');
+      // Show success message or confirmation
     } else if (isPinMode === 'unlock' && enteredPin === vehiclePin) {
       setIsLocked(false);
       setShowPinDialog(false);
+      setEnteredPin('');
+      // Show unlock success
+    } else if (isPinMode === 'unlock' && enteredPin !== vehiclePin && enteredPin.length === 4) {
+      // Show error for wrong PIN
       setEnteredPin('');
     }
   };
@@ -487,11 +492,30 @@ export default function OwnerDashboard() {
         {/* Vehicle Info Button - Bottom Left */}
         <Card className="absolute bottom-24 left-6 bg-black/40 backdrop-blur-md border-blue-400/30 text-white p-4">
           <Button
-            onClick={() => setShowVehicleInfo(true)}
-            className="w-full bg-blue-600/80 hover:bg-blue-500 text-white transition-all duration-300"
+            onClick={() => {
+              if (isLocked) {
+                handleUnlockClick();
+              } else {
+                setShowVehicleInfo(true);
+              }
+            }}
+            className={`w-full transition-all duration-300 ${
+              isLocked 
+                ? 'bg-gray-600/80 hover:bg-gray-500 text-gray-200' 
+                : 'bg-blue-600/80 hover:bg-blue-500 text-white'
+            }`}
           >
-            <Info className="h-5 w-5 mr-2" />
-            Vehicle Info
+            {isLocked ? (
+              <>
+                <Lock className="h-5 w-5 mr-2" />
+                Unlock Required
+              </>
+            ) : (
+              <>
+                <Info className="h-5 w-5 mr-2" />
+                Vehicle Info
+              </>
+            )}
           </Button>
         </Card>
 
