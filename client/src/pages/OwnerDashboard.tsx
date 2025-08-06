@@ -519,39 +519,8 @@ export default function OwnerDashboard() {
           </Button>
         </Card>
 
-        {/* Soil Scan - Bottom Right */}
-        <Card className="absolute bottom-24 right-6 bg-black/40 backdrop-blur-md border-purple-400/30 text-white p-4">
-          <Button
-            onClick={toggleSoilScan}
-            disabled={!engineRunning || isLocked || isScanning}
-            className={`w-full transition-all duration-300 ${
-              isScanning 
-                ? 'bg-yellow-500/80 text-white animate-pulse' 
-                : soilScanActive && showSoilResults
-                ? 'bg-green-500/80 hover:bg-green-500 text-white'
-                : (!engineRunning || isLocked)
-                ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
-                : 'bg-purple-600/80 hover:bg-purple-500 text-white'
-            }`}
-          >
-{isScanning ? (
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            ) : (
-              <Scan className="h-5 w-5 mr-2" />
-            )}
-            {isScanning 
-              ? t('scanning') 
-              : soilScanActive && showSoilResults
-              ? t('scan_complete')
-              : (!engineRunning || isLocked)
-              ? t('engine_required')
-              : t('soil_scan')
-            }
-          </Button>
-        </Card>
-
-        {/* Engine Control - Center Bottom */}
-        <Card className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
+        {/* Start Engine - Bottom Right */}
+        <Card className="absolute bottom-24 right-6 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
           <Button
             onClick={toggleEngine}
             disabled={isLocked}
@@ -564,6 +533,39 @@ export default function OwnerDashboard() {
             {engineRunning ? t('stop_engine') : t('start_engine')}
           </Button>
         </Card>
+
+        {/* Soil Scan - Center Bottom (Only visible when engine is running) */}
+        {engineRunning && (
+          <Card className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-md border-purple-400/30 text-white p-4">
+            <Button
+              onClick={toggleSoilScan}
+              disabled={!engineRunning || isLocked || isScanning}
+              className={`w-full transition-all duration-300 ${
+                isScanning 
+                  ? 'bg-yellow-500/80 text-white animate-pulse' 
+                  : soilScanActive && showSoilResults
+                  ? 'bg-green-500/80 hover:bg-green-500 text-white'
+                  : (!engineRunning || isLocked)
+                  ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                  : 'bg-purple-600/80 hover:bg-purple-500 text-white'
+              }`}
+            >
+              {isScanning ? (
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              ) : (
+                <Scan className="h-5 w-5 mr-2" />
+              )}
+              {isScanning 
+                ? t('scanning') 
+                : soilScanActive && showSoilResults
+                ? t('scan_complete')
+                : (!engineRunning || isLocked)
+                ? t('engine_required')
+                : t('soil_scan')
+              }
+            </Button>
+          </Card>
+        )}
 
         {/* GPS Location - Center Right (Only visible when engine is running) */}
         {engineRunning && (
