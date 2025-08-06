@@ -23,7 +23,8 @@ import {
   Landmark, 
   FileText, 
   CheckCircle,
-  Save
+  Save,
+  AlertCircle
 } from 'lucide-react';
 
 // Form validation schemas for each step
@@ -83,6 +84,7 @@ export default function InsuranceFinanceForm() {
   const { data: existingApplication } = useQuery({
     queryKey: ['/api/insurance-applications/current'],
     enabled: !!user,
+    retry: false,
   });
 
   // Initialize form data with existing application
@@ -133,7 +135,37 @@ export default function InsuranceFinanceForm() {
   const form = useForm({
     resolver: zodResolver(stepSchemas[currentStep - 1]),
     mode: "onChange",
-    defaultValues: formData
+    defaultValues: {
+      fullName: '',
+      fatherHusbandName: '',
+      dateOfBirth: '',
+      gender: '',
+      aadhaarNumber: '',
+      mobileNumber: '',
+      address: '',
+      state: '',
+      district: '',
+      villagePanchayat: '',
+      pincode: '',
+      surveyKhasraNumber: '',
+      totalLandHolding: '',
+      landOwnership: '',
+      cropSeason: '',
+      cropType: '',
+      sowingDate: '',
+      expectedHarvestDate: '',
+      irrigationType: '',
+      bankName: '',
+      branchName: '',
+      accountNumber: '',
+      ifscCode: '',
+      aadhaarDocumentUrl: '',
+      bankPassbookUrl: '',
+      landRecordUrl: '',
+      cropPhotoUrl: '',
+      declarationAccepted: false,
+      ...formData
+    }
   });
 
   // Auto-save mutation for intermediate steps
@@ -174,27 +206,39 @@ export default function InsuranceFinanceForm() {
     
     // Auto-save for steps 1-4
     if (currentStep < 5) {
-      const saveData = {
-        ...updatedFormData,
-        userId: user?.id,
-        dateOfBirth: updatedFormData.dateOfBirth ? new Date(updatedFormData.dateOfBirth) : undefined,
-        sowingDate: updatedFormData.sowingDate ? new Date(updatedFormData.sowingDate) : undefined,
-        expectedHarvestDate: updatedFormData.expectedHarvestDate ? new Date(updatedFormData.expectedHarvestDate) : undefined,
-      };
-      
-      autoSaveMutation.mutate(saveData);
+      // Only auto-save if user is authenticated, otherwise just proceed
+      if (user) {
+        const saveData = {
+          ...updatedFormData,
+          userId: user.id,
+          dateOfBirth: updatedFormData.dateOfBirth ? new Date(updatedFormData.dateOfBirth) : undefined,
+          sowingDate: updatedFormData.sowingDate ? new Date(updatedFormData.sowingDate) : undefined,
+          expectedHarvestDate: updatedFormData.expectedHarvestDate ? new Date(updatedFormData.expectedHarvestDate) : undefined,
+        };
+        
+        autoSaveMutation.mutate(saveData);
+      }
       setCurrentStep(currentStep + 1);
       form.reset(updatedFormData);
     } else {
       // Final submission
-      const finalData = {
-        ...updatedFormData,
-        userId: user?.id,
-        dateOfBirth: new Date(updatedFormData.dateOfBirth),
-        sowingDate: new Date(updatedFormData.sowingDate),
-        expectedHarvestDate: new Date(updatedFormData.expectedHarvestDate),
-      };
-      submitMutation.mutate(finalData);
+      if (user) {
+        const finalData = {
+          ...updatedFormData,
+          userId: user.id,
+          dateOfBirth: new Date(updatedFormData.dateOfBirth),
+          sowingDate: new Date(updatedFormData.sowingDate),
+          expectedHarvestDate: new Date(updatedFormData.expectedHarvestDate),
+        };
+        submitMutation.mutate(finalData);
+      } else {
+        // Demo mode - show success without saving
+        toast({
+          title: "Demo Submission Complete",
+          description: "Form completed! In production, this would be saved to your account.",
+        });
+        setIsSubmitted(true);
+      }
     }
   };
 
@@ -720,73 +764,139 @@ export default function InsuranceFinanceForm() {
 
                 {/* Step 4: Document Upload */}
                 {currentStep === 4 && (
-                  <div className="space-y-4">
-                    <div className="text-center p-6 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <FileText className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-                      <p className="text-sm text-yellow-800">
-                        Document upload functionality will be available once you submit your application. 
-                        You can continue for now and upload documents later.
+                  <div className="space-y-6">
+                    {/* Document Upload Section */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Required Documents
+                      </h4>
+                      <p className="text-sm text-blue-800 mb-4">
+                        Please upload or provide URLs for the following documents. You can also upload them later if needed.
                       </p>
+                      
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Aadhaar Document */}
+                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="font-medium text-gray-900">Aadhaar Card</label>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Required</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                              <FileText className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload or drag files here</p>
+                              <p className="text-xs text-gray-500">PDF, JPG, PNG up to 5MB</p>
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="aadhaarDocumentUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm">Or provide URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/aadhaar.pdf" {...field} value={field.value || ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bank Passbook */}
+                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="font-medium text-gray-900">Bank Passbook / Statement</label>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Required</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                              <FileText className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload or drag files here</p>
+                              <p className="text-xs text-gray-500">PDF, JPG, PNG up to 5MB</p>
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="bankPassbookUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm">Or provide URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/passbook.pdf" {...field} value={field.value || ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Land Records */}
+                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="font-medium text-gray-900">Land Records / Revenue Document</label>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Required</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                              <FileText className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload or drag files here</p>
+                              <p className="text-xs text-gray-500">PDF, JPG, PNG up to 5MB</p>
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="landRecordUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm">Or provide URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/landrecord.pdf" {...field} value={field.value || ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Crop Photo */}
+                        <div className="bg-white rounded-lg border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="font-medium text-gray-900">Crop Photo</label>
+                            <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Optional</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                              <FileText className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload or drag files here</p>
+                              <p className="text-xs text-gray-500">JPG, PNG up to 5MB</p>
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="cropPhotoUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm">Or provide URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com/crop.jpg" {...field} value={field.value || ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="aadhaarDocumentUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Aadhaar Document URL</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Optional: Aadhaar document URL" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="bankPassbookUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bank Passbook URL</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Optional: Bank passbook URL" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="landRecordUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Land Record URL</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Optional: Land record URL" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="cropPhotoUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Crop Photo URL</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Optional: Crop photo URL" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800 flex items-start">
+                        <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>Note:</strong> File upload functionality is being implemented. For now, you can provide document URLs or continue without uploading - you can always add documents later through your application dashboard.
+                        </span>
+                      </p>
                     </div>
                   </div>
                 )}

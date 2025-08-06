@@ -50,6 +50,7 @@ export default function InsuranceFinancePage() {
   const { data: currentApplication, isLoading: isApplicationLoading } = useQuery({
     queryKey: ['/api/insurance-applications/current'],
     enabled: !!user,
+    retry: false,
   });
 
   // Fetch insurance options
@@ -140,8 +141,8 @@ export default function InsuranceFinancePage() {
     }
   };
 
-  // If application not completed, redirect to form
-  if (!isApplicationLoading && !currentApplication) {
+  // If application not completed, redirect to form (but only if user is authenticated)
+  if (!isApplicationLoading && !currentApplication && user) {
     setLocation('/insurance-finance/form');
     return null;
   }
