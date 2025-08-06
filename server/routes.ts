@@ -427,6 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: '₹6,000/year (₹2,000 every 4 months)',
           details: 'Money sent to farmers bank accounts to support farming.',
           linkToApply: 'https://pmkisan.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['financial support', 'direct benefit transfer', 'small farmers']
         },
         {
@@ -438,6 +439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Compensation for damaged crops',
           details: 'Farmers pay low premium, get money if crops are damaged.',
           linkToApply: 'https://pmfby.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['crop insurance', 'compensation', 'crop damage']
         },
         {
@@ -449,6 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Help to build irrigation systems',
           details: 'Support for drip, canal, and sprinkler systems.',
           linkToApply: 'https://pmksy.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['irrigation', 'water facility', 'infrastructure']
         },
         {
@@ -460,6 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Platform to sell crops online',
           details: 'Sell produce to distant buyers for better price.',
           linkToApply: 'https://enam.gov.in/web/',
+          eligibilityStatus: 'eligible',
           tags: ['online selling', 'market access', 'better prices']
         },
         {
@@ -471,6 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: '₹3,000/month pension after 60',
           details: 'Monthly contributions lead to pension after 60.',
           linkToApply: 'https://maandhan.in/',
+          eligibilityStatus: 'partially-eligible',
           tags: ['pension', 'social security', 'old age support']
         },
         {
@@ -482,6 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Seeds, tools, training',
           details: 'Free inputs and training in far-found districts.',
           linkToApply: 'https://krishi.gov.in/document/755',
+          eligibilityStatus: 'partially-eligible',
           tags: ['rural development', 'poor areas', 'farming inputs']
         },
         {
@@ -493,6 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Soil report and fertilizer advice',
           details: 'Helps farmers know what nutrients their field.',
           linkToApply: 'https://soilhealth.dac.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['soil health', 'fertilizer advice', 'crop nutrition']
         },
         {
@@ -504,6 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Support for bamboo farming',
           details: 'Grow and sell bamboo with government help.',
           linkToApply: 'https://nbm.nic.in/',
+          eligibilityStatus: 'not-eligible',
           tags: ['bamboo farming', 'specialty crops', 'green revolution']
         },
         {
@@ -515,6 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Loans to start agri business',
           details: 'Helps young start dairy, poultry, and agi units.',
           linkToApply: 'https://www.ncdc.in/Grindex.aspx',
+          eligibilityStatus: 'partially-eligible',
           tags: ['young farmers', 'agribusiness', 'cooperatives']
         },
         {
@@ -526,6 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Support when market price is low',
           details: 'Govt. pays price difference to farmers.',
           linkToApply: 'https://agricoop.gov.in/en/PM-AASHA',
+          eligibilityStatus: 'eligible',
           tags: ['price support', 'minimum support price', 'market protection']
         },
         {
@@ -537,6 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: '₹50,000/hectare',
           details: 'Support for chemical-free natural farming.',
           linkToApply: 'https://pgsindia-ncof.gov.in/pkvy/index.aspx',
+          eligibilityStatus: 'partially-eligible',
           tags: ['organic farming', 'chemical-free', 'natural farming']
         },
         {
@@ -548,6 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Seeds, tools, training',
           details: 'Support for rice, wheat, and pulse growers.',
           linkToApply: 'https://nfsm.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['food security', 'grains', 'seeds and tools']
         },
         {
@@ -559,6 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Support for agri studies',
           details: 'Scholarships and support for students in agri field.',
           linkToApply: 'https://education.kar.nic.in/krishi/',
+          eligibilityStatus: 'not-eligible',
           tags: ['education', 'scholarships', 'agricultural studies']
         },
         {
@@ -570,6 +583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Support for desi cows',
           details: 'Improve milk yield and native breeds.',
           linkToApply: 'https://dahd.nic.in/schemes/programmes/rashtriya-gokul-mission',
+          eligibilityStatus: 'partially-eligible',
           tags: ['livestock', 'desi cows', 'milk production']
         },
         {
@@ -581,6 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Help to dig ponds',
           details: 'Save water for farming and fish one.',
           linkToApply: 'https://pmrit.krishi.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['fisheries', 'pond construction', 'aquaculture']
         },
         {
@@ -592,6 +607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Support for honey production',
           details: 'Tools, training for beekeeping.',
           linkToApply: 'https://nbhm.gov.in/',
+          eligibilityStatus: 'eligible',
           tags: ['beekeeping', 'honey production', 'tools and training']
         },
         {
@@ -603,6 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whatTheyGet: 'Help to grow oil palm',
           details: 'Support for palm oil tree farming.',
           linkToApply: 'https://nmeo-oilpalm.dac.gov.in/',
+          eligibilityStatus: 'not-eligible',
           tags: ['oil palm', 'cash crops', 'oilseed farming']
         }
       ];

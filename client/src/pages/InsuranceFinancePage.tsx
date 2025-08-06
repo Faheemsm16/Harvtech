@@ -32,6 +32,7 @@ interface InsuranceOption {
   whatTheyGet: string;
   details: string;
   linkToApply: string;
+  eligibilityStatus: 'eligible' | 'partially-eligible' | 'not-eligible';
   tags: string[];
 }
 
@@ -96,6 +97,32 @@ export default function InsuranceFinancePage() {
   const handlePrevCard = () => {
     if (currentCardIndex > 0) {
       setCurrentCardIndex(currentCardIndex - 1);
+    }
+  };
+
+  const getEligibilityIcon = (status: string) => {
+    switch (status) {
+      case 'eligible':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'partially-eligible':
+        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      case 'not-eligible':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const getEligibilityText = (status: string) => {
+    switch (status) {
+      case 'eligible':
+        return 'Eligible';
+      case 'partially-eligible':
+        return 'Partially Eligible';
+      case 'not-eligible':
+        return 'Not Eligible';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -233,8 +260,18 @@ export default function InsuranceFinancePage() {
                       </p>
                     </div>
                     <div className="ml-4 text-center">
-                      <Shield className="h-8 w-8 text-ag-green mx-auto mb-2" />
-                      <span className="text-xs text-gray-500">Government Scheme</span>
+                      {getEligibilityIcon(currentOption.eligibilityStatus)}
+                      <span 
+                        className={`mt-2 block text-xs px-2 py-1 rounded-full font-medium ${
+                          currentOption.eligibilityStatus === 'eligible' 
+                            ? 'bg-green-100 text-green-800' 
+                            : currentOption.eligibilityStatus === 'partially-eligible'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {getEligibilityText(currentOption.eligibilityStatus)}
+                      </span>
                     </div>
                   </div>
                 </CardHeader>
@@ -288,10 +325,24 @@ export default function InsuranceFinancePage() {
                   {/* Action Button */}
                   <div className="pt-4">
                     <Button 
-                      className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-                      onClick={() => window.open(currentOption.linkToApply, '_blank')}
+                      className={`w-full ${
+                        currentOption.eligibilityStatus === 'not-eligible'
+                          ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'
+                          : 'bg-ag-green hover:bg-ag-green/90'
+                      } text-white`}
+                      onClick={() => {
+                        if (currentOption.eligibilityStatus !== 'not-eligible') {
+                          window.open(currentOption.linkToApply, '_blank');
+                        }
+                      }}
+                      disabled={currentOption.eligibilityStatus === 'not-eligible'}
                     >
-                      Apply Now - Visit Official Website
+                      {currentOption.eligibilityStatus === 'eligible' 
+                        ? 'Apply Now - Visit Official Website' 
+                        : currentOption.eligibilityStatus === 'partially-eligible' 
+                        ? 'Check Eligibility - Visit Official Website' 
+                        : 'Not Eligible for This Scheme'
+                      }
                     </Button>
                   </div>
                 </CardContent>
