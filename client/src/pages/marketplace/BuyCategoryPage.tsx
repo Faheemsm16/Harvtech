@@ -105,6 +105,13 @@ export default function BuyCategoryPage() {
     enabled: !!user?.id,
   });
 
+  // Function to fetch marketplace products by category
+  const fetchMarketplaceProductsByCategory = async (categoryId: string) => {
+    const response = await fetch(`/api/marketplace/products?category=${categoryId}`);
+    if (!response.ok) throw new Error('Failed to fetch products');
+    return response.json();
+  };
+
   const handleBack = () => {
     setLocation('/marketplace');
   };
@@ -210,9 +217,33 @@ export default function BuyCategoryPage() {
         {/* Categories with Products */}
         {categories.map((category) => {
           const IconComponent = category.icon;
-          const products = sampleProducts[category.id as keyof typeof sampleProducts];
+          const sampleCategoryProducts = sampleProducts[category.id as keyof typeof sampleProducts];
+          
+          // Fetch marketplace products for this category
+          const { data: marketplaceProducts = [] } = useQuery({
+            queryKey: ['/api/marketplace/products', category.id],
+            queryFn: () => fetchMarketplaceProductsByCategory(category.id),
+          });
+          
+          // Convert marketplace products to the same format as sample products
+          const formattedMarketplaceProducts = marketplaceProducts.map((product: any) => ({
+            id: product.id,
+            name: product.productName,
+            price: product.pricePerUnit,
+            rating: 4.0, // Default rating for marketplace products
+            seller: 'Marketplace Seller', // Default seller name
+            category: product.category,
+            unit: product.quantityUnit?.toLowerCase() || 'kg',
+            unitStep: 1,
+            minOrder: 1,
+            isMarketplaceProduct: true,
+            imageUrls: product.imageUrls ? JSON.parse(product.imageUrls) : []
+          }));
+          
+          // Combine sample products with marketplace products
+          const allProducts = [...sampleCategoryProducts, ...formattedMarketplaceProducts];
           const isShowingAll = showAll[category.id];
-          const displayProducts = isShowingAll ? products : products.slice(0, 4);
+          const displayProducts = isShowingAll ? allProducts : allProducts.slice(0, 4);
           
           return (
             <Card key={category.id} className="bg-white border border-gray-200 overflow-hidden">
@@ -248,7 +279,7 @@ export default function BuyCategoryPage() {
                       const animationCount = cartAnimations[product.id] || 0;
                       
                       return (
-                        <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                        <div key={product.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow relative ${product.isMarketplaceProduct ? 'border-ag-green/30 bg-ag-green/5' : 'border-gray-200'}`}>
                           {/* Cart Animation Feedback */}
                           {animationCount > 0 && (
                             <div className="absolute -top-2 -right-2 bg-ag-green text-white rounded-full w-10 h-8 flex items-center justify-center text-xs font-bold animate-bounce z-10">
@@ -256,7 +287,25 @@ export default function BuyCategoryPage() {
                             </div>
                           )}
                           
-                          <div className="flex justify-between items-start mb-2">
+                          {/* Marketplace Product Indicator */}
+                          {product.isMarketplaceProduct && (
+                            <div className="absolute top-2 left-2 bg-ag-green text-white px-2 py-1 rounded-full text-xs font-medium">
+                              Marketplace
+                            </div>
+                          )}
+                          
+                          {/* Product Image for marketplace products */}
+                          {product.isMarketplaceProduct && product.imageUrls && product.imageUrls.length > 0 && (
+                            <div className="mb-3 rounded-lg overflow-hidden">
+                              <img 
+                                src={product.imageUrls[0]} 
+                                alt={product.name}
+                                className="w-full h-32 object-cover"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className={`flex justify-between items-start mb-2 ${product.isMarketplaceProduct ? 'mt-8' : ''}`}>
                             <h4 className="font-medium text-gray-900 text-sm">{product.name}</h4>
                             <div className="flex items-center space-x-1">
                               <Star className="h-3 w-3 text-yellow-400 fill-current" />
