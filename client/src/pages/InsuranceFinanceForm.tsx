@@ -170,7 +170,7 @@ export default function InsuranceFinanceForm() {
 
   // Auto-save mutation for intermediate steps
   const autoSaveMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/insurance-applications', 'POST', { ...data, status: 'draft' }),
+    mutationFn: (data: any) => apiRequest('POST', '/api/insurance-applications', { ...data, status: 'draft' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/insurance-applications/current'] });
       toast({
@@ -182,7 +182,7 @@ export default function InsuranceFinanceForm() {
 
   // Final submission mutation
   const submitMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/insurance-applications', 'POST', { ...data, status: 'submitted' }),
+    mutationFn: (data: any) => apiRequest('POST', '/api/insurance-applications', { ...data, status: 'submitted' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/insurance-applications'] });
       setIsSubmitted(true);
@@ -192,8 +192,9 @@ export default function InsuranceFinanceForm() {
       });
     },
     onError: (error: any) => {
+      console.error('Submission error:', error);
       toast({
-        title: "Submission Failed",
+        title: "Submission Failed", 
         description: error.message || "Failed to submit application. Please try again.",
         variant: "destructive",
       });
