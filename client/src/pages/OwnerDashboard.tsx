@@ -109,6 +109,17 @@ export default function OwnerDashboard() {
   
   // Vehicle info states
   const [showVehicleInfo, setShowVehicleInfo] = useState(false);
+  
+  // Mapping system states
+  const [showMappingInstructions, setShowMappingInstructions] = useState(false);
+  const [isMapping, setIsMapping] = useState(false);
+  const [mappingStarted, setMappingStarted] = useState(false);
+  const [currentPath, setCurrentPath] = useState<Array<{lat: number, lng: number, timestamp: number}>>([]);
+  const [showSaveMappingDialog, setShowSaveMappingDialog] = useState(false);
+  const [mapName, setMapName] = useState('');
+  const [savedMaps, setSavedMaps] = useState<Array<{id: string, name: string, path: Array<{lat: number, lng: number, timestamp: number}>, createdAt: string}>>([]);
+  const [showSavedMapsDialog, setShowSavedMapsDialog] = useState(false);
+  const mappingInterval = useRef<NodeJS.Timeout | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState({
     engineHealth: 85,
     engineTemperature: 92, // °C
@@ -303,6 +314,90 @@ export default function OwnerDashboard() {
       setEngineRunning(!engineRunning);
     }
   };
+
+  // Mapping system functions
+  const handleAddMapClick = () => {
+    if (isLocked) {
+      handleUnlockClick();
+      return;
+    }
+    setShowMappingInstructions(true);
+  };
+
+  const startMapping = () => {
+    if (!engineRunning || isLocked) {
+      return;
+    }
+    
+    setIsMapping(true);
+    setMappingStarted(true);
+    setCurrentPath([]);
+    setShowMappingInstructions(false);
+    
+    // Simulate GPS tracking by adding points every 2 seconds
+    mappingInterval.current = setInterval(() => {
+      const newPoint = {
+        lat: 11.0168 + (Math.random() - 0.5) * 0.001, // Simulate movement
+        lng: 76.9558 + (Math.random() - 0.5) * 0.001,
+        timestamp: Date.now()
+      };
+      setCurrentPath(prev => [...prev, newPoint]);
+    }, 2000);
+  };
+
+  const stopMapping = () => {
+    setIsMapping(false);
+    if (mappingInterval.current) {
+      clearInterval(mappingInterval.current);
+      mappingInterval.current = null;
+    }
+    
+    if (currentPath.length > 0) {
+      setShowSaveMappingDialog(true);
+    }
+  };
+
+  const saveMap = () => {
+    if (!mapName.trim() || currentPath.length === 0) return;
+    
+    const newMap = {
+      id: Date.now().toString(),
+      name: mapName.trim(),
+      path: currentPath,
+      createdAt: new Date().toISOString()
+    };
+    
+    setSavedMaps(prev => [...prev, newMap]);
+    
+    // Save to localStorage for persistence
+    const existingMaps = JSON.parse(localStorage.getItem('saved_tractor_maps') || '[]');
+    existingMaps.push(newMap);
+    localStorage.setItem('saved_tractor_maps', JSON.stringify(existingMaps));
+    
+    // Reset states
+    setCurrentPath([]);
+    setMapName('');
+    setMappingStarted(false);
+    setShowSaveMappingDialog(false);
+  };
+
+  const loadSavedMaps = () => {
+    const existingMaps = JSON.parse(localStorage.getItem('saved_tractor_maps') || '[]');
+    setSavedMaps(existingMaps);
+    setShowSavedMapsDialog(true);
+  };
+
+  const deleteMap = (mapId: string) => {
+    const updatedMaps = savedMaps.filter(map => map.id !== mapId);
+    setSavedMaps(updatedMaps);
+    localStorage.setItem('saved_tractor_maps', JSON.stringify(updatedMaps));
+  };
+
+  // Load saved maps on component mount
+  useEffect(() => {
+    const existingMaps = JSON.parse(localStorage.getItem('saved_tractor_maps') || '[]');
+    setSavedMaps(existingMaps);
+  }, []);
   const toggleSoilScan = () => {
     // Only allow soil scan if tractor is unlocked and engine is running
     if (!engineRunning || isLocked) {
@@ -445,6 +540,9 @@ export default function OwnerDashboard() {
               {(soilScanActive || isScanning) && (
                 <div className="absolute bottom-4 right-4 w-4 h-4 bg-purple-400 rounded-full animate-ping shadow-lg"></div>
               )}
+              {isMapping && (
+                <div className="absolute top-4 right-4 w-4 h-4 bg-orange-400 rounded-full animate-ping shadow-lg"></div>
+              )}
               
               {/* Scanning animation overlay */}
               {isScanning && (
@@ -579,7 +677,7 @@ export default function OwnerDashboard() {
         )}
 
         {/* GPS Location - Center Right (Only visible when engine is running) */}
-        {engineRunning && (
+        {engineRunning && !isMapping && (
           <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-cyan-400/30 text-white p-4">
             <div className="flex items-center space-x-2 mb-2">
               <MapPin className="h-5 w-5 text-cyan-400 animate-bounce" />
@@ -589,6 +687,28 @@ export default function OwnerDashboard() {
               <div>{t('latitude')}: 11.0168° N</div>
               <div>{t('longitude')}: 76.9558° E</div>
               <div className="mt-1 text-green-300">{t('status_active')}</div>
+            </div>
+          </Card>
+        )}
+
+        {/* Mapping Status - Center Right (Only visible when mapping is active) */}
+        {isMapping && (
+          <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <Map className="h-5 w-5 text-orange-400 animate-pulse" />
+              <span className="text-sm font-medium">Recording Path</span>
+            </div>
+            <div className="text-xs text-orange-300">
+              <div>GPS Points: {currentPath.length}</div>
+              <div>Duration: {
+                currentPath.length > 0 
+                  ? Math.round((Date.now() - currentPath[0]?.timestamp) / 1000) 
+                  : 0
+              }s</div>
+              <div className="mt-1 text-orange-200 flex items-center">
+                <div className="w-2 h-2 bg-orange-400 rounded-full animate-ping mr-2"></div>
+                Mapping Active
+              </div>
             </div>
           </Card>
         )}
@@ -665,19 +785,32 @@ export default function OwnerDashboard() {
       <div className="p-6 bg-black/20 backdrop-blur-md border-t border-white/10">
         <div className="grid grid-cols-2 gap-4">
           <Button 
-            onClick={() => {/* TODO: Implement add map functionality */}}
-            className="bg-blue-600/80 hover:bg-blue-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
+            onClick={isMapping ? stopMapping : handleAddMapClick}
+            className={`py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 ${
+              isMapping 
+                ? 'bg-red-600/80 hover:bg-red-600 text-white animate-pulse' 
+                : 'bg-blue-600/80 hover:bg-blue-600 text-white'
+            }`}
           >
-            <Plus className="h-5 w-5 mr-2" />
-            {t('add_map')}
+            {isMapping ? (
+              <>
+                <X className="h-5 w-5 mr-2" />
+                Stop Mapping
+              </>
+            ) : (
+              <>
+                <Plus className="h-5 w-5 mr-2" />
+                {t('add_map')}
+              </>
+            )}
           </Button>
           
           <Button 
-            onClick={() => {/* TODO: Implement saved maps functionality */}}
+            onClick={loadSavedMaps}
             className="bg-green-600/80 hover:bg-green-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
           >
             <FolderOpen className="h-5 w-5 mr-2" />
-            {t('saved_maps')}
+            {t('saved_maps')} {savedMaps.length > 0 && `(${savedMaps.length})`}
           </Button>
         </div>
       </div>
@@ -690,6 +823,230 @@ export default function OwnerDashboard() {
         onClose={() => setShowOwnerEquipment(false)}
         equipment={equipment}
       />
+
+      {/* Mapping Instructions Dialog */}
+      <Dialog open={showMappingInstructions} onOpenChange={setShowMappingInstructions}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-blue-400/30 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-blue-400 flex items-center justify-center">
+              <Map className="h-6 w-6 mr-2" />
+              Field Mapping Instructions
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-300">
+              Follow these steps to create an automated path for your tractor
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-400/30">
+              <div className="space-y-3 text-sm text-blue-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                  <div>
+                    <p className="font-semibold text-blue-300">Position the Tractor</p>
+                    <p>Place your tractor at the starting point of the field where you want the automated path to begin.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                  <div>
+                    <p className="font-semibold text-blue-300">Keep Mobile Phone Close</p>
+                    <p>Ensure your mobile phone is close to the tractor for accurate GPS tracking during the mapping process.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
+                  <div>
+                    <p className="font-semibold text-blue-300">Start Engine & Drive</p>
+                    <p>After pressing "Start", start the tractor and drive it across the field exactly how you want it to be automated in the future.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</div>
+                  <div>
+                    <p className="font-semibold text-green-300">Save the Path</p>
+                    <p>The system will record your path. When finished, stop mapping and save the path with a name for future use.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-yellow-500/10 p-3 rounded-lg border border-yellow-400/30">
+              <div className="flex items-center space-x-2 text-yellow-300">
+                <Info className="h-4 w-4 flex-shrink-0" />
+                <p className="text-xs">Make sure the tractor engine is running and the vehicle is unlocked before starting.</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button
+                onClick={() => setShowMappingInstructions(false)}
+                variant="outline"
+                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={startMapping}
+                disabled={!engineRunning || isLocked}
+                className={`${
+                  !engineRunning || isLocked
+                    ? 'bg-gray-600 text-gray-400'
+                    : 'bg-green-600 hover:bg-green-500 text-white'
+                }`}
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                Start Mapping
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Mapping Dialog */}
+      <Dialog open={showSaveMappingDialog} onOpenChange={setShowSaveMappingDialog}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-green-400/30 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-green-400">
+              Save Field Map
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-300">
+              Give your mapped path a name to save it for future use
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-green-500/10 p-3 rounded-lg border border-green-400/30 text-center">
+              <div className="text-green-300 text-sm mb-1">Path Recorded Successfully</div>
+              <div className="text-green-200 text-xs">
+                {currentPath.length} GPS points captured over {
+                  currentPath.length > 0 
+                    ? Math.round((currentPath[currentPath.length - 1]?.timestamp - currentPath[0]?.timestamp) / 1000) 
+                    : 0
+                } seconds
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Map Name
+              </label>
+              <Input
+                type="text"
+                placeholder="e.g., North Field Pattern, Main Crop Area..."
+                value={mapName}
+                onChange={(e) => setMapName(e.target.value)}
+                className="bg-black/50 border-gray-600 text-white placeholder-gray-400"
+                maxLength={50}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => {
+                  setShowSaveMappingDialog(false);
+                  setCurrentPath([]);
+                  setMappingStarted(false);
+                }}
+                variant="outline"
+                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+              >
+                Discard
+              </Button>
+              <Button
+                onClick={saveMap}
+                disabled={!mapName.trim()}
+                className={`${
+                  !mapName.trim()
+                    ? 'bg-gray-600 text-gray-400'
+                    : 'bg-green-600 hover:bg-green-500 text-white'
+                }`}
+              >
+                Save Map
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Saved Maps Dialog */}
+      <Dialog open={showSavedMapsDialog} onOpenChange={setShowSavedMapsDialog}>
+        <DialogContent className="bg-black/90 backdrop-blur-md border-green-400/30 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-green-400 flex items-center justify-center">
+              <FolderOpen className="h-6 w-6 mr-2" />
+              Saved Field Maps
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-300">
+              {savedMaps.length === 0 
+                ? 'No saved maps yet. Create your first field map!'
+                : `${savedMaps.length} saved map${savedMaps.length > 1 ? 's' : ''} available`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            {savedMaps.length === 0 ? (
+              <div className="text-center py-8">
+                <Map className="h-12 w-12 text-gray-500 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">No saved maps yet</p>
+                <p className="text-gray-500 text-xs mt-1">Create your first automated field path</p>
+              </div>
+            ) : (
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {savedMaps.map((map) => (
+                  <div key={map.id} className="bg-green-500/10 p-3 rounded-lg border border-green-400/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Map className="h-4 w-4 text-green-400" />
+                          <h4 className="font-semibold text-green-300 text-sm">{map.name}</h4>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          <div>{map.path.length} GPS points</div>
+                          <div>Created: {new Date(map.createdAt).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          onClick={() => {
+                            // TODO: Implement load map for automation
+                            console.log('Load map:', map.name);
+                          }}
+                          size="sm"
+                          className="bg-blue-600/80 hover:bg-blue-600 text-white text-xs px-2 py-1"
+                        >
+                          Load
+                        </Button>
+                        <Button
+                          onClick={() => deleteMap(map.id)}
+                          size="sm"
+                          variant="outline"
+                          className="border-red-500/50 text-red-400 hover:bg-red-500/20 text-xs px-2 py-1"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="pt-3 border-t border-gray-700">
+              <Button
+                onClick={() => setShowSavedMapsDialog(false)}
+                className="w-full bg-gray-600/80 hover:bg-gray-600 text-white"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* PIN Entry Dialog */}
       <Dialog open={showPinDialog} onOpenChange={setShowPinDialog}>
