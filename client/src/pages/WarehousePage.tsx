@@ -373,12 +373,19 @@ export default function WarehousePage() {
                           size="sm" 
                           className="bg-ag-green hover:bg-ag-green/90 text-white"
                           onClick={() => {
-                            toast({
-                              title: "Contact Warehouse",
-                              description: `Contact ${warehouse.name} for booking details.`,
-                            });
+                            if (warehouse.contactNumber) {
+                              // Open phone dialer with the warehouse contact number
+                              window.location.href = `tel:${warehouse.contactNumber}`;
+                            } else {
+                              toast({
+                                title: "Contact Information",
+                                description: `No contact number available for ${warehouse.name}`,
+                                variant: "destructive"
+                              });
+                            }
                           }}
                         >
+                          <Phone className="h-3 w-3 mr-1" />
                           Contact
                         </Button>
                       </div>
