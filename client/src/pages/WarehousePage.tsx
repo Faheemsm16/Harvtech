@@ -24,6 +24,7 @@ export default function WarehousePage() {
   const [unit, setUnit] = useState("");
   const [showWarehouses, setShowWarehouses] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [manualLocation, setManualLocation] = useState("");
 
   // Get current location automatically on page load
   useEffect(() => {
@@ -43,13 +44,13 @@ export default function WarehousePage() {
         (position) => {
           const { latitude, longitude } = position.coords;
           
-          // For demo purposes, set a mock address
-          const mockAddress = "Current Location, Bangalore, Karnataka, India";
+          // Use coordinates as address if geocoding is not available
+          const coordinateAddress = `Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
           
           setCurrentLocation({
             latitude: latitude.toString(),
             longitude: longitude.toString(),
-            address: mockAddress
+            address: coordinateAddress
           });
           
           setIsGettingLocation(false);
@@ -60,36 +61,48 @@ export default function WarehousePage() {
           });
         },
         (error) => {
-          // Fallback to demo location
-          setCurrentLocation({
-            latitude: "12.9716",
-            longitude: "77.5946",
-            address: "Demo Location, Bangalore, Karnataka, India"
-          });
-          
           setIsGettingLocation(false);
           
           toast({
-            title: "Location Set",
-            description: "Demo location has been set for warehouse search.",
+            title: "Location Access Denied",
+            description: "Please allow location access to find nearby warehouses, or contact us for assistance.",
+            variant: "destructive",
           });
         }
       );
     } else {
-      // Fallback to demo location
-      setCurrentLocation({
-        latitude: "12.9716",
-        longitude: "77.5946",
-        address: "Demo Location, Bangalore, Karnataka, India"
-      });
-      
       setIsGettingLocation(false);
       
       toast({
-        title: "Location Set",
-        description: "Demo location has been set for warehouse search.",
+        title: "Geolocation Not Supported",
+        description: "Your browser doesn't support location services. Please enter your location manually below.",
+        variant: "destructive",
       });
     }
+  };
+
+  const handleManualLocationSet = () => {
+    if (!manualLocation.trim()) {
+      toast({
+        title: "Invalid Location",
+        description: "Please enter a valid location name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCurrentLocation({
+      latitude: "",
+      longitude: "",
+      address: manualLocation.trim()
+    });
+
+    toast({
+      title: "Location Set",
+      description: `Location set to: ${manualLocation.trim()}`,
+    });
+
+    setManualLocation("");
   };
 
   const handleOkClick = () => {
@@ -183,16 +196,36 @@ export default function WarehousePage() {
               <p className="text-sm text-gray-500">Location not available</p>
             )}
             
-            <Button
-              onClick={getCurrentLocation}
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              disabled={isGettingLocation}
-            >
-              <Navigation className="h-4 w-4 mr-2" />
-              {isGettingLocation ? "Getting Location..." : "Refresh Location"}
-            </Button>
+            <div className="mt-3 space-y-2">
+              <Button
+                onClick={getCurrentLocation}
+                variant="outline"
+                size="sm"
+                disabled={isGettingLocation}
+              >
+                <Navigation className="h-4 w-4 mr-2" />
+                {isGettingLocation ? "Getting Location..." : "Refresh Location"}
+              </Button>
+              
+              {/* Manual Location Input */}
+              <div className="flex space-x-2">
+                <Input
+                  placeholder="Or enter your location manually (e.g., Chennai, Tamil Nadu)"
+                  value={manualLocation}
+                  onChange={(e) => setManualLocation(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleManualLocationSet()}
+                  className="text-sm"
+                />
+                <Button
+                  onClick={handleManualLocationSet}
+                  variant="outline"
+                  size="sm"
+                  disabled={!manualLocation.trim()}
+                >
+                  Set
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
