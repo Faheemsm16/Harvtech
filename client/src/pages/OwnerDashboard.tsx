@@ -82,6 +82,8 @@ export default function OwnerDashboard() {
   
   // Tractor control states
   const [batteryLevel, setBatteryLevel] = useState(87);
+  const [hvBatteryLevel, setHvBatteryLevel] = useState(89);
+  const [lvBatteryLevel, setLvBatteryLevel] = useState(85);
   const [isLocked, setIsLocked] = useState(true);
   const [engineRunning, setEngineRunning] = useState(false);
   const [soilScanActive, setSoilScanActive] = useState(false);
@@ -128,10 +130,12 @@ export default function OwnerDashboard() {
   const [automatedProgress, setAutomatedProgress] = useState({ currentPoint: 0, totalPoints: 0, timeElapsed: 0, areaCompleted: 0 });
   const automatedInterval = useRef<NodeJS.Timeout | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState({
-    engineHealth: 85,
-    engineTemperature: 92, // °C
+    motorHealth: 85,
+    motorTemperature: 92, // °C
     oilLevel: 78,
     coolantLevel: 88,
+    hvBattery: { level: 89, voltage: 400, temperature: 32 },
+    lvBattery: { level: 85, voltage: 12.4, temperature: 28 },
     tyreAirLevel: {
       frontLeft: 95,
       frontRight: 93,
@@ -153,7 +157,7 @@ export default function OwnerDashboard() {
   // Calculate overall tractor condition
   const calculateOverallCondition = () => {
     const metrics = [
-      vehicleInfo.engineHealth,
+      vehicleInfo.motorHealth,
       vehicleInfo.oilLevel,
       vehicleInfo.coolantLevel,
       Math.min(
@@ -194,12 +198,12 @@ export default function OwnerDashboard() {
       issues.push({ component: 'Brake System', issue: 'Low brake fluid', severity: 'high' });
     }
     
-    if (vehicleInfo.engineTemperature > 90) {
-      issues.push({ component: 'Engine', issue: 'High temperature', severity: 'high' });
+    if (vehicleInfo.motorTemperature > 90) {
+      issues.push({ component: 'Motor', issue: 'High temperature', severity: 'high' });
     }
     
     if (vehicleInfo.oilLevel < 80) {
-      issues.push({ component: 'Engine Oil', issue: 'Oil level low', severity: 'medium' });
+      issues.push({ component: 'Motor Oil', issue: 'Oil level low', severity: 'medium' });
     }
     
     return issues;
@@ -518,40 +522,14 @@ export default function OwnerDashboard() {
         <div className="flex items-center justify-between">
           {/* Left side with hamburger menu and user info */}
           <div className="flex items-center space-x-3">
-            {/* Three dots menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="text-white hover:bg-white/10 p-2 rounded-full"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-slate-800/95 border-slate-600 text-white">
-                <DropdownMenuItem 
-                  onClick={() => setLocation('/my-orders')}
-                  className="hover:bg-slate-700/50 focus:bg-slate-700/50"
-                >
-                  <Package2 className="h-4 w-4 mr-2" />
-                  My Orders
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setLocation('/platforms')}
-                  className="hover:bg-slate-700/50 focus:bg-slate-700/50"
-                >
-                  <Network className="h-4 w-4 mr-2" />
-                  {t('platforms') || 'Platforms'}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowServices(true)}
-                  className="hover:bg-slate-700/50 focus:bg-slate-700/50"
-                >
-                  <Bell className="h-4 w-4 mr-2" />
-                  {t('services') || 'Services'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Hamburger Menu Button */}
+            <Button
+              variant="ghost"
+              onClick={() => setShowHamburgerMenu(true)}
+              className="text-white hover:bg-white/10 p-2 rounded-full"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             
             {/* User avatar and info */}
             <div className="w-10 h-10 bg-blue-500/30 rounded-full flex items-center justify-center border border-blue-400/30">
@@ -654,17 +632,35 @@ export default function OwnerDashboard() {
         </div>
 
         {/* Control Panels */}
-        {/* Battery Level - Top Left */}
-        <Card className="absolute top-6 left-6 bg-black/40 backdrop-blur-md border-green-400/30 text-white p-4 w-48">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <Battery className={`h-5 w-5 ${batteryLevel > 20 ? 'text-green-400' : 'text-red-400'}`} />
-              <span className="text-sm font-medium">Battery</span>
+        {/* Battery Levels - Top Left */}
+        <Card className="absolute top-6 left-6 bg-black/40 backdrop-blur-md border-green-400/30 text-white p-4 w-52">
+          <div className="space-y-3">
+            {/* HV Battery */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center space-x-2">
+                  <Zap className={`h-4 w-4 ${hvBatteryLevel > 20 ? 'text-orange-400' : 'text-red-400'}`} />
+                  <span className="text-xs font-medium">HV Battery</span>
+                </div>
+                <span className="text-sm font-bold text-orange-400">{hvBatteryLevel}%</span>
+              </div>
+              <Progress value={hvBatteryLevel} className="mb-1 h-1.5" />
+              <div className="text-xs text-orange-300">400V System</div>
             </div>
-            <span className="text-lg font-bold text-green-400">{batteryLevel}%</span>
+            
+            {/* LV Battery */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center space-x-2">
+                  <Battery className={`h-4 w-4 ${lvBatteryLevel > 20 ? 'text-green-400' : 'text-red-400'}`} />
+                  <span className="text-xs font-medium">LV Battery</span>
+                </div>
+                <span className="text-sm font-bold text-green-400">{lvBatteryLevel}%</span>
+              </div>
+              <Progress value={lvBatteryLevel} className="mb-1 h-1.5" />
+              <div className="text-xs text-green-300">12V System</div>
+            </div>
           </div>
-          <Progress value={batteryLevel} className="mb-2 h-2" />
-          <div className="text-xs text-green-300">Est. time: {getBatteryTime()}</div>
         </Card>
 
         {/* Lock/Unlock Control - Top Right */}
@@ -1334,23 +1330,23 @@ export default function OwnerDashboard() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Engine Health */}
-              <div className={`${getHealthStatus(vehicleInfo.engineHealth).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.engineHealth).borderColor}`}>
+              {/* Motor Health */}
+              <div className={`${getHealthStatus(vehicleInfo.motorHealth).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.motorHealth).borderColor}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Zap className={`h-4 w-4 ${getHealthStatus(vehicleInfo.engineHealth).color}`} />
-                    <span className="text-sm font-medium">Engine Health</span>
+                    <Zap className={`h-4 w-4 ${getHealthStatus(vehicleInfo.motorHealth).color}`} />
+                    <span className="text-sm font-medium">Motor Health</span>
                   </div>
-                  <span className={`text-lg font-bold ${getHealthStatus(vehicleInfo.engineHealth).color}`}>
-                    {vehicleInfo.engineHealth}%
+                  <span className={`text-lg font-bold ${getHealthStatus(vehicleInfo.motorHealth).color}`}>
+                    {vehicleInfo.motorHealth}%
                   </span>
                 </div>
-                <Progress value={vehicleInfo.engineHealth} className="h-1.5 mb-2" />
+                <Progress value={vehicleInfo.motorHealth} className="h-1.5 mb-2" />
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
                     <span className="text-gray-300">Temperature:</span>
-                    <span className={vehicleInfo.engineTemperature > 90 ? 'text-red-300' : 'text-green-300'}>
-                      {vehicleInfo.engineTemperature}°C
+                    <span className={vehicleInfo.motorTemperature > 90 ? 'text-red-300' : 'text-green-300'}>
+                      {vehicleInfo.motorTemperature}°C
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1455,8 +1451,8 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Fuel and Battery */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Fuel and Batteries */}
+            <div className="space-y-4">
               <div className={`${getHealthStatus(vehicleInfo.fuelLevel).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.fuelLevel).borderColor}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
@@ -1470,17 +1466,54 @@ export default function OwnerDashboard() {
                 <Progress value={vehicleInfo.fuelLevel} className="h-1.5" />
               </div>
 
-              <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Battery className="h-4 w-4 text-green-400" />
-                    <span className="text-sm font-medium">Battery</span>
+              <div className="grid grid-cols-2 gap-4">
+                {/* HV Battery */}
+                <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-400/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Zap className="h-4 w-4 text-orange-400" />
+                      <span className="text-sm font-medium">HV Battery</span>
+                    </div>
+                    <span className="text-sm font-bold text-orange-400">
+                      {vehicleInfo.hvBattery.level}%
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-green-400">
-                    {vehicleInfo.batteryVoltage}V
-                  </span>
+                  <Progress value={vehicleInfo.hvBattery.level} className="h-1.5 mb-2" />
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Voltage:</span>
+                      <span className="text-orange-300">{vehicleInfo.hvBattery.voltage}V</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Temp:</span>
+                      <span className="text-orange-300">{vehicleInfo.hvBattery.temperature}°C</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-green-300">Charging System: Normal</div>
+
+                {/* LV Battery */}
+                <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Battery className="h-4 w-4 text-green-400" />
+                      <span className="text-sm font-medium">LV Battery</span>
+                    </div>
+                    <span className="text-sm font-bold text-green-400">
+                      {vehicleInfo.lvBattery.level}%
+                    </span>
+                  </div>
+                  <Progress value={vehicleInfo.lvBattery.level} className="h-1.5 mb-2" />
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Voltage:</span>
+                      <span className="text-green-300">{vehicleInfo.lvBattery.voltage}V</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Temp:</span>
+                      <span className="text-green-300">{vehicleInfo.lvBattery.temperature}°C</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -1589,6 +1622,111 @@ export default function OwnerDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Hamburger Menu Overlay */}
+      {showHamburgerMenu && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop with blur */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowHamburgerMenu(false)}
+          />
+          
+          {/* Menu Content */}
+          <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
+            <Card className="bg-black/90 backdrop-blur-md border-white/20 text-white w-full max-w-lg mx-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold text-white">Menu Options</h2>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowHamburgerMenu(false)}
+                    className="text-white hover:bg-white/10 p-2 rounded-full"
+                  >
+                    <X className="h-6 w-6" />
+                  </Button>
+                </div>
+                
+                {/* Large Grid Menu Options */}
+                <div className="grid grid-cols-1 gap-6">
+                  <Button
+                    onClick={() => {
+                      setLocation('/my-orders');
+                      setShowHamburgerMenu(false);
+                    }}
+                    className="w-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-400/30 text-white p-6 h-auto justify-start text-left"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                        <Package2 className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">My Orders</div>
+                        <div className="text-sm opacity-75">View and manage your orders</div>
+                      </div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setLocation('/platforms');
+                      setShowHamburgerMenu(false);
+                    }}
+                    className="w-full bg-green-600/20 hover:bg-green-600/40 border border-green-400/30 text-white p-6 h-auto justify-start text-left"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-green-500/30 rounded-lg flex items-center justify-center">
+                        <Network className="h-6 w-6 text-green-400" />
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">{t('platforms') || 'Platforms'}</div>
+                        <div className="text-sm opacity-75">Access agricultural platforms</div>
+                      </div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setShowServices(true);
+                      setShowHamburgerMenu(false);
+                    }}
+                    className="w-full bg-purple-600/20 hover:bg-purple-600/40 border border-purple-400/30 text-white p-6 h-auto justify-start text-left"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-purple-500/30 rounded-lg flex items-center justify-center">
+                        <Bell className="h-6 w-6 text-purple-400" />
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">{t('services') || 'Services'}</div>
+                        <div className="text-sm opacity-75">Agricultural analysis services</div>
+                      </div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setShowOwnerEquipment(true);
+                      setShowHamburgerMenu(false);
+                    }}
+                    className="w-full bg-yellow-600/20 hover:bg-yellow-600/40 border border-yellow-400/30 text-white p-6 h-auto justify-start text-left"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-yellow-500/30 rounded-lg flex items-center justify-center">
+                        <Settings className="h-6 w-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">Equipment Management</div>
+                        <div className="text-sm opacity-75">Manage your equipment listings</div>
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
