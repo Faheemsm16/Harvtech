@@ -1493,7 +1493,7 @@ export default function OwnerDashboard() {
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {currentVehicleType === 'tractor' ? [
+                {(currentVehicleType === 'tractor' ? [
                   { name: 'Front Left', value: vehicleInfo.tyreAirLevel.frontLeft },
                   { name: 'Front Right', value: vehicleInfo.tyreAirLevel.frontRight },
                   { name: 'Rear Left', value: vehicleInfo.tyreAirLevel.rearLeft },
@@ -1501,7 +1501,7 @@ export default function OwnerDashboard() {
                 ] : [
                   { name: 'Rear Left', value: vehicleInfo.tyreAirLevel.rearLeft },
                   { name: 'Rear Right', value: vehicleInfo.tyreAirLevel.rearRight }
-                ].map((tyre, index) => (
+                ]).map((tyre, index) => (
                   <div key={index} className="flex items-center justify-between bg-black/20 p-2 rounded">
                     <span className="text-xs text-gray-300">{tyre.name}</span>
                     <div className="flex items-center space-x-1">
