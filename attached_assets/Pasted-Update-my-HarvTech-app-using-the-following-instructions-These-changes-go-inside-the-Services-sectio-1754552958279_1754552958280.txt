@@ -1,0 +1,111 @@
+Update my HarvTech app using the following instructions. These changes go inside the Services section of the app:
+
+📍 Step 1: Map on Services
+When the user clicks "Services", do the following:
+
+Automatically display an interactive map view
+
+Add a button at the bottom labeled "Add Field"
+
+📌 Step 2: Add Field Flow
+When "Add Field" is clicked, display two options:
+
+Satellite Mapping
+
+Draw Map Manually
+
+🛰️ Satellite Mapping Flow:
+When the user selects Satellite Mapping:
+
+Show a popup with Field Mapping Instructions:
+
+Field Mapping Instructions:
+Position the Tractor
+Place your tractor at the starting point of the field where you want the automated path to begin.
+
+Keep Mobile Phone Close
+Ensure your mobile phone is close to the tractor for accurate GPS tracking during the mapping process.
+
+Start Engine & Drive
+After pressing "Start", start the tractor and drive it across the field exactly how you want it to be automated in the future.
+
+Add a "Start" button at the bottom.
+
+When the user clicks Start, begin capturing GPS coordinates to trace the outline of the field live on the map.
+
+After mapping is done, show a "Save Field" prompt that lets the user:
+
+Enter a name for the field
+
+Save the field boundary as GeoJSON
+
+✏️ Manual Drawing Flow:
+If the user selects Draw Map Manually:
+
+Show a world map centered on India
+
+Use Leaflet.js and Leaflet Draw
+
+Allow the user to draw a polygon (field boundary)
+
+After drawing, prompt for a field name and show a "Save Field" button
+
+Save the polygon geometry as GeoJSON
+
+📂 Field Selection
+Once fields are saved:
+
+Show a dropdown to select saved fields
+
+Display selected field on the map
+
+Below the map, show two buttons:
+
+Crop Monitoring
+
+Weather
+
+🌿 Crop Monitoring Flow
+When user clicks Crop Monitoring, show a dropdown with:
+
+Field Analytics (clicking it opens a new page)
+
+On Field Analytics Page:
+Display the selected field
+
+At the bottom, show the following analysis options:
+
+✅ NDVI
+Show a heat map overlay of pest intensity in the field
+
+Use this data to assist with pest reduction planning
+
+✅ NDRE
+Show a heat map for plant health
+
+Used to monitor plant condition and predict yield
+
+✅ MSAVI / RECI
+Analyze the amount of fertilizer in the field
+
+Use this data for fertilizer management planning
+
+✅ NDMI
+Show the moisture level heat map in the field
+
+Helps in planning irrigation schedules
+
+✅ Sentinel → Dropdown with:
+Elevation Map
+
+Slope Map
+
+These maps are used for irrigation planning and water flow management based on terrain data.
+
+🧠 System Features Summary:
+Feature	Purpose
+NDVI	Pest intensity heatmap for pest planning
+NDRE	Plant health monitoring & yield prediction
+MSAVI / RECI	Fertilizer detection & management planning
+NDMI	Moisture detection & irrigation planning
+Slope/Elevation	Water flow & terrain-based irrigation
