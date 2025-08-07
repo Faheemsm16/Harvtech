@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Tractor, Wrench, Settings } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
@@ -15,6 +22,7 @@ import { useCustomAuth } from "@/context/AuthContext";
 
 interface FormData {
   equipmentType: string;
+  modelName: string;
   modelNumber: string;
   chassisNumber: string;
   name: string;
@@ -40,6 +48,7 @@ export default function OwnerRegistrationPage() {
   
   const [formData, setFormData] = useState<FormData>({
     equipmentType: "",
+    modelName: "",
     modelNumber: "",
     chassisNumber: "",
     name: "",
@@ -49,15 +58,28 @@ export default function OwnerRegistrationPage() {
     mobileNumber: "",
   });
 
+  // Available models
+  const tractorModels = ['JD 5050D', 'Mahindra 475 DI', 'Sonalika 745 DI', 'Massey Ferguson 1035 DI', 'New Holland 3630 TX'];
+  const tillerModels = ['TL 300X', 'Honda F220', 'Kubota T1400', 'Captain 120', 'VST Shakti VF 130DI'];
+  
+  const getModelsForType = (type: string) => {
+    return type === 'tractor' ? tractorModels : tillerModels;
+  };
+
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const validateStep1 = () => {
-    const { equipmentType, modelNumber, chassisNumber } = formData;
+    const { equipmentType, modelName, modelNumber, chassisNumber } = formData;
     
     if (!equipmentType) {
       toast({ title: "Error", description: "Please select equipment type", variant: "destructive" });
+      return false;
+    }
+    
+    if (!modelName) {
+      toast({ title: "Error", description: "Please select model name", variant: "destructive" });
       return false;
     }
     
@@ -125,7 +147,7 @@ export default function OwnerRegistrationPage() {
         type: formData.equipmentType,
         modelNumber: formData.modelNumber,
         chassisNumber: formData.chassisNumber,
-        name: `${formData.equipmentType.charAt(0).toUpperCase() + formData.equipmentType.slice(1)} - ${formData.modelNumber}`,
+        name: formData.modelName ? `${formData.modelName} - ${formData.modelNumber}` : `${formData.equipmentType.charAt(0).toUpperCase() + formData.equipmentType.slice(1)} - ${formData.modelNumber}`,
       };
 
       await apiRequest('POST', '/api/equipment', equipmentData);
@@ -308,6 +330,25 @@ export default function OwnerRegistrationPage() {
           </div>
           
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('model_name')} *</Label>
+              <Select 
+                value={formData.modelName} 
+                onValueChange={(value) => handleInputChange('modelName', value)}
+              >
+                <SelectTrigger className="py-4 focus:ring-2 focus:ring-ag-green">
+                  <SelectValue placeholder="Select model name" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formData.equipmentType && getModelsForType(formData.equipmentType).map((model) => (
+                    <SelectItem key={model} value={model}>
+                      {model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="space-y-2">
               <Label className="text-sm font-medium">{t('model_number')} *</Label>
               <Input

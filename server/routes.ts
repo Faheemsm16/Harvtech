@@ -34,7 +34,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.user = {
       claims: {
         sub: 'dev-user-id-123'
-      }
+      },
+      expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
     };
     next();
   });

@@ -17,6 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Network, 
   Bell, 
@@ -82,6 +89,12 @@ export default function OwnerDashboard() {
   const [showProfile, setShowProfile] = useState(false);
   const [currentVehicleType, setCurrentVehicleType] = useState('tractor'); // 'tractor' or 'tiller'
   const [showVehicleSelector, setShowVehicleSelector] = useState(false);
+  const [selectedTractorModel, setSelectedTractorModel] = useState('JD 5050D');
+  const [selectedTillerModel, setSelectedTillerModel] = useState('TL 300X');
+  
+  // Available models
+  const tractorModels = ['JD 5050D', 'Mahindra 475 DI', 'Sonalika 745 DI', 'Massey Ferguson 1035 DI', 'New Holland 3630 TX'];
+  const tillerModels = ['TL 300X', 'Honda F220', 'Kubota T1400', 'Captain 120', 'VST Shakti VF 130DI'];
   
   // Tractor control states
   const [batteryLevel, setBatteryLevel] = useState(87);
@@ -1426,59 +1439,66 @@ export default function OwnerDashboard() {
                       {vehicleInfo.oilLevel}%
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Coolant:</span>
-                    <span className="text-green-300">{vehicleInfo.coolantLevel}%</span>
-                  </div>
+                  {currentVehicleType === 'tractor' && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Coolant:</span>
+                      <span className="text-green-300">{vehicleInfo.coolantLevel}%</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Brake Health */}
-              <div className={`${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).bgColor} p-3 rounded-lg border ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).borderColor}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Circle className={`h-4 w-4 ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`} />
-                    <span className="text-sm font-medium">Brake Health</span>
-                  </div>
-                  <span className={`text-lg font-bold ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`}>
-                    {Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)}%
-                  </span>
-                </div>
-                <Progress value={Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)} className="h-1.5 mb-2" />
-                <div className="text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">System:</span>
-                    <span className="text-green-300">{vehicleInfo.brakeHealth.system}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Brake Fluid:</span>
-                    <span className={vehicleInfo.brakeHealth.fluidLevel < 70 ? 'text-red-300' : 'text-green-300'}>
-                      {vehicleInfo.brakeHealth.fluidLevel}%
+              {/* Brake Health - Only show for tractor */}
+              {currentVehicleType === 'tractor' && (
+                <div className={`${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).bgColor} p-3 rounded-lg border ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).borderColor}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Circle className={`h-4 w-4 ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`} />
+                      <span className="text-sm font-medium">Brake Health</span>
+                    </div>
+                    <span className={`text-lg font-bold ${getHealthStatus(Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)).color}`}>
+                      {Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)}%
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Pad Wear:</span>
-                    <span className="text-green-300">{vehicleInfo.brakeHealth.padWear}%</span>
+                  <Progress value={Math.min(vehicleInfo.brakeHealth.system, vehicleInfo.brakeHealth.fluidLevel, vehicleInfo.brakeHealth.padWear)} className="h-1.5 mb-2" />
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">System:</span>
+                      <span className="text-green-300">{vehicleInfo.brakeHealth.system}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Brake Fluid:</span>
+                      <span className={vehicleInfo.brakeHealth.fluidLevel < 70 ? 'text-red-300' : 'text-green-300'}>
+                        {vehicleInfo.brakeHealth.fluidLevel}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Pad Wear:</span>
+                      <span className="text-green-300">{vehicleInfo.brakeHealth.padWear}%</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Tyre Air Pressure */}
+            {/* Tyre Air Pressure - Simplified for tiller */}
             <div className={`${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).bgColor} p-3 rounded-lg border ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).borderColor}`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <Circle className={`h-4 w-4 ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).color}`} />
-                  <span className="text-sm font-medium">Tyre Air Pressure</span>
+                  <span className="text-sm font-medium">{currentVehicleType === 'tractor' ? 'Tyre Air Pressure' : 'Wheel Pressure'}</span>
                 </div>
                 <span className={`text-lg font-bold ${getHealthStatus(Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)).color}`}>
                   {Math.min(vehicleInfo.tyreAirLevel.frontLeft, vehicleInfo.tyreAirLevel.frontRight, vehicleInfo.tyreAirLevel.rearLeft, vehicleInfo.tyreAirLevel.rearRight)}%
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {[
+                {currentVehicleType === 'tractor' ? [
                   { name: 'Front Left', value: vehicleInfo.tyreAirLevel.frontLeft },
                   { name: 'Front Right', value: vehicleInfo.tyreAirLevel.frontRight },
+                  { name: 'Rear Left', value: vehicleInfo.tyreAirLevel.rearLeft },
+                  { name: 'Rear Right', value: vehicleInfo.tyreAirLevel.rearRight }
+                ] : [
                   { name: 'Rear Left', value: vehicleInfo.tyreAirLevel.rearLeft },
                   { name: 'Rear Right', value: vehicleInfo.tyreAirLevel.rearRight }
                 ].map((tyre, index) => (
@@ -1493,20 +1513,22 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Additional Systems */}
+            {/* Additional Systems - Show hydraulic only for tractor */}
             <div className="grid grid-cols-2 gap-4">
-              <div className={`${getHealthStatus(vehicleInfo.hydraulicSystem).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.hydraulicSystem).borderColor}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Droplets className={`h-4 w-4 ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`} />
-                    <span className="text-sm font-medium">Hydraulic</span>
+              {currentVehicleType === 'tractor' && (
+                <div className={`${getHealthStatus(vehicleInfo.hydraulicSystem).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.hydraulicSystem).borderColor}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Droplets className={`h-4 w-4 ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`} />
+                      <span className="text-sm font-medium">Hydraulic</span>
+                    </div>
+                    <span className={`text-sm font-bold ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`}>
+                      {vehicleInfo.hydraulicSystem}%
+                    </span>
                   </div>
-                  <span className={`text-sm font-bold ${getHealthStatus(vehicleInfo.hydraulicSystem).color}`}>
-                    {vehicleInfo.hydraulicSystem}%
-                  </span>
+                  <Progress value={vehicleInfo.hydraulicSystem} className="h-1.5" />
                 </div>
-                <Progress value={vehicleInfo.hydraulicSystem} className="h-1.5" />
-              </div>
+              )}
 
               <div className={`${getHealthStatus(vehicleInfo.transmissionHealth).bgColor} p-3 rounded-lg border ${getHealthStatus(vehicleInfo.transmissionHealth).borderColor}`}>
                 <div className="flex items-center justify-between mb-2">
@@ -1537,37 +1559,39 @@ export default function OwnerDashboard() {
                 <Progress value={vehicleInfo.fuelLevel} className="h-1.5" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* HV Battery */}
-                <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-400/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Zap className="h-4 w-4 text-orange-400" />
-                      <span className="text-sm font-medium">HV Battery</span>
+              <div className={`grid ${currentVehicleType === 'tractor' ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                {/* HV Battery - Only show for tractor */}
+                {currentVehicleType === 'tractor' && (
+                  <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-400/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Zap className="h-4 w-4 text-orange-400" />
+                        <span className="text-sm font-medium">HV Battery</span>
+                      </div>
+                      <span className="text-sm font-bold text-orange-400">
+                        {vehicleInfo.hvBattery.level}%
+                      </span>
                     </div>
-                    <span className="text-sm font-bold text-orange-400">
-                      {vehicleInfo.hvBattery.level}%
-                    </span>
+                    <Progress value={vehicleInfo.hvBattery.level} className="h-1.5 mb-2" />
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Voltage:</span>
+                        <span className="text-orange-300">{vehicleInfo.hvBattery.voltage}V</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Temp:</span>
+                        <span className="text-orange-300">{vehicleInfo.hvBattery.temperature}°C</span>
+                      </div>
+                    </div>
                   </div>
-                  <Progress value={vehicleInfo.hvBattery.level} className="h-1.5 mb-2" />
-                  <div className="text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Voltage:</span>
-                      <span className="text-orange-300">{vehicleInfo.hvBattery.voltage}V</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Temp:</span>
-                      <span className="text-orange-300">{vehicleInfo.hvBattery.temperature}°C</span>
-                    </div>
-                  </div>
-                </div>
+                )}
 
                 {/* LV Battery */}
                 <div className="bg-green-500/20 p-3 rounded-lg border border-green-400/30">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <Battery className="h-4 w-4 text-green-400" />
-                      <span className="text-sm font-medium">LV Battery</span>
+                      <span className="text-sm font-medium">{currentVehicleType === 'tractor' ? 'LV Battery' : 'Battery'}</span>
                     </div>
                     <span className="text-sm font-bold text-green-400">
                       {vehicleInfo.lvBattery.level}%
@@ -1880,46 +1904,80 @@ export default function OwnerDashboard() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="grid gap-3">
-              <Button
-                variant={currentVehicleType === 'tractor' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCurrentVehicleType('tractor');
-                  setShowVehicleSelector(false);
-                }}
-                className="p-4 h-auto justify-start text-left"
-              >
-                <div className="flex items-center space-x-4 w-full">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Car className="h-6 w-6 text-green-600" />
+            <div className="space-y-4">
+              {/* Tractor Selection */}
+              <div className="space-y-3">
+                <Button
+                  variant={currentVehicleType === 'tractor' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setCurrentVehicleType('tractor');
+                    setShowVehicleSelector(false);
+                  }}
+                  className="p-4 h-auto justify-start text-left w-full"
+                >
+                  <div className="flex items-center space-x-4 w-full">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Car className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold">John Deere Tractor</div>
+                      <div className="text-sm opacity-75">Model: {selectedTractorModel} • 50 HP</div>
+                      <div className="text-xs text-green-600">Active • Ready</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold">John Deere Tractor</div>
-                    <div className="text-sm opacity-75">Model: JD 5050D • 50 HP</div>
-                    <div className="text-xs text-green-600">Active • Ready</div>
-                  </div>
+                </Button>
+                
+                <div className="ml-16">
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Select Tractor Model:</label>
+                  <Select value={selectedTractorModel} onValueChange={setSelectedTractorModel}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tractorModels.map((model) => (
+                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </Button>
+              </div>
               
-              <Button
-                variant={currentVehicleType === 'tiller' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCurrentVehicleType('tiller');
-                  setShowVehicleSelector(false);
-                }}
-                className="p-4 h-auto justify-start text-left"
-              >
-                <div className="flex items-center space-x-4 w-full">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Wrench className="h-6 w-6 text-orange-600" />
+              {/* Tiller Selection */}
+              <div className="space-y-3">
+                <Button
+                  variant={currentVehicleType === 'tiller' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setCurrentVehicleType('tiller');
+                    setShowVehicleSelector(false);
+                  }}
+                  className="p-4 h-auto justify-start text-left w-full"
+                >
+                  <div className="flex items-center space-x-4 w-full">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Wrench className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold">Power Tiller</div>
+                      <div className="text-sm opacity-75">Model: {selectedTillerModel} • 15 HP</div>
+                      <div className="text-xs text-orange-600">Available • Serviced</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold">Power Tiller</div>
-                    <div className="text-sm opacity-75">Model: TL 300X • 15 HP</div>
-                    <div className="text-xs text-orange-600">Available • Serviced</div>
-                  </div>
+                </Button>
+                
+                <div className="ml-16">
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Select Tiller Model:</label>
+                  <Select value={selectedTillerModel} onValueChange={setSelectedTillerModel}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tillerModels.map((model) => (
+                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </Button>
+              </div>
             </div>
             
             <div className="border-t pt-4">
