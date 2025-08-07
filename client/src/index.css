@@ -150,3 +150,9 @@
   0%, 100% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.1) rotate(5deg); }
 }
+
+/* Field label styles */
+.field-label {
+  background: transparent !important;
+  border: none !important;
+}

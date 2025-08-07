@@ -164,14 +164,14 @@ export default function FieldMappingPage() {
           tractorMarker.setLatLng([newCoord.lat, newCoord.lng]);
           setTractorPosition(newCoord);
           
-          // Add to coords array
+          // Add to coords array and update state
           coords.push(newCoord);
           pointCount++;
+          setTrackingCoords([...coords]); // Update state to trigger re-render
 
           if (pointCount >= 20) { // Complete the field boundary
             clearInterval(interval);
             setIsTracking(false);
-            setTrackingCoords(coords);
             
             // Draw the field boundary
             const fieldCoords: [number, number][] = coords.map(coord => [coord.lat, coord.lng] as [number, number]);
@@ -251,29 +251,43 @@ export default function FieldMappingPage() {
     if (mapInstanceRef.current && geoJson) {
       import('leaflet').then((L) => {
         const map = mapInstanceRef.current;
+        
+        // Clear all layers except the base map
         map.eachLayer((layer: any) => {
-          if (layer instanceof L.Polygon || layer instanceof L.Marker) {
+          if (layer instanceof L.Polygon || layer instanceof L.Marker || layer instanceof L.Polyline) {
             map.removeLayer(layer);
           }
         });
         
-        // Add only the saved field
+        // Add only the saved field with exact coordinates
         const coords = geoJson.geometry.coordinates[0].map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
         const polygon = L.polygon(coords, {
           color: '#22c55e',
           fillColor: '#22c55e',
-          fillOpacity: 0.3,
-          weight: 3
+          fillOpacity: 0.4,
+          weight: 3,
+          dashArray: '5, 5' // Dashed outline to show it's a saved field
         }).addTo(map);
         
-        // Fit map to show the field
-        map.fitBounds(polygon.getBounds());
+        // Add a label for the saved field
+        const center = polygon.getBounds().getCenter();
+        L.marker(center, {
+          icon: L.divIcon({
+            html: `<div style="background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid #22c55e; font-size: 12px; font-weight: bold; color: #22c55e;">${fieldName}</div>`,
+            className: 'field-label',
+            iconSize: [100, 20],
+            iconAnchor: [50, 10]
+          })
+        }).addTo(map);
         
-        // Show success message and navigation option
+        // Fit map to show the field with some padding
+        map.fitBounds(polygon.getBounds(), { padding: [20, 20] });
+        
+        // Show success message
         setTimeout(() => {
           toast({
             title: "Field Saved Successfully!",
-            description: `Field "${fieldName}" has been saved. You can view it in saved fields.`
+            description: `Field "${fieldName}" has been saved with its exact boundary.`
           });
         }, 500);
       });
@@ -359,7 +373,13 @@ export default function FieldMappingPage() {
                 <div className="animate-pulse h-4 w-4 bg-red-500 rounded-full mx-auto mb-2"></div>
                 <p className="font-semibold">GPS Tracking Active</p>
                 <p className="text-sm text-gray-600">🚜 Mapping field boundary...</p>
-                <p className="text-sm text-gray-600">Points collected: {trackingCoords.length}/20</p>
+                <p className="text-sm text-gray-600 font-medium">Points collected: {trackingCoords.length}/20</p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-ag-green h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${(trackingCoords.length / 20) * 100}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
           )}
