@@ -41,7 +41,6 @@ export default function FieldMappingPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
-  const [showAddField, setShowAddField] = useState(false);
   const [showSatelliteInstructions, setShowSatelliteInstructions] = useState(false);
   const [showManualDraw, setShowManualDraw] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -320,13 +319,23 @@ export default function FieldMappingPage() {
         {/* Action Buttons */}
         <div className="space-y-3">
           {!selectedField ? (
-            <Button 
-              onClick={() => setShowAddField(true)}
-              className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-            >
-              <MapPin className="h-4 w-4 mr-2" />
-              Add Field
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                onClick={() => setShowSatelliteInstructions(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white h-auto p-4 flex flex-col items-center space-y-2"
+              >
+                <Satellite className="h-5 w-5" />
+                <span className="text-sm">Satellite Mapping</span>
+              </Button>
+              <Button 
+                onClick={() => setShowManualDraw(true)}
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center space-y-2"
+              >
+                <PenTool className="h-5 w-5" />
+                <span className="text-sm">Draw Manually</span>
+              </Button>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <Button 
@@ -359,37 +368,6 @@ export default function FieldMappingPage() {
         </div>
       </div>
 
-      {/* Add Field Modal */}
-      <Dialog open={showAddField} onOpenChange={setShowAddField}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Add Field</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Button 
-              onClick={() => {
-                setShowAddField(false);
-                setShowSatelliteInstructions(true);
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Satellite className="h-4 w-4 mr-2" />
-              Satellite Mapping
-            </Button>
-            <Button 
-              onClick={() => {
-                setShowAddField(false);
-                setShowManualDraw(true);
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              <PenTool className="h-4 w-4 mr-2" />
-              Draw Map Manually
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Satellite Instructions Modal */}
       <Dialog open={showSatelliteInstructions} onOpenChange={setShowSatelliteInstructions}>
