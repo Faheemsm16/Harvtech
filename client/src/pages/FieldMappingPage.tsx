@@ -44,6 +44,7 @@ export default function FieldMappingPage() {
   const [showSatelliteInstructions, setShowSatelliteInstructions] = useState(false);
   const [showManualDraw, setShowManualDraw] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showSaveOption, setShowSaveOption] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [trackingCoords, setTrackingCoords] = useState<Array<{lat: number, lng: number}>>([]);
   const [fieldName, setFieldName] = useState("");
@@ -103,7 +104,7 @@ export default function FieldMappingPage() {
               const layer = e.layer;
               drawnItems.addLayer(layer);
               setCurrentDraw(layer.toGeoJSON());
-              setShowSaveDialog(true);
+              setShowSaveOption(true);
             });
           }
         });
@@ -149,6 +150,7 @@ export default function FieldMappingPage() {
         let pointCount = 0;
         let angle = 0;
         const radius = 0.005; // Field radius
+        const coords: Array<{lat: number, lng: number}> = [];
 
         const interval = setInterval(() => {
           // Create circular path for tractor (simulating field boundary)
@@ -162,18 +164,18 @@ export default function FieldMappingPage() {
           tractorMarker.setLatLng([newCoord.lat, newCoord.lng]);
           setTractorPosition(newCoord);
           
-          // Add to tracking coords
-          setTrackingCoords(prev => [...prev, newCoord]);
+          // Add to coords array
+          coords.push(newCoord);
           pointCount++;
 
           if (pointCount >= 20) { // Complete the field boundary
             clearInterval(interval);
             setIsTracking(false);
-            setShowSaveDialog(true);
+            setTrackingCoords(coords);
             
             // Draw the field boundary
-            const fieldCoords: [number, number][] = trackingCoords.map(coord => [coord.lat, coord.lng] as [number, number]);
-            fieldCoords.push([trackingCoords[0].lat, trackingCoords[0].lng] as [number, number]); // Close the polygon
+            const fieldCoords: [number, number][] = coords.map(coord => [coord.lat, coord.lng] as [number, number]);
+            fieldCoords.push([coords[0].lat, coords[0].lng] as [number, number]); // Close the polygon
             
             L.polygon(fieldCoords, {
               color: '#22c55e',
@@ -181,6 +183,8 @@ export default function FieldMappingPage() {
               fillOpacity: 0.3,
               weight: 3
             }).addTo(map);
+            
+            setShowSaveDialog(true);
           }
         }, 1500); // Slower animation for better visibility
       }
@@ -232,6 +236,7 @@ export default function FieldMappingPage() {
     // Reset state
     setFieldName("");
     setShowSaveDialog(false);
+    setShowSaveOption(false);
     setTrackingCoords([]);
     setCurrentDraw(null);
     setShowManualDraw(false);
@@ -240,6 +245,30 @@ export default function FieldMappingPage() {
     if (tractorMarkerRef.current) {
       tractorMarkerRef.current.remove();
       tractorMarkerRef.current = null;
+    }
+    
+    // Clear map and show only saved field
+    if (mapInstanceRef.current && geoJson) {
+      import('leaflet').then((L) => {
+        const map = mapInstanceRef.current;
+        map.eachLayer((layer: any) => {
+          if (layer instanceof L.Polygon || layer instanceof L.Marker) {
+            map.removeLayer(layer);
+          }
+        });
+        
+        // Add only the saved field
+        const coords = geoJson.geometry.coordinates[0].map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
+        const polygon = L.polygon(coords, {
+          color: '#22c55e',
+          fillColor: '#22c55e',
+          fillOpacity: 0.3,
+          weight: 3
+        }).addTo(map);
+        
+        // Fit map to show the field
+        map.fitBounds(polygon.getBounds());
+      });
     }
     
     // Navigate to saved fields page
@@ -279,14 +308,92 @@ export default function FieldMappingPage() {
           >
           </div>
 
+          {/* Satellite Instructions Overlay */}
+          {showSatelliteInstructions && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
+              <div className="bg-white p-4 rounded-lg max-w-sm mx-4">
+                <h3 className="font-semibold mb-3">Field Mapping Instructions</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-5 h-5 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                    <p>Position your tractor at the starting point of the field</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-5 h-5 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                    <p>Keep your mobile phone close to the tractor for GPS tracking</p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-5 h-5 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                    <p>Start the tractor and drive across the field boundary</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4">
+                  <Button 
+                    onClick={startSatelliteMapping}
+                    className="flex-1 bg-ag-green hover:bg-ag-green/90 text-white"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Start
+                  </Button>
+                  <Button 
+                    onClick={() => setShowSatelliteInstructions(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tracking overlay */}
           {isTracking && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
               <div className="bg-white p-4 rounded-lg text-center">
                 <div className="animate-pulse h-4 w-4 bg-red-500 rounded-full mx-auto mb-2"></div>
                 <p className="font-semibold">GPS Tracking Active</p>
                 <p className="text-sm text-gray-600">🚜 Mapping field boundary...</p>
                 <p className="text-sm text-gray-600">Points collected: {trackingCoords.length}/20</p>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Draw Save Option */}
+          {showSaveOption && currentDraw && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
+              <div className="bg-white p-4 rounded-lg text-center">
+                <h3 className="font-semibold mb-2">Field Boundary Created</h3>
+                <p className="text-sm text-gray-600 mb-4">Your field boundary has been drawn successfully.</p>
+                <div className="space-y-2">
+                  <Input
+                    value={fieldName}
+                    onChange={(e) => setFieldName(e.target.value)}
+                    placeholder="Enter field name"
+                    className="w-full"
+                  />
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={saveField}
+                      className="flex-1 bg-ag-green hover:bg-ag-green/90 text-white"
+                      disabled={!fieldName.trim()}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Field
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setShowSaveOption(false);
+                        setCurrentDraw(null);
+                        setFieldName("");
+                      }}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -356,86 +463,16 @@ export default function FieldMappingPage() {
             </div>
           )}
           
-          {savedFields.length > 0 && (
-            <Button 
-              onClick={() => setLocation('/services/fields')}
-              variant="outline"
-              className="w-full"
-            >
-              View All Fields
-            </Button>
-          )}
+          <Button 
+            onClick={() => setLocation('/services/fields')}
+            variant="outline"
+            className="w-full"
+          >
+            View Saved Fields
+          </Button>
         </div>
       </div>
 
-
-      {/* Satellite Instructions Modal */}
-      <Dialog open={showSatelliteInstructions} onOpenChange={setShowSatelliteInstructions}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Field Mapping Instructions</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                <div>
-                  <h4 className="font-semibold">Position the Tractor</h4>
-                  <p className="text-sm text-gray-600">Place your tractor at the starting point of the field where you want the automated path to begin.</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                <div>
-                  <h4 className="font-semibold">Keep Mobile Phone Close</h4>
-                  <p className="text-sm text-gray-600">Ensure your mobile phone is close to the tractor for accurate GPS tracking during the mapping process.</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-ag-green text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                <div>
-                  <h4 className="font-semibold">Start Engine & Drive</h4>
-                  <p className="text-sm text-gray-600">After pressing "Start", start the tractor and drive it across the field exactly how you want it to be automated in the future.</p>
-                </div>
-              </div>
-            </div>
-            <Button 
-              onClick={startSatelliteMapping}
-              className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Start
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Save Field Dialog */}
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Save Field</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="field-name">Field Name</Label>
-              <Input
-                id="field-name"
-                value={fieldName}
-                onChange={(e) => setFieldName(e.target.value)}
-                placeholder="Enter field name"
-              />
-            </div>
-            <Button 
-              onClick={saveField}
-              className="w-full bg-ag-green hover:bg-ag-green/90 text-white"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Field
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
