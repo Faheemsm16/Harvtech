@@ -236,6 +236,7 @@ export default function FieldMappingPage() {
               weight: 3
             }).addTo(map);
             
+            // Show save dialog for satellite mapping
             setShowSaveDialog(true);
           }
         }, 1000); // Moderate speed for better visibility
@@ -290,13 +291,18 @@ export default function FieldMappingPage() {
     setShowSaveDialog(false);
     setShowSaveOption(false);
     setTrackingCoords([]);
+    setTracedPath([]);
     setCurrentDraw(null);
     setShowManualDraw(false);
     
-    // Clean up tractor marker
+    // Clean up tractor marker and path
     if (tractorMarkerRef.current) {
       tractorMarkerRef.current.remove();
       tractorMarkerRef.current = null;
+    }
+    if (pathPolylineRef.current) {
+      mapInstanceRef.current.removeLayer(pathPolylineRef.current);
+      pathPolylineRef.current = null;
     }
     
     // Clear map and show only saved field
@@ -434,6 +440,66 @@ export default function FieldMappingPage() {
                     className="bg-ag-green h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${(trackingCoords.length / 20) * 100}%` }}
                   ></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Satellite Mapping Save Dialog */}
+          {showSaveDialog && trackingCoords.length > 0 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg" style={{zIndex: 1000}}>
+              <div className="bg-white p-4 rounded-lg text-center max-w-sm mx-4">
+                <h3 className="font-semibold mb-2">Field Boundary Traced!</h3>
+                <p className="text-sm text-gray-600 mb-4">🚜 Satellite mapping completed successfully. Save your field boundary?</p>
+                <div className="space-y-2">
+                  <Input
+                    value={fieldName}
+                    onChange={(e) => setFieldName(e.target.value)}
+                    placeholder="Enter field name"
+                    className="w-full"
+                  />
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={() => {
+                        if (fieldName.trim()) {
+                          saveField();
+                        } else {
+                          toast({
+                            title: "Error",
+                            description: "Please enter a field name",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                      className="flex-1 bg-ag-green hover:bg-ag-green/90 text-white"
+                      disabled={!fieldName.trim()}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Field
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setShowSaveDialog(false);
+                        setTrackingCoords([]);
+                        setTracedPath([]);
+                        setFieldName("");
+                        
+                        // Clean up the map
+                        if (tractorMarkerRef.current && mapInstanceRef.current) {
+                          mapInstanceRef.current.removeLayer(tractorMarkerRef.current);
+                          tractorMarkerRef.current = null;
+                        }
+                        if (pathPolylineRef.current && mapInstanceRef.current) {
+                          mapInstanceRef.current.removeLayer(pathPolylineRef.current);
+                          pathPolylineRef.current = null;
+                        }
+                      }}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

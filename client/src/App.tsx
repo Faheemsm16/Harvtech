@@ -29,6 +29,8 @@ import FieldMappingPage from "@/pages/FieldMappingPage";
 import SavedFieldsPage from "@/pages/SavedFieldsPage";
 import FieldAnalyticsPage from "@/pages/FieldAnalyticsPage";
 import WeatherAnalysisPage from "@/pages/WeatherAnalysisPage";
+import WeatherForecastPage from "@/pages/WeatherForecastPage";
+import WeatherAnalysisHistoryPage from "@/pages/WeatherAnalysisHistoryPage";
 import SellCategoryPage from "@/pages/marketplace/SellCategoryPage";
 import ProductUploadPage from "@/pages/marketplace/ProductUploadPage";
 import BuyCategoryPage from "@/pages/marketplace/BuyCategoryPage";
@@ -88,6 +90,8 @@ function Router() {
           <Route path="/services/fields" component={SavedFieldsPage} />
           <Route path="/services/analytics/:id" component={FieldAnalyticsPage} />
           <Route path="/services/weather/:id" component={WeatherAnalysisPage} />
+          <Route path="/services/weather/:id/forecast" component={WeatherForecastPage} />
+          <Route path="/services/weather/:id/analysis" component={WeatherAnalysisHistoryPage} />
           <Route path="/marketplace/sell" component={SellCategoryPage} />
           <Route path="/marketplace/sell/upload" component={ProductUploadPage} />
           <Route path="/marketplace/buy" component={BuyCategoryPage} />
