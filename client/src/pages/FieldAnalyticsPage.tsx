@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +96,8 @@ export default function FieldAnalyticsPage() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<string>("");
   const [showSentinel, setShowSentinel] = useState(false);
   const [selectedSentinel, setSelectedSentinel] = useState<string>("");
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
 
   // Load field data
   useEffect(() => {
@@ -103,6 +105,56 @@ export default function FieldAnalyticsPage() {
     const foundField = fields.find((f: Field) => f.id === fieldId);
     setField(foundField || null);
   }, [fieldId]);
+
+  // Initialize Leaflet map for traced field display
+  useEffect(() => {
+    if (mapRef.current && field && field.geoJson && typeof window !== 'undefined') {
+      // Dynamic import Leaflet to avoid SSR issues
+      import('leaflet').then((L) => {
+        if (!mapInstanceRef.current) {
+          const map = L.map(mapRef.current!).setView([20.5937, 78.9629], 10);
+          mapInstanceRef.current = map;
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+
+          // Display the traced field boundary
+          if (field.geoJson && field.geoJson.geometry) {
+            const coords = field.geoJson.geometry.coordinates[0].map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
+            
+            const polygon = L.polygon(coords, {
+              color: '#22c55e',
+              fillColor: '#22c55e',
+              fillOpacity: 0.3,
+              weight: 3
+            }).addTo(map);
+            
+            // Add field label
+            const center = polygon.getBounds().getCenter();
+            L.marker(center, {
+              icon: L.divIcon({
+                html: `<div style="background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid #22c55e; font-size: 12px; font-weight: bold; color: #22c55e;">${field.name}</div>`,
+                className: 'field-label',
+                iconSize: [100, 20],
+                iconAnchor: [50, 10]
+              })
+            }).addTo(map);
+            
+            // Fit map to show the field
+            map.fitBounds(polygon.getBounds(), { padding: [10, 10] });
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [field]);
 
   const generateHeatmapData = (analysisType: string) => {
     const colors = {
@@ -312,17 +364,23 @@ export default function FieldAnalyticsPage() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Field Display */}
+        {/* Traced Field Map Display */}
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-ag-green" />
+              <span>{field.name}</span>
+              <Badge variant="outline" className="ml-auto text-xs">
+                {new Date(field.createdAt).toLocaleDateString()}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-4">
-            <div className="h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">{field.name}</p>
-                <Badge variant="outline" className="mt-1">
-                  {new Date(field.createdAt).toLocaleDateString()}
-                </Badge>
-              </div>
+            <div 
+              ref={mapRef} 
+              className="w-full h-48 bg-gray-100 rounded-lg border border-gray-300"
+              style={{ minHeight: '192px' }}
+            >
             </div>
           </CardContent>
         </Card>

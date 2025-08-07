@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { 
   ArrowLeft, 
   Cloud, 
   CloudRain, 
@@ -15,7 +21,9 @@ import {
   MapPin,
   Calendar,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  BarChart3,
+  Clock
 } from "lucide-react";
 
 interface Field {
@@ -56,6 +64,8 @@ export default function WeatherAnalysisPage() {
   const [field, setField] = useState<Field | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showForecast, setShowForecast] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   // Load field data
   useEffect(() => {
@@ -199,6 +209,25 @@ export default function WeatherAnalysisPage() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Forecast and Analysis Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            onClick={() => setShowForecast(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Forecast
+          </Button>
+          <Button 
+            onClick={() => setShowAnalysis(true)}
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Analysis
+          </Button>
+        </div>
+
         {/* Weather Alerts */}
         {weatherData.alerts.length > 0 && (
           <div className="space-y-2">
@@ -346,6 +375,159 @@ export default function WeatherAnalysisPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Forecast Calendar Dialog */}
+      <Dialog open={showForecast} onOpenChange={setShowForecast}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5" />
+              <span>30-Day Agricultural Forecast</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1 text-xs text-center">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                <div key={day} className="font-semibold p-2 text-gray-600">{day}</div>
+              ))}
+              {Array.from({ length: 30 }, (_, i) => {
+                const day = i + 1;
+                const isOptimal = [3, 7, 14, 21, 28].includes(day); // Sowing days
+                const isHarvest = [15, 30].includes(day); // Harvest predictions
+                const isRainy = [10, 11, 12, 20, 25].includes(day); // Rainy days
+                
+                return (
+                  <div 
+                    key={day} 
+                    className={`p-2 rounded text-xs ${
+                      isOptimal ? 'bg-green-100 text-green-800 font-semibold' :
+                      isHarvest ? 'bg-orange-100 text-orange-800 font-semibold' :
+                      isRainy ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Legend */}
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+                <span>Optimal Sowing Days</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-orange-100 border border-orange-300 rounded"></div>
+                <span>Predicted Harvest Days</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                <span>Expected Rainfall</span>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-green-50 p-3 rounded-lg">
+              <h4 className="font-semibold text-green-800 text-sm mb-2">This Month's Recommendations</h4>
+              <ul className="text-sm text-green-700 space-y-1">
+                <li>• Days 3, 7, 14: Optimal for rice sowing</li>
+                <li>• Days 10-12: Heavy rain expected - avoid field work</li>
+                <li>• Day 15: Early harvest window for short-duration crops</li>
+                <li>• Days 21, 28: Second sowing opportunity</li>
+                <li>• Day 30: Main harvest season begins</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Analysis Dialog */}
+      <Dialog open={showAnalysis} onOpenChange={setShowAnalysis}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5" />
+              <span>Historical Weather Analysis</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Historical Data Cards */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center space-x-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Last 6 Months Trends</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="bg-blue-50 p-2 rounded">
+                    <div className="font-semibold text-blue-800">Avg Temperature</div>
+                    <div className="text-blue-600">26.8°C (+1.2°C)</div>
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <div className="font-semibold text-green-800">Total Rainfall</div>
+                    <div className="text-green-600">340mm (-45mm)</div>
+                  </div>
+                  <div className="bg-yellow-50 p-2 rounded">
+                    <div className="font-semibold text-yellow-800">Humidity</div>
+                    <div className="text-yellow-600">68% (Normal)</div>
+                  </div>
+                  <div className="bg-purple-50 p-2 rounded">
+                    <div className="font-semibold text-purple-800">Wind Speed</div>
+                    <div className="text-purple-600">11 km/h (-2 km/h)</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Monthly Breakdown */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Monthly Weather Patterns</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-xs">
+                  {[
+                    { month: 'Jan', temp: '24°C', rain: '15mm', condition: 'Dry' },
+                    { month: 'Feb', temp: '26°C', rain: '8mm', condition: 'Dry' },
+                    { month: 'Mar', temp: '29°C', rain: '22mm', condition: 'Mild' },
+                    { month: 'Apr', temp: '32°C', rain: '45mm', condition: 'Hot' },
+                    { month: 'May', temp: '28°C', rain: '125mm', condition: 'Wet' },
+                    { month: 'Jun', temp: '26°C', rain: '185mm', condition: 'Monsoon' }
+                  ].map((data, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                      <span className="font-medium">{data.month}</span>
+                      <span>{data.temp}</span>
+                      <span className="text-blue-600">{data.rain}</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        data.condition === 'Dry' ? 'bg-yellow-100 text-yellow-700' :
+                        data.condition === 'Wet' || data.condition === 'Monsoon' ? 'bg-blue-100 text-blue-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>{data.condition}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Insights */}
+            <div className="bg-purple-50 p-3 rounded-lg">
+              <h4 className="font-semibold text-purple-800 text-sm mb-2">Key Insights</h4>
+              <ul className="text-sm text-purple-700 space-y-1">
+                <li>• Temperature has increased by 1.2°C compared to last year</li>
+                <li>• Rainfall deficit of 45mm may affect crop yield</li>
+                <li>• Early monsoon arrival expected this year</li>
+                <li>• Extreme weather events increased by 15%</li>
+                <li>• Optimal planting window shifted by 5-7 days</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

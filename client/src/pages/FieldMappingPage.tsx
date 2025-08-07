@@ -52,8 +52,10 @@ export default function FieldMappingPage() {
   const [selectedField, setSelectedField] = useState<Field | null>(null);
   const [currentDraw, setCurrentDraw] = useState<any>(null);
   const [tractorPosition, setTractorPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [tracedPath, setTracedPath] = useState<Array<{lat: number, lng: number}>>([]);
   const mapInstanceRef = useRef<any>(null);
   const tractorMarkerRef = useRef<any>(null);
+  const pathPolylineRef = useRef<any>(null);
 
   // Load saved fields from localStorage
   useEffect(() => {
@@ -119,11 +121,12 @@ export default function FieldMappingPage() {
     };
   }, [showManualDraw]);
 
-  // GPS tracking simulation with tractor animation
+  // GPS tracking simulation with realistic path tracing
   const startSatelliteMapping = () => {
     setShowSatelliteInstructions(false);
     setIsTracking(true);
     setTrackingCoords([]);
+    setTracedPath([]);
 
     // Dynamic import Leaflet for tractor animation
     import('leaflet').then((L) => {
@@ -131,6 +134,11 @@ export default function FieldMappingPage() {
       const map = mapInstanceRef.current;
       
       if (map) {
+        // Clear any existing path
+        if (pathPolylineRef.current) {
+          map.removeLayer(pathPolylineRef.current);
+        }
+
         // Create custom tractor icon
         const tractorIcon = L.divIcon({
           html: '🚜',
@@ -145,48 +153,92 @@ export default function FieldMappingPage() {
         tractorMarkerRef.current = tractorMarker;
 
         // Center map on tractor
-        map.setView([baseCoords.lat, baseCoords.lng], 14);
+        map.setView([baseCoords.lat, baseCoords.lng], 15);
 
         let pointCount = 0;
-        let angle = 0;
-        const radius = 0.005; // Field radius
+        const radius = 0.003; // Smaller field radius for better visibility
         const coords: Array<{lat: number, lng: number}> = [];
+        const pathCoords: Array<[number, number]> = [];
+
+        // Create polyline for path tracing
+        const pathPolyline = L.polyline([], {
+          color: '#3b82f6',
+          weight: 4,
+          opacity: 0.8,
+          dashArray: '10, 5'
+        }).addTo(map);
+        pathPolylineRef.current = pathPolyline;
 
         const interval = setInterval(() => {
-          // Create circular path for tractor (simulating field boundary)
-          angle += Math.PI / 10; // 20 points to complete circle
-          const newCoord = {
-            lat: baseCoords.lat + Math.cos(angle) * radius,
-            lng: baseCoords.lng + Math.sin(angle) * radius
-          };
+          // Create realistic field boundary path (rectangular with rounded corners)
+          let newCoord;
+          const progress = pointCount / 20;
+          
+          if (progress <= 0.25) {
+            // Top edge
+            const edgeProgress = progress / 0.25;
+            newCoord = {
+              lat: baseCoords.lat + radius,
+              lng: baseCoords.lng - radius + (2 * radius * edgeProgress)
+            };
+          } else if (progress <= 0.5) {
+            // Right edge
+            const edgeProgress = (progress - 0.25) / 0.25;
+            newCoord = {
+              lat: baseCoords.lat + radius - (2 * radius * edgeProgress),
+              lng: baseCoords.lng + radius
+            };
+          } else if (progress <= 0.75) {
+            // Bottom edge
+            const edgeProgress = (progress - 0.5) / 0.25;
+            newCoord = {
+              lat: baseCoords.lat - radius,
+              lng: baseCoords.lng + radius - (2 * radius * edgeProgress)
+            };
+          } else {
+            // Left edge
+            const edgeProgress = (progress - 0.75) / 0.25;
+            newCoord = {
+              lat: baseCoords.lat - radius + (2 * radius * edgeProgress),
+              lng: baseCoords.lng - radius
+            };
+          }
           
           // Update tractor position
           tractorMarker.setLatLng([newCoord.lat, newCoord.lng]);
           setTractorPosition(newCoord);
           
-          // Add to coords array and update state
+          // Add to path and update traced path display
           coords.push(newCoord);
+          pathCoords.push([newCoord.lat, newCoord.lng]);
+          pathPolyline.setLatLngs(pathCoords);
+          
           pointCount++;
-          setTrackingCoords([...coords]); // Update state to trigger re-render
+          setTrackingCoords([...coords]);
+          setTracedPath([...coords]);
 
-          if (pointCount >= 20) { // Complete the field boundary
+          if (pointCount >= 20) {
             clearInterval(interval);
             setIsTracking(false);
             
-            // Draw the field boundary
+            // Complete the field boundary by connecting to start
+            pathCoords.push([coords[0].lat, coords[0].lng]);
+            pathPolyline.setLatLngs(pathCoords);
+            
+            // Draw the final field polygon
             const fieldCoords: [number, number][] = coords.map(coord => [coord.lat, coord.lng] as [number, number]);
-            fieldCoords.push([coords[0].lat, coords[0].lng] as [number, number]); // Close the polygon
+            fieldCoords.push([coords[0].lat, coords[0].lng] as [number, number]);
             
             L.polygon(fieldCoords, {
               color: '#22c55e',
               fillColor: '#22c55e',
-              fillOpacity: 0.3,
+              fillOpacity: 0.2,
               weight: 3
             }).addTo(map);
             
             setShowSaveDialog(true);
           }
-        }, 1500); // Slower animation for better visibility
+        }, 1000); // Moderate speed for better visibility
       }
     });
   };
@@ -309,7 +361,7 @@ export default function FieldMappingPage() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => window.history.back()}
+          onClick={() => setLocation('/')}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -372,8 +424,11 @@ export default function FieldMappingPage() {
               <div className="bg-white p-4 rounded-lg text-center">
                 <div className="animate-pulse h-4 w-4 bg-red-500 rounded-full mx-auto mb-2"></div>
                 <p className="font-semibold">GPS Tracking Active</p>
-                <p className="text-sm text-gray-600">🚜 Mapping field boundary...</p>
-                <p className="text-sm text-gray-600 font-medium">Points collected: {trackingCoords.length}/20</p>
+                <p className="text-sm text-gray-600">🚜 Tracing field boundary...</p>
+                <p className="text-sm text-gray-600 font-medium">Path progress: {trackingCoords.length}/20 points</p>
+                <div className="text-xs text-blue-600 mt-1">
+                  {tracedPath.length > 0 && 'Blue line shows traced path'}
+                </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                   <div 
                     className="bg-ag-green h-2 rounded-full transition-all duration-300" 

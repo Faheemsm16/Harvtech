@@ -120,38 +120,6 @@ export default function SavedFieldsPage() {
           </div>
         )}
 
-        {/* Services Options */}
-        {savedFields.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-base">Field Management Services</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 text-sm">Crop Monitoring</h4>
-                  <p className="text-sm text-green-700 mt-1">
-                    NDVI, NDRE, MSAVI/RECI analysis for pest detection, plant health, and nutrient management
-                  </p>
-                </div>
-                
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 text-sm">Weather Analysis</h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Real-time weather data, 5-day forecasts, and agricultural recommendations
-                  </p>
-                </div>
-
-                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                  <h4 className="font-semibold text-yellow-800 text-sm">Irrigation Planning</h4>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Sentinel elevation and slope analysis for optimal water management
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
