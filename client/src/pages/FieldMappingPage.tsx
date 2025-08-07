@@ -268,11 +268,16 @@ export default function FieldMappingPage() {
         
         // Fit map to show the field
         map.fitBounds(polygon.getBounds());
+        
+        // Show success message and navigation option
+        setTimeout(() => {
+          toast({
+            title: "Field Saved Successfully!",
+            description: `Field "${fieldName}" has been saved. You can view it in saved fields.`
+          });
+        }, 500);
       });
     }
-    
-    // Navigate to saved fields page
-    setLocation('/services/fields');
   };
 
   const handleFieldAnalytics = (field: Field) => {
@@ -310,7 +315,7 @@ export default function FieldMappingPage() {
 
           {/* Satellite Instructions Overlay */}
           {showSatelliteInstructions && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg" style={{zIndex: 1000}}>
               <div className="bg-white p-4 rounded-lg max-w-sm mx-4">
                 <h3 className="font-semibold mb-3">Field Mapping Instructions</h3>
                 <div className="space-y-3 text-sm">
@@ -349,7 +354,7 @@ export default function FieldMappingPage() {
 
           {/* Tracking overlay */}
           {isTracking && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg" style={{zIndex: 1000}}>
               <div className="bg-white p-4 rounded-lg text-center">
                 <div className="animate-pulse h-4 w-4 bg-red-500 rounded-full mx-auto mb-2"></div>
                 <p className="font-semibold">GPS Tracking Active</p>
@@ -361,7 +366,7 @@ export default function FieldMappingPage() {
 
           {/* Manual Draw Save Option */}
           {showSaveOption && currentDraw && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg z-10">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg" style={{zIndex: 1000}}>
               <div className="bg-white p-4 rounded-lg text-center">
                 <h3 className="font-semibold mb-2">Field Boundary Created</h3>
                 <p className="text-sm text-gray-600 mb-4">Your field boundary has been drawn successfully.</p>
@@ -374,7 +379,17 @@ export default function FieldMappingPage() {
                   />
                   <div className="flex space-x-2">
                     <Button 
-                      onClick={saveField}
+                      onClick={() => {
+                        if (fieldName.trim()) {
+                          saveField();
+                        } else {
+                          toast({
+                            title: "Error",
+                            description: "Please enter a field name",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
                       className="flex-1 bg-ag-green hover:bg-ag-green/90 text-white"
                       disabled={!fieldName.trim()}
                     >
