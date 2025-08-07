@@ -612,17 +612,33 @@ export default function OwnerDashboard() {
               transform: `perspective(1000px) rotateX(${tractorRotation.x}deg) rotateY(${tractorRotation.y}deg)`
             }}
           >
-            {/* HARVTECH 3D Tractor Image */}
+            {/* HARVTECH 3D Vehicle Image */}
             <div className="relative w-96 h-64 transform-gpu">
-              <img 
-                src={tractorImagePath}
-                alt="HARVTECH Autonomous Tractor"
-                className="w-full h-full object-contain drop-shadow-2xl filter brightness-110 contrast-110"
-                style={{
-                  filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5)) brightness(1.1) contrast(1.1)',
-                  transform: 'rotateY(15deg) rotateX(-5deg)'
-                }}
-              />
+              {currentVehicleType === 'tractor' ? (
+                <img 
+                  src={tractorImagePath}
+                  alt="HARVTECH Autonomous Tractor"
+                  className="w-full h-full object-contain drop-shadow-2xl filter brightness-110 contrast-110"
+                  style={{
+                    filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5)) brightness(1.1) contrast(1.1)',
+                    transform: 'rotateY(15deg) rotateX(-5deg)'
+                  }}
+                />
+              ) : (
+                <div 
+                  className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-600 to-red-600 rounded-xl drop-shadow-2xl"
+                  style={{
+                    filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5))',
+                    transform: 'rotateY(15deg) rotateX(-5deg)'
+                  }}
+                >
+                  <div className="text-center text-white">
+                    <Wrench className="h-24 w-24 mx-auto mb-4" />
+                    <div className="text-xl font-bold">Power Tiller</div>
+                    <div className="text-sm opacity-80">TL 300X Model</div>
+                  </div>
+                </div>
+              )}
               
               {/* Glowing effect overlay when engine is running */}
               {engineRunning && (
@@ -1742,23 +1758,6 @@ export default function OwnerDashboard() {
                     </div>
                   </Button>
                   
-                  <Button
-                    onClick={() => {
-                      setShowOwnerEquipment(true);
-                      setShowHamburgerMenu(false);
-                    }}
-                    className="w-full bg-yellow-600/20 hover:bg-yellow-600/40 border border-yellow-400/30 text-white p-6 h-auto justify-start text-left"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-yellow-500/30 rounded-lg flex items-center justify-center">
-                        <Settings className="h-6 w-6 text-yellow-400" />
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold">Vehicle & Equipment Management</div>
-                        <div className="text-sm opacity-75">Manage tractors, tillers and equipment</div>
-                      </div>
-                    </div>
-                  </Button>
                 </div>
               </div>
             </Card>
@@ -1911,7 +1910,7 @@ export default function OwnerDashboard() {
                 variant="ghost"
                 onClick={() => {
                   setShowVehicleSelector(false);
-                  setShowOwnerEquipment(true);
+                  setLocation('/owner-registration');
                 }}
                 className="w-full text-ag-green hover:bg-ag-green/10"
               >
