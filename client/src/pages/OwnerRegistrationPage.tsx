@@ -28,7 +28,7 @@ export default function OwnerRegistrationPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login } = useCustomAuth();
+  const { user, login } = useCustomAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -107,7 +107,42 @@ export default function OwnerRegistrationPage() {
 
   const handleContinue = () => {
     if (validateStep1()) {
-      setCurrentStep(2);
+      // If user is already authenticated, register equipment directly
+      if (user) {
+        registerEquipment();
+      } else {
+        setCurrentStep(2);
+      }
+    }
+  };
+
+  const registerEquipment = async () => {
+    setIsLoading(true);
+    try {
+      // Register equipment for authenticated user
+      const equipmentData = {
+        userId: user?.id,
+        type: formData.equipmentType,
+        modelNumber: formData.modelNumber,
+        chassisNumber: formData.chassisNumber,
+        name: `${formData.equipmentType.charAt(0).toUpperCase() + formData.equipmentType.slice(1)} - ${formData.modelNumber}`,
+      };
+
+      await apiRequest('POST', '/api/equipment', equipmentData);
+      
+      setShowSuccess(true);
+      toast({
+        title: "Equipment Registered",
+        description: "Your equipment has been successfully registered!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Failed to register equipment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -225,21 +260,23 @@ export default function OwnerRegistrationPage() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h2 className="text-xl font-bold">{t('owner_registration')}</h2>
+        <h2 className="text-xl font-bold">{user ? 'Register New Vehicle' : t('owner_registration')}</h2>
       </div>
       
-      {/* Step Indicator */}
-      <div className="flex items-center justify-center mb-6">
-        <div className="flex items-center space-x-2">
-          <div className={`w-8 h-8 ${currentStep >= 1 ? 'bg-ag-green text-white' : 'bg-gray-300 text-gray-600'} rounded-full flex items-center justify-center text-sm font-semibold`}>
-            1
-          </div>
-          <div className="w-16 h-1 bg-gray-300"></div>
-          <div className={`w-8 h-8 ${currentStep >= 2 ? 'bg-ag-green text-white' : 'bg-gray-300 text-gray-600'} rounded-full flex items-center justify-center text-sm font-semibold`}>
-            2
+      {/* Step Indicator - Only show for new users */}
+      {!user && (
+        <div className="flex items-center justify-center mb-6">
+          <div className="flex items-center space-x-2">
+            <div className={`w-8 h-8 ${currentStep >= 1 ? 'bg-ag-green text-white' : 'bg-gray-300 text-gray-600'} rounded-full flex items-center justify-center text-sm font-semibold`}>
+              1
+            </div>
+            <div className="w-16 h-1 bg-gray-300"></div>
+            <div className={`w-8 h-8 ${currentStep >= 2 ? 'bg-ag-green text-white' : 'bg-gray-300 text-gray-600'} rounded-full flex items-center justify-center text-sm font-semibold`}>
+              2
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Step 1: Equipment Selection */}
       {currentStep === 1 && (
@@ -296,15 +333,16 @@ export default function OwnerRegistrationPage() {
           
           <Button 
             onClick={handleContinue}
+            disabled={isLoading}
             className="w-full bg-ag-brown hover:bg-ag-brown/90 text-white py-6 font-semibold"
           >
-            {t('continue')}
+            {isLoading ? 'Registering...' : (user ? 'Register Vehicle' : t('continue'))}
           </Button>
         </div>
       )}
 
-      {/* Step 2: Personal Details */}
-      {currentStep === 2 && (
+      {/* Step 2: Personal Details - Only show for new users */}
+      {currentStep === 2 && !user && (
         <div className="flex-1 space-y-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium">{t('full_name')} *</Label>
@@ -441,8 +479,8 @@ export default function OwnerRegistrationPage() {
       <SuccessModal
         isOpen={showSuccess}
         onClose={handleSuccessClose}
-        message="Registration completed successfully. You can add equipment after logging in."
-        farmerId={farmerId}
+        message={user ? "Vehicle registered successfully! You can now use it from your dashboard." : "Registration completed successfully. You can add equipment after logging in."}
+        farmerId={user ? user.farmerId : farmerId}
       />
       
       <TermsAndConditions

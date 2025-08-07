@@ -689,25 +689,27 @@ export default function OwnerDashboard() {
         {/* Battery Levels - Top Left */}
         <Card className="absolute top-6 left-6 bg-black/40 backdrop-blur-md border-green-400/30 text-white p-4 w-52">
           <div className="space-y-3">
-            {/* HV Battery */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center space-x-2">
-                  <Zap className={`h-4 w-4 ${hvBatteryLevel > 20 ? 'text-orange-400' : 'text-red-400'}`} />
-                  <span className="text-xs font-medium">HV Battery</span>
+            {/* HV Battery - Only show for tractor */}
+            {currentVehicleType === 'tractor' && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center space-x-2">
+                    <Zap className={`h-4 w-4 ${hvBatteryLevel > 20 ? 'text-orange-400' : 'text-red-400'}`} />
+                    <span className="text-xs font-medium">HV Battery</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-400">{hvBatteryLevel}%</span>
                 </div>
-                <span className="text-sm font-bold text-orange-400">{hvBatteryLevel}%</span>
+                <Progress value={hvBatteryLevel} className="mb-1 h-1.5" />
+                <div className="text-xs text-orange-300">400V System</div>
               </div>
-              <Progress value={hvBatteryLevel} className="mb-1 h-1.5" />
-              <div className="text-xs text-orange-300">400V System</div>
-            </div>
+            )}
             
             {/* LV Battery */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-2">
                   <Battery className={`h-4 w-4 ${lvBatteryLevel > 20 ? 'text-green-400' : 'text-red-400'}`} />
-                  <span className="text-xs font-medium">LV Battery</span>
+                  <span className="text-xs font-medium">{currentVehicleType === 'tractor' ? 'LV Battery' : 'Battery'}</span>
                 </div>
                 <span className="text-sm font-bold text-green-400">{lvBatteryLevel}%</span>
               </div>
@@ -776,8 +778,8 @@ export default function OwnerDashboard() {
           </Button>
         </Card>
 
-        {/* Soil Scan - Center Bottom (Only visible when engine is running) */}
-        {engineRunning && (
+        {/* Soil Scan - Center Bottom (Only visible when engine is running and tractor is selected) */}
+        {engineRunning && currentVehicleType === 'tractor' && (
           <Card className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-md border-purple-400/30 text-white p-4">
             <Button
               onClick={toggleSoilScan}
@@ -809,8 +811,8 @@ export default function OwnerDashboard() {
           </Card>
         )}
 
-        {/* GPS Location - Center Right (Only visible when engine is running) */}
-        {engineRunning && !isMapping && (
+        {/* GPS Location - Center Right (Only visible when engine is running and tractor is selected) */}
+        {engineRunning && !isMapping && currentVehicleType === 'tractor' && (
           <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-cyan-400/30 text-white p-4">
             <div className="flex items-center space-x-2 mb-2">
               <MapPin className="h-5 w-5 text-cyan-400 animate-bounce" />
@@ -824,8 +826,8 @@ export default function OwnerDashboard() {
           </Card>
         )}
 
-        {/* Mapping Status - Center Right (Only visible when mapping is active) */}
-        {isMapping && (
+        {/* Mapping Status - Center Right (Only visible when mapping is active and tractor is selected) */}
+        {isMapping && currentVehicleType === 'tractor' && (
           <Card className="absolute top-1/2 right-6 transform -translate-y-1/2 bg-black/40 backdrop-blur-md border-orange-400/30 text-white p-4">
             <div className="flex items-center space-x-2 mb-2">
               <Map className="h-5 w-5 text-orange-400 animate-pulse" />
@@ -957,39 +959,54 @@ export default function OwnerDashboard() {
         )}
       </div>
 
-      {/* Bottom Navigation - Map Controls */}
-      <div className="p-6 bg-black/20 backdrop-blur-md border-t border-white/10">
-        <div className="grid grid-cols-2 gap-4">
-          <Button 
-            onClick={isMapping ? stopMapping : handleAddMapClick}
-            className={`py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 ${
-              isMapping 
-                ? 'bg-red-600/80 hover:bg-red-600 text-white animate-pulse' 
-                : 'bg-blue-600/80 hover:bg-blue-600 text-white'
-            }`}
-          >
-            {isMapping ? (
-              <>
-                <X className="h-5 w-5 mr-2" />
-                Stop Mapping
-              </>
-            ) : (
-              <>
-                <Plus className="h-5 w-5 mr-2" />
-                {t('add_map')}
-              </>
-            )}
-          </Button>
-          
-          <Button 
-            onClick={loadSavedMaps}
-            className="bg-green-600/80 hover:bg-green-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
-          >
-            <FolderOpen className="h-5 w-5 mr-2" />
-            {t('saved_maps')} {savedMaps.length > 0 && `(${savedMaps.length})`}
-          </Button>
+      {/* Bottom Navigation - Map Controls (Only show for tractor) */}
+      {currentVehicleType === 'tractor' && (
+        <div className="p-6 bg-black/20 backdrop-blur-md border-t border-white/10">
+          <div className="grid grid-cols-2 gap-4">
+            <Button 
+              onClick={isMapping ? stopMapping : handleAddMapClick}
+              className={`py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                isMapping 
+                  ? 'bg-red-600/80 hover:bg-red-600 text-white animate-pulse' 
+                  : 'bg-blue-600/80 hover:bg-blue-600 text-white'
+              }`}
+            >
+              {isMapping ? (
+                <>
+                  <X className="h-5 w-5 mr-2" />
+                  Stop Mapping
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5 mr-2" />
+                  {t('add_map')}
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={loadSavedMaps}
+              className="bg-green-600/80 hover:bg-green-600 text-white py-4 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <FolderOpen className="h-5 w-5 mr-2" />
+              {t('saved_maps')} {savedMaps.length > 0 && `(${savedMaps.length})`}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+      
+      {/* Simplified Bottom Navigation for Tiller */}
+      {currentVehicleType === 'tiller' && (
+        <div className="p-6 bg-black/20 backdrop-blur-md border-t border-white/10">
+          <div className="text-center text-white/70">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Wrench className="h-5 w-5 text-orange-400" />
+              <span className="text-sm font-medium">Power Tiller Controls</span>
+            </div>
+            <p className="text-xs">Use the controls above to operate your tiller</p>
+          </div>
+        </div>
+      )}
       
       {/* Modals */}
       <SchemesModal isOpen={showSchemes} onClose={() => setShowSchemes(false)} />
