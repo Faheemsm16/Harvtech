@@ -137,3 +137,16 @@
     color: var(--ag-dark);
   }
 }
+
+/* Tractor animation styles */
+.tractor-icon {
+  background: transparent !important;
+  border: none !important;
+  font-size: 24px;
+  animation: tractorMove 1.5s ease-in-out infinite;
+}
+
+@keyframes tractorMove {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}

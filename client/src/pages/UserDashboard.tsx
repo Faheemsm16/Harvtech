@@ -13,7 +13,6 @@ import { useLocation } from "wouter";
 import { useCustomAuth } from "@/context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { SchemesModal } from "@/components/SchemesModal";
-import { ServicesModal } from "@/components/ServicesModal";
 
 interface Booking {
   id: string;
@@ -35,7 +34,6 @@ export default function UserDashboard() {
   const [, setLocation] = useLocation();
   const { user, logout } = useCustomAuth();
   const [showSchemes, setShowSchemes] = useState(false);
-  const [showServices, setShowServices] = useState(false);
 
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/user/bookings'],
@@ -208,7 +206,7 @@ export default function UserDashboard() {
           
           <Button
             variant="outline"
-            onClick={() => setShowServices(true)}
+            onClick={() => setLocation('/services')}
             className="w-full bg-white border border-gray-200 p-4 h-auto justify-start hover:border-ag-orange"
           >
             <Bell className="h-5 w-5 text-ag-orange mr-3" />
@@ -220,7 +218,6 @@ export default function UserDashboard() {
       
       {/* Modals */}
       <SchemesModal isOpen={showSchemes} onClose={() => setShowSchemes(false)} />
-      <ServicesModal isOpen={showServices} onClose={() => setShowServices(false)} />
     </div>
   );
 }

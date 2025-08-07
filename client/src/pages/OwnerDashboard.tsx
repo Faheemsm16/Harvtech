@@ -62,7 +62,6 @@ import { useCustomAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { SchemesModal } from "@/components/SchemesModal";
-import { ServicesModal } from "@/components/ServicesModal";
 import { OwnerEquipmentModal } from "@/components/OwnerEquipmentModal";
 import tractorImagePath from "@assets/file_00000000383c622f988bed4aa323e086_1754395000391.png";
 
@@ -83,7 +82,6 @@ export default function OwnerDashboard() {
   const { user, logout } = useCustomAuth();
   const [, setLocation] = useLocation();
   const [showSchemes, setShowSchemes] = useState(false);
-  const [showServices, setShowServices] = useState(false);
   const [showOwnerEquipment, setShowOwnerEquipment] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -1023,7 +1021,6 @@ export default function OwnerDashboard() {
       
       {/* Modals */}
       <SchemesModal isOpen={showSchemes} onClose={() => setShowSchemes(false)} />
-      <ServicesModal isOpen={showServices} onClose={() => setShowServices(false)} />
       <OwnerEquipmentModal 
         isOpen={showOwnerEquipment} 
         onClose={() => setShowOwnerEquipment(false)}
@@ -1783,7 +1780,7 @@ export default function OwnerDashboard() {
                   
                   <Button
                     onClick={() => {
-                      setShowServices(true);
+                      setLocation('/services');
                       setShowHamburgerMenu(false);
                     }}
                     className="w-full bg-purple-600/20 hover:bg-purple-600/40 border border-purple-400/30 text-white p-6 h-auto justify-start text-left"
