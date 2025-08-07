@@ -79,6 +79,9 @@ export default function OwnerDashboard() {
   const [showServices, setShowServices] = useState(false);
   const [showOwnerEquipment, setShowOwnerEquipment] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [currentVehicleType, setCurrentVehicleType] = useState('tractor'); // 'tractor' or 'tiller'
+  const [showVehicleSelector, setShowVehicleSelector] = useState(false);
   
   // Tractor control states
   const [batteryLevel, setBatteryLevel] = useState(87);
@@ -129,7 +132,8 @@ export default function OwnerDashboard() {
   const [isAutomatedRunning, setIsAutomatedRunning] = useState(false);
   const [automatedProgress, setAutomatedProgress] = useState({ currentPoint: 0, totalPoints: 0, timeElapsed: 0, areaCompleted: 0 });
   const automatedInterval = useRef<NodeJS.Timeout | null>(null);
-  const [vehicleInfo, setVehicleInfo] = useState({
+  // Vehicle info for different vehicle types
+  const [tractorInfo] = useState({
     motorHealth: 85,
     motorTemperature: 92, // °C
     oilLevel: 78,
@@ -153,6 +157,34 @@ export default function OwnerDashboard() {
     transmissionHealth: 89,
     overallCondition: 0 // Will be calculated
   });
+  
+  const [tillerInfo] = useState({
+    motorHealth: 92,
+    motorTemperature: 78, // °C
+    oilLevel: 85,
+    coolantLevel: 0, // No coolant system in tiller
+    hvBattery: { level: 0, voltage: 0, temperature: 0 }, // No HV battery in tiller
+    lvBattery: { level: 88, voltage: 12.6, temperature: 25 },
+    tyreAirLevel: {
+      frontLeft: 0, // No front tyres in tiller
+      frontRight: 0,
+      rearLeft: 88,
+      rearRight: 90
+    },
+    brakeHealth: {
+      system: 0, // No brake system in tiller
+      fluidLevel: 0,
+      padWear: 0
+    },
+    hydraulicSystem: 0, // No hydraulic system in basic tiller
+    batteryVoltage: 12.6,
+    fuelLevel: 82,
+    transmissionHealth: 95, // Simple transmission
+    overallCondition: 0 // Will be calculated
+  });
+  
+  // Get current vehicle info based on selected vehicle type
+  const vehicleInfo = currentVehicleType === 'tractor' ? tractorInfo : tillerInfo;
 
   // Calculate overall tractor condition
   const calculateOverallCondition = () => {
@@ -531,14 +563,20 @@ export default function OwnerDashboard() {
               <Menu className="h-5 w-5" />
             </Button>
             
-            {/* User avatar and info */}
-            <div className="w-10 h-10 bg-blue-500/30 rounded-full flex items-center justify-center border border-blue-400/30">
-              <User className="h-5 w-5 text-blue-300" />
-            </div>
-            <div>
-              <p className="text-xs opacity-75 text-blue-200">{t('tractor_owner') || 'Tractor Owner'}</p>
-              <h2 className="font-semibold text-sm">{user?.name || 'Smart Farmer'}</h2>
-            </div>
+            {/* Profile Button */}
+            <Button
+              variant="ghost"
+              onClick={() => setShowProfile(true)}
+              className="text-white hover:bg-white/10 p-2 rounded-lg flex items-center space-x-3"
+            >
+              <div className="w-10 h-10 bg-blue-500/30 rounded-full flex items-center justify-center border border-blue-400/30">
+                <User className="h-5 w-5 text-blue-300" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs opacity-75 text-blue-200">{currentVehicleType === 'tractor' ? (t('tractor_owner') || 'Tractor Owner') : (t('tiller_owner') || 'Tiller Owner')}</p>
+                <h2 className="font-semibold text-sm">{user?.name || 'Smart Farmer'}</h2>
+              </div>
+            </Button>
           </div>
           
           {/* Logout button */}
@@ -1716,8 +1754,8 @@ export default function OwnerDashboard() {
                         <Settings className="h-6 w-6 text-yellow-400" />
                       </div>
                       <div>
-                        <div className="text-lg font-semibold">Equipment Management</div>
-                        <div className="text-sm opacity-75">Manage your equipment listings</div>
+                        <div className="text-lg font-semibold">Vehicle & Equipment Management</div>
+                        <div className="text-sm opacity-75">Manage tractors, tillers and equipment</div>
                       </div>
                     </div>
                   </Button>
@@ -1727,6 +1765,171 @@ export default function OwnerDashboard() {
           </div>
         </div>
       )}
+
+      {/* Profile Modal */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>Profile Information</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-400/30">
+                <User className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{user?.name || 'Smart Farmer'}</h3>
+                <p className="text-sm text-gray-600">{currentVehicleType === 'tractor' ? 'Tractor Owner' : 'Tiller Owner'}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Farmer ID</span>
+                  <span className="font-mono text-sm">{user?.farmerId || 'FRM-000000'}</span>
+                </div>
+              </div>
+              
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Mobile</span>
+                  <span className="text-sm">{user?.mobileNumber || '+91 98765 43210'}</span>
+                </div>
+              </div>
+              
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Location</span>
+                  <span className="text-sm">{user?.city || 'Tamil Nadu'}</span>
+                </div>
+              </div>
+              
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-600">Current Vehicle</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowProfile(false);
+                      setShowVehicleSelector(true);
+                    }}
+                    className="text-xs"
+                  >
+                    Switch Vehicle
+                  </Button>
+                </div>
+                <div className="text-sm">
+                  <div className="flex items-center space-x-2">
+                    {currentVehicleType === 'tractor' ? 
+                      <Car className="h-4 w-4 text-ag-green" /> : 
+                      <Wrench className="h-4 w-4 text-ag-green" />
+                    }
+                    <span className="capitalize font-medium">{currentVehicleType}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {currentVehicleType === 'tractor' ? 'Model: JD 5050D' : 'Model: TL 300X'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => setShowProfile(false)}
+              className="w-full"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Selector Modal */}
+      <Dialog open={showVehicleSelector} onOpenChange={setShowVehicleSelector}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Settings className="h-5 w-5" />
+              <span>Switch Vehicle</span>
+            </DialogTitle>
+            <DialogDescription>
+              Select the vehicle you want to control from the dashboard
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              <Button
+                variant={currentVehicleType === 'tractor' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCurrentVehicleType('tractor');
+                  setShowVehicleSelector(false);
+                }}
+                className="p-4 h-auto justify-start text-left"
+              >
+                <div className="flex items-center space-x-4 w-full">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Car className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold">John Deere Tractor</div>
+                    <div className="text-sm opacity-75">Model: JD 5050D • 50 HP</div>
+                    <div className="text-xs text-green-600">Active • Ready</div>
+                  </div>
+                </div>
+              </Button>
+              
+              <Button
+                variant={currentVehicleType === 'tiller' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCurrentVehicleType('tiller');
+                  setShowVehicleSelector(false);
+                }}
+                className="p-4 h-auto justify-start text-left"
+              >
+                <div className="flex items-center space-x-4 w-full">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Wrench className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold">Power Tiller</div>
+                    <div className="text-sm opacity-75">Model: TL 300X • 15 HP</div>
+                    <div className="text-xs text-orange-600">Available • Serviced</div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+            
+            <div className="border-t pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowVehicleSelector(false);
+                  setShowOwnerEquipment(true);
+                }}
+                className="w-full text-ag-green hover:bg-ag-green/10"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Register New Vehicle
+              </Button>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => setShowVehicleSelector(false)}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
