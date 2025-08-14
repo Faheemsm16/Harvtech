@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Package, Sprout, Wheat, Milk, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +42,7 @@ const categories = [
 export default function SellCategoryPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertMarketplaceProductSchema, type InsertMarketplaceProduct } from "@shared/schema";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +29,7 @@ const quantityUnits = [
 export default function ProductUploadPage() {
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSuccess, setIsSuccess] = useState(false);

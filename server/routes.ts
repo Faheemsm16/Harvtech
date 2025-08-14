@@ -44,43 +44,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      let user = await storage.getUser(userId);
-      
-      // Create mock user if doesn't exist (for development)
-      if (!user) {
-        user = await storage.upsertUser({
-          id: userId,
-          name: 'Demo User',
-          email: 'demo@harvtech.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          profileImageUrl: null,
-          mobileNumber: '9876543210',
-          role: 'user',
-          farmerId: 'FARM001',
-          city: 'Chennai',
-          state: 'Tamil Nadu',
-          pincode: '600001',
-          aadharNumber: '123456789012',
-          isVerified: true
-        });
-      }
-      
+      const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Clear marketplace products (for development)
-  app.delete('/api/clear-products', async (req, res) => {
-    try {
-      await db.delete(marketplaceProducts);
-      res.json({ message: "All products cleared successfully" });
-    } catch (error) {
-      console.error("Error clearing products:", error);
-      res.status(500).json({ message: "Failed to clear products" });
     }
   });
 
@@ -95,13 +63,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Seed comprehensive marketplace products with multiple vendors
+  // Seed only marketplace products (for development)
   app.post('/api/seed-products', async (req, res) => {
     try {
       const sampleMarketplaceProducts = [
-        // Seeds Category
+        // Seeds
         {
-          sellerId: "vendor-seeds-1",
+          sellerId: "sample-owner-1",
+          category: "seeds",
+          productName: "Basmati Rice Seeds",
+          productDescription: "Premium quality Basmati rice seeds with high yield potential. Suitable for kharif season.",
+          quantity: 100,
+          quantityUnit: "KG",
+          pricePerUnit: 150,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          isAvailable: true,
+        },
+        {
+          sellerId: "sample-owner-2",
           category: "seeds",
           productName: "Tomato Hybrid Seeds",
           productDescription: "Disease resistant tomato seeds with excellent yield. Perfect for greenhouse cultivation.",
@@ -112,29 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isAvailable: true,
         },
         {
-          sellerId: "vendor-seeds-2",
-          category: "seeds",
-          productName: "Tomato Hybrid Seeds",
-          productDescription: "Premium quality disease resistant tomato seeds with 90% germination rate.",
-          quantity: 40,
-          quantityUnit: "Packet",
-          pricePerUnit: 280,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1592841200221-a6898f307baa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-seeds-3",
-          category: "seeds",
-          productName: "Tomato Hybrid Seeds",
-          productDescription: "Organic certified tomato seeds, perfect for sustainable farming.",
-          quantity: 35,
-          quantityUnit: "Packet",
-          pricePerUnit: 320,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1592841200221-a6898f307baa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-seeds-1",
+          sellerId: "sample-owner-3",
           category: "seeds",
           productName: "Corn Seeds (Sweet Corn)",
           productDescription: "High quality sweet corn seeds with 85% germination rate. Suitable for all seasons.",
@@ -144,111 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1551754655-cd27e38d2076?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
           isAvailable: true,
         },
+        // Fertilizers
         {
-          sellerId: "vendor-seeds-2",
-          category: "seeds",
-          productName: "Corn Seeds (Sweet Corn)",
-          productDescription: "Premium sweet corn variety with excellent taste and high yield potential.",
-          quantity: 60,
-          quantityUnit: "KG",
-          pricePerUnit: 200,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1551754655-cd27e38d2076?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-seeds-1",
-          category: "seeds",
-          productName: "Wheat Seeds",
-          productDescription: "High yielding wheat variety suitable for rabi season. Drought resistant.",
-          quantity: 100,
-          quantityUnit: "KG",
-          pricePerUnit: 45,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-seeds-3",
-          category: "seeds",
-          productName: "Wheat Seeds",
-          productDescription: "Premium wheat seeds with 95% purity and excellent milling quality.",
-          quantity: 80,
-          quantityUnit: "KG",
-          pricePerUnit: 52,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-
-        // Crops Category (Fresh produce, no Basmati rice)
-        {
-          sellerId: "vendor-crops-1",
-          category: "crops",
-          productName: "Fresh Tomatoes",
-          productDescription: "Farm fresh tomatoes, handpicked and sorted. Perfect for market sale.",
-          quantity: 200,
-          quantityUnit: "KG",
-          pricePerUnit: 35,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1546470427-e212b09d6c11?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-crops-2",
-          category: "crops",
-          productName: "Fresh Tomatoes",
-          productDescription: "Organic tomatoes grown without pesticides. Premium quality assured.",
-          quantity: 150,
-          quantityUnit: "KG",
-          pricePerUnit: 42,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1546470427-e212b09d6c11?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-crops-1",
-          category: "crops",
-          productName: "Fresh Onions",
-          productDescription: "High quality onions with good storage life. Suitable for wholesale and retail.",
-          quantity: 300,
-          quantityUnit: "KG",
-          pricePerUnit: 25,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1508313880080-c4bef43d4c8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-crops-3",
-          category: "crops",
-          productName: "Fresh Onions",
-          productDescription: "Premium grade onions, sorted and packed. Direct from farm.",
-          quantity: 250,
-          quantityUnit: "KG",
-          pricePerUnit: 28,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1508313880080-c4bef43d4c8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-crops-2",
-          category: "crops",
-          productName: "Fresh Potatoes",
-          productDescription: "Quality potatoes suitable for cooking and processing. Well sorted.",
-          quantity: 400,
-          quantityUnit: "KG",
-          pricePerUnit: 22,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1549907228-8cdd059359da?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-crops-3",
-          category: "crops",
-          productName: "Fresh Potatoes",
-          productDescription: "Farm fresh potatoes with excellent taste and cooking quality.",
-          quantity: 350,
-          quantityUnit: "KG",
-          pricePerUnit: 26,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1549907228-8cdd059359da?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-
-        // Fertilizers & Manure Category
-        {
-          sellerId: "vendor-fert-1",
+          sellerId: "sample-owner-2",
           category: "fertilizers",
           productName: "NPK 19:19:19",
           productDescription: "Balanced NPK fertilizer suitable for all crops. Water soluble and fast acting.",
@@ -259,29 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isAvailable: true,
         },
         {
-          sellerId: "vendor-fert-2",
-          category: "fertilizers",
-          productName: "NPK 19:19:19",
-          productDescription: "Premium grade NPK fertilizer with micronutrients for enhanced crop growth.",
-          quantity: 30,
-          quantityUnit: "KG",
-          pricePerUnit: 92,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-fert-3",
-          category: "fertilizers",
-          productName: "NPK 19:19:19",
-          productDescription: "Imported NPK fertilizer with 100% water solubility and guaranteed analysis.",
-          quantity: 20,
-          quantityUnit: "KG",
-          pricePerUnit: 105,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-fert-1",
+          sellerId: "sample-owner-5",
           category: "fertilizers",
           productName: "Organic Compost",
           productDescription: "100% organic compost made from farm waste. Rich in nutrients and beneficial microorganisms.",
@@ -291,83 +124,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
           isAvailable: true,
         },
+        // Pesticides
         {
-          sellerId: "vendor-fert-2",
-          category: "fertilizers",
-          productName: "Organic Compost",
-          productDescription: "Premium organic compost with added beneficial bacteria for soil health.",
-          quantity: 80,
-          quantityUnit: "KG",
-          pricePerUnit: 42,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-
-        // Dairy Products Category
-        {
-          sellerId: "vendor-dairy-1",
-          category: "dairy",
-          productName: "Fresh Cow Milk",
-          productDescription: "Pure cow milk from grass-fed cows. Rich in nutrients and fresh daily.",
-          quantity: 50,
-          quantityUnit: "Liter",
-          pricePerUnit: 45,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1563636619-e9143da7973b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-dairy-2",
-          category: "dairy",
-          productName: "Fresh Cow Milk",
-          productDescription: "Organic cow milk from certified organic farms. No hormones or antibiotics.",
-          quantity: 40,
-          quantityUnit: "Liter",
-          pricePerUnit: 55,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1563636619-e9143da7973b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-dairy-1",
-          category: "dairy",
-          productName: "Fresh Paneer",
-          productDescription: "Handmade paneer from pure milk. Soft texture and excellent taste.",
+          sellerId: "sample-owner-3",
+          category: "pesticides",
+          productName: "Neem Oil Pesticide",
+          productDescription: "100% organic neem oil for pest control. Safe for beneficial insects and environment.",
           quantity: 20,
-          quantityUnit: "KG",
-          pricePerUnit: 250,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1571681813271-a8b773c3f3dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          quantityUnit: "Liter",
+          pricePerUnit: 450,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
           isAvailable: true,
         },
+        // Equipment
         {
-          sellerId: "vendor-dairy-3",
-          category: "dairy",
-          productName: "Fresh Paneer",
-          productDescription: "Premium quality paneer made fresh daily. Perfect for cooking.",
-          quantity: 15,
-          quantityUnit: "KG",
-          pricePerUnit: 275,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1571681813271-a8b773c3f3dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          sellerId: "sample-owner-1",
+          category: "equipments",
+          productName: "Manual Seed Drill",
+          productDescription: "Manual seed drill for small farm operations. Ensures proper seed spacing and depth.",
+          quantity: 5,
+          quantityUnit: "Piece",
+          pricePerUnit: 2500,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
           isAvailable: true,
         },
+        // Others
         {
-          sellerId: "vendor-dairy-2",
-          category: "dairy",
-          productName: "Curd (Yogurt)",
-          productDescription: "Fresh homemade curd with natural probiotics. Thick and creamy texture.",
-          quantity: 30,
-          quantityUnit: "KG",
-          pricePerUnit: 65,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1571197300745-4020d028bf3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
-          isAvailable: true,
-        },
-        {
-          sellerId: "vendor-dairy-3",
-          category: "dairy",
-          productName: "Curd (Yogurt)",
-          productDescription: "Traditional curd made from buffalo milk. Rich and flavorful.",
-          quantity: 25,
-          quantityUnit: "KG",
-          pricePerUnit: 72,
-          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1571197300745-4020d028bf3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
+          sellerId: "sample-owner-6",
+          category: "others",
+          productName: "Plastic Mulch Film",
+          productDescription: "Black plastic mulch film for weed control and moisture retention. 25 micron thickness.",
+          quantity: 100,
+          quantityUnit: "Meter",
+          pricePerUnit: 12,
+          imageUrls: JSON.stringify(["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"]),
           isAvailable: true,
         }
       ];
@@ -1484,39 +1274,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Direct buy error:", error);
       res.status(500).json({ message: "Failed to purchase product" });
-    }
-  });
-
-  // Create order with custom data (for vendor purchases)
-  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const orderData = { ...req.body, userId };
-      
-      // Validate the order data
-      const validatedOrderData = insertMarketplaceOrderSchema.parse(orderData);
-      
-      // Prepare order items
-      const orderItems = orderData.items.map((item: any) => ({
-        ...item,
-        id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      }));
-      
-      // Create the order with items
-      const order = await storage.createOrder(validatedOrderData, orderItems);
-      
-      res.json({ 
-        success: true, 
-        orderId: order.id, 
-        orderNumber: order.orderNumber,
-        message: "Order created successfully" 
-      });
-    } catch (error) {
-      console.error("Order creation error:", error);
-      res.status(400).json({ 
-        message: "Failed to create order", 
-        details: error.message 
-      });
     }
   });
 

@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SuccessModal } from "@/components/SuccessModal";
 import { TermsAndConditions } from "@/components/TermsAndConditions";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 
 interface FormData {
   name: string;
@@ -25,7 +25,7 @@ export default function UserRegistrationPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login } = useCustomAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [farmerId, setFarmerId] = useState("");

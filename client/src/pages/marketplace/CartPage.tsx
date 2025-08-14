@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart, Package } from "lucide-re
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,7 +31,7 @@ interface CartItemWithProduct {
 export default function CartPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -3,12 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Shield, Building, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 
 export default function PlatformsPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
 
   const handleBack = () => {
     // Navigate back to appropriate dashboard based on user role

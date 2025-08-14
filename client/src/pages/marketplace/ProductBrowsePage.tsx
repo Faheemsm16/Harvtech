@@ -8,7 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type MarketplaceProduct, type InsertCartItem } from "@shared/schema";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -27,7 +27,7 @@ const categoryNames: Record<string, string> = {
 export default function ProductBrowsePage() {
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 // import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useCustomAuth } from '@/context/AuthContext';
 import { 
   ArrowLeft, 
   Search, 
@@ -38,7 +38,7 @@ interface InsuranceOption {
 
 export default function InsuranceFinancePage() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useCustomAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCardIndex, setCurrentCardIndex] = useState(0);

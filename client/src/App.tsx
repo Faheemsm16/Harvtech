@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/context/LanguageContext";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useCustomAuth } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import NotFound from "@/pages/not-found";
 import EntryPage from "@/pages/EntryPage";
@@ -34,8 +34,6 @@ import WeatherAnalysisHistoryPage from "@/pages/WeatherAnalysisHistoryPage";
 import SellCategoryPage from "@/pages/marketplace/SellCategoryPage";
 import ProductUploadPage from "@/pages/marketplace/ProductUploadPage";
 import BuyCategoryPage from "@/pages/marketplace/BuyCategoryPage";
-import ProductListPage from "@/pages/marketplace/ProductListPage";
-import VendorListPage from "@/pages/marketplace/VendorListPage";
 import ProductBrowsePage from "@/pages/marketplace/ProductBrowsePage";
 import SimpleCartPage from "@/pages/marketplace/SimpleCartPage";
 import CheckoutPage from "@/pages/marketplace/CheckoutPage";
@@ -45,7 +43,7 @@ import MyOrdersPage from "@/pages/MyOrdersPage";
 import MyProductsPage from "@/pages/marketplace/MyProductsPage";
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useCustomAuth();
 
   if (isLoading) {
     return (
@@ -97,8 +95,6 @@ function Router() {
           <Route path="/marketplace/sell" component={SellCategoryPage} />
           <Route path="/marketplace/sell/upload" component={ProductUploadPage} />
           <Route path="/marketplace/buy" component={BuyCategoryPage} />
-          <Route path="/marketplace/buy/products" component={ProductListPage} />
-          <Route path="/marketplace/buy/vendors" component={VendorListPage} />
           <Route path="/marketplace/buy/browse" component={ProductBrowsePage} />
           <Route path="/marketplace/cart" component={SimpleCartPage} />
           <Route path="/marketplace/checkout" component={CheckoutPage} />
@@ -118,14 +114,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LanguageProvider>
-          <CartProvider>
-            <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
-              <Toaster />
-              <Router />
-            </div>
-          </CartProvider>
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <CartProvider>
+              <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+                <Toaster />
+                <Router />
+              </div>
+            </CartProvider>
+          </LanguageProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
