@@ -10,7 +10,7 @@ import {
 import { Tractor, Wrench, Settings, Network, Bell, User, LogOut, Package, Menu, Package2, MoreVertical } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { SchemesModal } from "@/components/SchemesModal";
 
@@ -32,7 +32,7 @@ interface Booking {
 export default function UserDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user, logout } = useCustomAuth();
+  const { user, logout } = useAuth();
   const [showSchemes, setShowSchemes] = useState(false);
 
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({

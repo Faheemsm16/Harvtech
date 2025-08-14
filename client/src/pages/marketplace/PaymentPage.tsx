@@ -7,7 +7,7 @@ import { ArrowLeft, CreditCard, Smartphone, Wallet, Truck, CheckCircle } from "l
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,7 +57,7 @@ const paymentMethods = [
 export default function PaymentPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('UPI');

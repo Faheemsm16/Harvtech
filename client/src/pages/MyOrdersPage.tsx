@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Package, MapPin, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { useCustomAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/context/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiRequest } from '@/lib/queryClient';
@@ -42,7 +42,7 @@ interface Order {
 
 export default function MyOrdersPage() {
   const { t } = useLanguage();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTrackingModal, setShowTrackingModal] = useState(false);

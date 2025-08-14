@@ -18,7 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { SuccessModal } from "@/components/SuccessModal";
 import { TermsAndConditions } from "@/components/TermsAndConditions";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FormData {
   equipmentType: string;
@@ -36,7 +36,7 @@ export default function OwnerRegistrationPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, login } = useCustomAuth();
+  const { user, login } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

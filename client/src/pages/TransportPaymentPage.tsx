@@ -8,7 +8,7 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BookingData {
   pickupLocation: {
@@ -31,7 +31,7 @@ interface BookingData {
 
 export default function TransportPaymentPage() {
   const [, setLocation] = useLocation();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("");

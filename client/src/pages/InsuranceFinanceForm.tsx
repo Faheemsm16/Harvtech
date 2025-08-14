@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useCustomAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   ArrowLeft, 
@@ -73,7 +73,7 @@ const declarationSchema = z.object({
 
 export default function InsuranceFinanceForm() {
   const [, setLocation] = useLocation();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);

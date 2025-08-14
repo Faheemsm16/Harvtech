@@ -11,7 +11,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCustomAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { QRCode } from '@/components/QRCode';
@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   
   const [deliveryAddress, setDeliveryAddress] = useState({

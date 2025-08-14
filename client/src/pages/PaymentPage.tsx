@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { QRCode } from "@/components/QRCode";
 import { ReceiptModal } from "@/components/ReceiptModal";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Equipment {
   id: string;
@@ -23,7 +23,7 @@ export default function PaymentPage() {
   const { equipmentId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const [showReceipt, setShowReceipt] = useState(false);
   const [bookingData, setBookingData] = useState<any>(null);
   

@@ -1277,6 +1277,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create order with custom data (for vendor purchases)
+  app.post('/api/marketplace/orders', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const orderData = { ...req.body, userId };
+      
+      // Validate the order data
+      const validatedOrderData = insertMarketplaceOrderSchema.parse(orderData);
+      
+      // Prepare order items
+      const orderItems = orderData.items.map((item: any) => ({
+        ...item,
+        id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      }));
+      
+      // Create the order with items
+      const order = await storage.createOrder(validatedOrderData, orderItems);
+      
+      res.json({ 
+        success: true, 
+        orderId: order.id, 
+        orderNumber: order.orderNumber,
+        message: "Order created successfully" 
+      });
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(400).json({ 
+        message: "Failed to create order", 
+        details: error.message 
+      });
+    }
+  });
+
   app.get('/api/marketplace/orders/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;

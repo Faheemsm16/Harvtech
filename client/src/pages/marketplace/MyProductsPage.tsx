@@ -6,7 +6,7 @@ import { ArrowLeft, Package, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-reac
 import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type MarketplaceProduct } from "@shared/schema";
@@ -14,7 +14,7 @@ import { type MarketplaceProduct } from "@shared/schema";
 export default function MyProductsPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

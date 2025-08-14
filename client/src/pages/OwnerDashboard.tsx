@@ -58,7 +58,7 @@ import {
   Fuel
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useCustomAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { SchemesModal } from "@/components/SchemesModal";
@@ -79,7 +79,7 @@ interface Equipment {
 
 export default function OwnerDashboard() {
   const { t } = useLanguage();
-  const { user, logout } = useCustomAuth();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [showSchemes, setShowSchemes] = useState(false);
   const [showOwnerEquipment, setShowOwnerEquipment] = useState(false);
